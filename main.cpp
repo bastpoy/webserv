@@ -33,10 +33,10 @@ std::string readFile(std::string &path)
     return (finalContent);
 }
 
-void getFileContent(std::string& content)
+void getFileContent(std::string &content, std::string &uri)
 {
     std::string defaultPath = "./website";
-    std::string filePath = defaultPath + "/index.html"; // Change this to your file path
+    std::string filePath = defaultPath + uri; // Change this to your file path
     
     try 
     {
@@ -124,23 +124,27 @@ int main() {
         std::string contentType;
 
         // je recupere le path de chaque requete http
-        std::cout << "the path before: " << path << std::endl;
-        path = path.substr(path.find('/'), path.size() - path.find('/'));
-        path = path.substr(0, path.find(' '));
-        // std::cout << "the path is: " << path << std::endl;
+        if(!path.empty())
+        {
+            //je recupere l'uri
+            path = path.substr(path.find('/'), path.size() - path.find('/'));
+            path = path.substr(0, path.find(' '));
+            std::cout << "the path after: " << path << std::endl;
+            //je recupere le type du fichier
+            contentType = getContentType(path);
+        }
+        else
+            contentType = "application/octet-stream";
 
-        // je recuper le contenu du fichier
-        getFileContent(content);
-        // je recupere le type du fichier 
-        contentType = getContentType(path);
+        // je recupere le contenu du fichier
+        getFileContent(content, path);
         std::cout << "the content type: " << contentType << std::endl;
         std::string response = "HTTP/1.1 200 OK \r\n"
-                                "Content-Type: text/html\r\n"
+                                // "Content-Type: text/html\r\n"
                                 "Content-Type: " + contentType + ";\r\n"
-                                // "Content-Length: " + to_string(content.size()) + "\r\n"
+                                "Content-Length: " + to_string(content.size()) + "\r\n"
                                 "Connection: close\r\n"
                                 "\r\n" + content;
-        std::cout << "response\n";
         send(connection, response.c_str(), response.size(), 0);
         close(connection);
         std::cout << "\n\n";
