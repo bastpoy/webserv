@@ -1,26 +1,35 @@
-SRCSCPP = main.cpp
+SRCSCPP = main.cpp ./srcs/resHeader.cpp
 
 OBJSCPP = $(patsubst %.cpp, objects/%.o, $(SRCSCPP))
 
 CFLAGS = -Wall -Wextra -Werror -std=c++98 -g3
 
+# Add include directories manually (-I<path_to_headers>)
+# Example: -I./include or -I./headers if you have folders with headers
+# Here we are adding current directory and a hypothetical "includes" folder
+CPPFLAGS = -I. -I./include -MMD -MP
+
 NAME = webserv
 
-$(NAME) :  $(OBJSCPP)
+$(NAME): $(OBJSCPP)
 	c++ $(CFLAGS) -o $(NAME) $(OBJSCPP)
 
-all : $(NAME)
+all: $(NAME)
 
-objects/%.o : %.cpp
+objects/%.o: %.cpp
 	mkdir -p $(dir $@)
-	c++ $(CFLAGS) -c $< -o $@
+	c++ $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
-clean :
+# Include automatically generated dependency files
+-include $(OBJSCPP:.o=.d)
+
+clean:
 	rm -rf objects
 
-fclean : clean
+fclean: clean
 	rm -f $(NAME)
 
-re : fclean all
+re: fclean all
 
-.PHONY:  all clean fclean re
+.PHONY: all clean fclean re
+

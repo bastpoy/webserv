@@ -1,14 +1,4 @@
-#include <sys/socket.h> // For socket functions
-#include <netinet/in.h> // For sockaddr_in
-#include <cstdlib> // For exit() and EXIT_FAILURE
-#include <iostream> // For cout
-#include <unistd.h> // For close
-#include <errno.h> // For errno
-#include <string.h> // For strerror
-#include <sstream> // For string streams
-#include <fstream>      // std::ifstream
-#include <stdexcept>
-#include <map>
+#include "resHeader.hpp"
 
 template <typename T>
 std::string to_string(T value) {
@@ -21,31 +11,38 @@ std::string readFile(std::string &path)
 {
     std::string content;
     std::string finalContent;
-    std::ifstream file(path.c_str());
+    std::ifstream file(path.c_str(), std::ios::binary);
     if(!file.is_open())
     {
-        throw std::runtime_error("error opening file:" + path);
+        throw resHeader::ErrorOpeningFile();
     }
-    while(std::getline(file, content))
-    {
-        finalContent = finalContent + content;
-    }
-    return (finalContent);
+    return std::string(
+        std::istreambuf_iterator<char>(file),
+        std::istreambuf_iterator<char>()
+    );
 }
 
-void getFileContent(std::string &content, std::string &uri)
+void getFileContent(std::string &uri , std::string &contentType, int connection)
 {
     std::string defaultPath = "./website";
     std::string filePath = defaultPath + uri; // Change this to your file path
-    
-    try 
+    std::string content;
+
+    //read the file content 
+    content = readFile(filePath);
+    //return the response
+    std::cout << "the content type: " << contentType << std::endl;
+    std::string response = "HTTP/1.1 200 OK \r\n"
+                            // "Content-Type: text/html\r\n"
+                            "Content-Type: " + contentType + "\r\n"
+                            "Content-Length: " + to_string(content.size()) + "\r\n"
+                            "Connection: close\r\n"
+                            "\r\n" + content;
+    if(send(connection, response.c_str(), response.size(), 0) < 0)
     {
-        content = readFile(filePath);
-    } 
-    catch (const std::exception& e) 
-    {
-        std::cerr << "Error reading file: " << e.what() << std::endl;
-    }    
+        std::cout << strerror(errno) << std::endl;
+        throw resHeader::ErrorSendingResponse(); 
+    }
 }
 
 std::string getContentType(const std::string &path) 
@@ -108,44 +105,43 @@ int main() {
         std::cout << "Connection accepted." << std::endl;
 
         // Receive data from the connection
-        char buffer[100];
+        char buffer[1024];
         ssize_t bytesRead = recv(connection, buffer, sizeof(buffer) - 1, 0);
         if (bytesRead < 0) 
         {
             std::cerr << "Error reading data. errno: " << strerror(errno) << std::endl;
             return (errno);
         } 
-        else {
-            buffer[bytesRead] = '\0'; // Null-terminate the buffer
-            // std::cout << "Received message: " << buffer << std::endl;
-        }
+        buffer[bytesRead] = '\0'; // Null-terminate the buffer
+
         std::string path = buffer;
         std::string content;
         std::string contentType;
 
-        // je recupere le path de chaque requete http
+        // get http request
         if(!path.empty())
         {
-            //je recupere l'uri
+            //get uri
+            std::cout << "-----the path before-----\n: " << path;
+            std::cout << "\n\n";
             path = path.substr(path.find('/'), path.size() - path.find('/'));
             path = path.substr(0, path.find(' '));
             std::cout << "the path after: " << path << std::endl;
-            //je recupere le type du fichier
+            //get the type file
             contentType = getContentType(path);
         }
         else
-            contentType = "application/octet-stream";
+            contentType = "/index.html";
 
-        // je recupere le contenu du fichier
-        getFileContent(content, path);
-        std::cout << "the content type: " << contentType << std::endl;
-        std::string response = "HTTP/1.1 200 OK \r\n"
-                                // "Content-Type: text/html\r\n"
-                                "Content-Type: " + contentType + ";\r\n"
-                                "Content-Length: " + to_string(content.size()) + "\r\n"
-                                "Connection: close\r\n"
-                                "\r\n" + content;
-        send(connection, response.c_str(), response.size(), 0);
+        //get the file content
+        try
+        {
+            getFileContent(path, contentType, connection);
+        }
+        catch(const std::exception& e)
+        {
+            std::cout << e.what() << std::endl;
+        }
         close(connection);
         std::cout << "\n\n";
     }
