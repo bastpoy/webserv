@@ -109,6 +109,7 @@ footer {
 	padding: 10px 20px;
 	cursor: pointer;
 	margin: 20px;
+	border-radius: 8px;
 }
 
 /* Classes pour le thème sombre */
