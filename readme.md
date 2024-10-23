@@ -92,3 +92,30 @@ Location
 - Comprendre le CGI et comment l'implemeneter
 - Setup routes http?
 - Activer, desactiver le listing des repertoires?
+
+## PARSING
+
+- parsing a partir du fichier de configuration.
+- un bloc http 
+    => un nombre de server dans ce http
+        => redirection
+        => location
+        => root
+- class: 
+        - http
+        - server
+        - location
+
+- dans http: 
+        => server(plusieurs)
+- dans server:
+        => listen (port)
+        => server_name 
+        => root
+        => index
+        => return (redirection)
+        => location
+- dans location:
+        => index
+        => return (redirection)
+    

@@ -27,10 +27,7 @@ class resHeader
         };
 
     private:
-        // char buffer[1024];
-        // std::string path;
-        // std::string content;
-        // std::string contentType;
+
 };
 
 #endif
