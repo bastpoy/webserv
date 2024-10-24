@@ -92,7 +92,10 @@ Location
         => dans server et location
 - limiter la taille du body des clients
         => dans server et location
+- Activer ou desactiver le listing des repertoires:
+        => dans location
 - set un fichier par defaut si la requete est un repertoire.
+        => 
 
 ## PARSING CONF
 
@@ -123,6 +126,7 @@ Location
         => return (redirection)
         => error_page
         => client_max_body_size
+        => autoindex on
 
-- obligation d'avoir un server et un location
+- obligation d'avoir un server et une location
     

@@ -11,8 +11,8 @@
 #include <sstream> // For string streams
 #include <fstream>      // std::ifstream
 #include <stdexcept>
-#include <map>
 #include <vector>
+#include <map>
 
 class resHeader
 {
