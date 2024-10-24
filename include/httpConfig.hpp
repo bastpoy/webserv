@@ -3,18 +3,27 @@
 
 #include <vector>
 #include "serverConfig.hpp"
+#include "resHeader.hpp"
 
+class serverConfig;
 class httpConfig
 {
     public:
+
+        //canonical
         httpConfig();
         ~httpConfig();
-        std::vector<serverConfig> getServer();
+
+        //getter
+        std::vector<serverConfig*> getServer();
+        
+        //setter
         void addServer(serverConfig *server);
         
         //parsing
         int parseConfig();
-        int getServerAttributs(std::ifstream file);
+        void getServerAttributs(std::ifstream& file, serverConfig *server);
+
     private:
         std::vector<serverConfig*> server;
 };

@@ -12,6 +12,7 @@
 #include <fstream>      // std::ifstream
 #include <stdexcept>
 #include <map>
+#include <vector>
 
 class resHeader
 {

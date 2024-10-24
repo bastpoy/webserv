@@ -15,5 +15,6 @@ RUN chmod -R 745 /var/www/website
 COPY ./website  /var/www/website
 
 EXPOSE 8080
+EXPOSE 9000
 
 CMD ["nginx", "-g", "daemon off;"]

@@ -70,8 +70,8 @@ int main() {
   // Create a socket (IPv4, TCP)
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd == -1) {
-    std::cerr << "Failed to create socket. errno: " << errno << std::endl;
-    exit(EXIT_FAILURE);
+        std::cerr << "Failed to create socket. errno: " << errno << std::endl;
+        exit(EXIT_FAILURE);
     }
 
     // Bind the socket to an address and port
