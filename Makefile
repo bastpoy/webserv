@@ -31,5 +31,8 @@ fclean: clean
 
 re: fclean all
 
+ozan:
+	make -f Makefile.ozan
+
 .PHONY: all clean fclean re
 
