@@ -1,4 +1,5 @@
 #include "resHeader.hpp"
+#include <sys/epoll.h>
 
 template <typename T>
 std::string to_string(T value) {
@@ -66,12 +67,14 @@ std::string getContentType(const std::string &path)
 	return "application/octet-stream"; // Default content type
 }
 
+
 int main() {
-  // Create a socket (IPv4, TCP)
+	// Create a socket (IPv4, TCP)
 	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	if (sockfd == -1) {
-	std::cerr << "Failed to create socket. errno: " << errno << std::endl;
-	exit(EXIT_FAILURE);
+	if (sockfd == -1)
+	{
+		std::cerr << "Failed to create socket. errno: " << errno << std::endl;
+		exit(EXIT_FAILURE);
 	}
 
 	// Bind the socket to an address and port
@@ -93,59 +96,127 @@ int main() {
 	}
 	std::cout << "Server is listening on port 9999..." << std::endl;
 
-	while(true)
+
+	//Ozan
+
+	// Creating an epoll instance
+	int epoll_fd = epoll_create1(0);
+	if (epoll_fd == -1)
 	{
-		// Accept a connection
-		socklen_t addrlen = sizeof(sockaddr);  
-		int connection = accept(sockfd, (struct sockaddr*)&sockaddr, &addrlen);
-		if (connection < 0) {
-			std::cerr << "Failed to grab connection. errno: " << errno << std::endl;
-			exit(EXIT_FAILURE);
-		}
-		std::cout << "Connection accepted." << std::endl;
-
-		// Receive data from the connection
-		char buffer[1024];
-		ssize_t bytesRead = recv(connection, buffer, sizeof(buffer) - 1, 0);
-		if (bytesRead < 0) 
-		{
-			std::cerr << "Error reading data. errno: " << strerror(errno) << std::endl;
-			return (errno);
-		} 
-		buffer[bytesRead] = '\0'; // Null-terminate the buffer
-
-		std::string path = buffer;
-		std::string content;
-		std::string contentType;
-
-		// get http request
-		if(!path.empty())
-		{
-			//get uri
-			std::cout << "-----the path before-----\n: " << path;
-			std::cout << "\n\n";
-			path = path.substr(path.find('/'), path.size() - path.find('/'));
-			path = path.substr(0, path.find(' '));
-			std::cout << "the path after: " << path << std::endl;
-			//get the type file
-			contentType = getContentType(path);
-		}
-		else
-			contentType = "/index.html";
-
-		//get the file content
-		try
-		{
-			getFileContent(path, contentType, connection);
-		}
-		catch(const std::exception& e)
-		{
-			std::cout << e.what() << std::endl;
-		}
-		close(connection);
-		std::cout << "\n\n";
+		std::cerr << "Failed to create epoll file descriptor" << std::endl;
+		exit(EXIT_FAILURE);
 	}
-	close(sockfd);
+
+	// Add listening-socket to epoll
+	epoll_event event;
+	event.events = EPOLLIN;
+	event.data.fd = sockfd;
+	epoll_ctl(epoll_fd, EPOLL_CTL_ADD, sockfd, &event);
+
+	//Stocking elements
+	epoll_event events[10];
+
+	//End Ozan
+
+
+	//Ozan 2 (while)
+	while (true)
+	{
+		int	n = epoll_wait(epoll_fd, events, 10, -1);
+
+		for (int i = 0; i < n; i++)
+		{
+			if (events[i].data.fd == sockfd)
+			{
+				// New Connection
+				int		connection = accept(sockfd, nullptr, nullptr);
+
+				event.events = EPOLLIN;
+				event.data.fd = connection;
+				epoll_ctl(epoll_fd, EPOLL_CTL_ADD, connection, &event);
+			}
+			else
+			{
+				// Read the request
+				int		connection = events[i].data.fd;
+				char	buffer[1024];
+				ssize_t	bytesRead = recv(connection, buffer, sizeof(buffer) - 1, 0);
+
+				buffer[bytesRead] = '\0';
+				std::string path = buffer;
+				path = path.substr(path.find('/'), path.size() - path.find('/'));
+				path = path.substr(0, path.find(' '));
+
+				std::string contentType = getContentType(path);
+				try
+				{
+					getFileContent(path, contentType, connection);
+				}
+				catch(const std::exception& e)
+				{
+					std::cout << e.what() << std::endl;
+				}
+				close(connection); //Close connection when his done
+				
+
+			}
+		}
+	}
+
+
+	// while(true)
+	// {
+	// 	// Accept a connection
+	// 	socklen_t addrlen = sizeof(sockaddr);  
+	// 	int connection = accept(sockfd, (struct sockaddr*)&sockaddr, &addrlen);
+	// 	if (connection < 0) {
+	// 		std::cerr << "Failed to grab connection. errno: " << errno << std::endl;
+	// 		exit(EXIT_FAILURE);
+	// 	}
+	// 	std::cout << "Connection accepted." << std::endl;
+
+	// 	// Receive data from the connection
+	// 	char buffer[1024];
+	// 	ssize_t bytesRead = recv(connection, buffer, sizeof(buffer) - 1, 0);
+	// 	if (bytesRead < 0) 
+	// 	{
+	// 		std::cerr << "Error reading data. errno: " << strerror(errno) << std::endl;
+	// 		return (errno);
+	// 	} 
+	// 	buffer[bytesRead] = '\0'; // Null-terminate the buffer
+
+	// 	std::string path = buffer;
+	// 	std::string content;
+	// 	std::string contentType;
+
+	// 	// get http request
+	// 	if(!path.empty())
+	// 	{
+	// 		//get uri
+	// 		std::cout << "-----the path before-----\n: " << path;
+	// 		std::cout << "\n\n";
+	// 		path = path.substr(path.find('/'), path.size() - path.find('/'));
+	// 		path = path.substr(0, path.find(' '));
+	// 		std::cout << "the path after: " << path << std::endl;
+	// 		//get the type file
+	// 		contentType = getContentType(path);
+	// 	}
+	// 	else
+	// 		contentType = "/index.html";
+
+	// 	//get the file content
+	// 	try
+	// 	{
+	// 		getFileContent(path, contentType, connection);
+	// 	}
+	// 	catch(const std::exception& e)
+	// 	{
+	// 		std::cout << e.what() << std::endl;
+	// 	}
+	// 	close(connection);
+	// 	std::cout << "\n\n";
+	// }
+	// close(sockfd);
 
 	return 0;
 }

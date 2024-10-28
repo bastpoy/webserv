@@ -15,22 +15,22 @@
 
 class resHeader
 {
-    public:
+	public:
 
-        class ErrorOpeningFile : public std::exception{
-            public:
-                virtual const char* what() const throw();
-        };
-        class ErrorSendingResponse : public std::exception{
-            public:
-                virtual const char* what() const throw();
-        };
+		class ErrorOpeningFile : public std::exception{
+			public:
+				virtual const char* what() const throw();
+		};
+		class ErrorSendingResponse : public std::exception{
+			public:
+				virtual const char* what() const throw();
+		};
 
-    private:
-        // char buffer[1024];
-        // std::string path;
-        // std::string content;
-        // std::string contentType;
+	private:
+		// char buffer[1024];
+		// std::string path;
+		// std::string content;
+		// std::string contentType;
 };
 
 #endif
