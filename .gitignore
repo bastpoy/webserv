@@ -1,4 +1,8 @@
+# Prerequisites
 .objs
 .o
 .deps
 .d
+
+# Executable
+webserv

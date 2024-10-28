@@ -18,7 +18,7 @@ NAME		:=	webserv
 SRCS_DIR	:=	srcs
 SRCS		=	srcs/main.cpp \
 				srcs/resHeader.cpp \
-				srcs/file.cpp
+				srcs/Socket.cpp
 
 # Object directories and files
 OBJS_DIR	:=	.objs
@@ -40,13 +40,15 @@ RM			:=	rm -rf
 
 # Build the executable
 $(NAME): $(OBJS)
-	@$(CXX) -o $(NAME) $(OBJS)
+	$(CXX) -o $(NAME) $(OBJS)
 
 # Compile source files into object files
 $(OBJS_DIR)/%.o: $(SRCS_DIR)/%.cpp Makefile
-	@mkdir -p $(dir $@) $(DEPS_DIR)
-	@echo "Compiling $<..."
-	@$(CXX) $(INCFLAGS) -c $< -o $@ $(DEPFLAGS) $(DEPS_DIR)/$*.d
+	mkdir -p $(dir $@) $(DEPS_DIR)
+	echo "Compiling $<..."
+	$(CXX) $(INCFLAGS) -c $< -o $@ $(DEPFLAGS) $(DEPS_DIR)/$*.d
+
+all: $(NAME)
 
 # Display help information
 help:
@@ -87,12 +89,12 @@ clean:
 	@$(RM) $(DEPS_DIR)
 
 # Clean executable
-fclean: clean
+fclean:	clean
 	@echo "$(RED)Cleaning up $(NAME)...$(RESET)"
 	@$(RM) $(NAME)
 
 # Rebuild everything
-re: fclean all
+re:		fclean all
 
 # Phony targets
 .PHONY: all clean fclean re
