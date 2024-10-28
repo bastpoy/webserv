@@ -2,7 +2,8 @@
 #include <sys/epoll.h>
 
 template <typename T>
-std::string to_string(T value) {
+std::string to_string(T value)
+{
   std::ostringstream oss;
   oss << value;
   return oss.str();
@@ -96,7 +97,8 @@ void simple_epoll(int listen_fd)
 	close(epoll_fd); // Ferme le descripteur epoll (non atteint dans cet exemple)
 }
 
-int main() {
+int	main(void)
+{
 	// Create a socket (IPv4, TCP)
 	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockfd == -1)
@@ -123,74 +125,6 @@ int main() {
 		exit(EXIT_FAILURE);
 	}
 	std::cout << "Server is listening on port 9999..." << std::endl;
-
-
-	//Ozan
-
-	// Creating an epoll instance
-	int epoll_fd = epoll_create1(0);
-	if (epoll_fd == -1)
-	{
-		std::cerr << "Failed to create epoll file descriptor" << std::endl;
-		exit(EXIT_FAILURE);
-	}
-
-	// Add listening-socket to epoll
-	epoll_event event;
-	event.events = EPOLLIN;
-	event.data.fd = sockfd;
-	epoll_ctl(epoll_fd, EPOLL_CTL_ADD, sockfd, &event);
-
-	//Stocking elements
-	epoll_event events[10];
-
-	//End Ozan
-
-
-	//Ozan 2 (while)
-	while (true)
-	{
-		int	n = epoll_wait(epoll_fd, events, 10, -1);
-
-		for (int i = 0; i < n; i++)
-		{
-			if (events[i].data.fd == sockfd)
-			{
-				// New Connection
-				int		connection = accept(sockfd, nullptr, nullptr);
-
-				event.events = EPOLLIN;
-				event.data.fd = connection;
-				epoll_ctl(epoll_fd, EPOLL_CTL_ADD, connection, &event);
-			}
-			else
-			{
-				// Read the request
-				int		connection = events[i].data.fd;
-				char	buffer[1024];
-				ssize_t	bytesRead = recv(connection, buffer, sizeof(buffer) - 1, 0);
-
-				buffer[bytesRead] = '\0';
-				std::string path = buffer;
-				path = path.substr(path.find('/'), path.size() - path.find('/'));
-				path = path.substr(0, path.find(' '));
-
-				std::string contentType = getContentType(path);
-				try
-				{
-					getFileContent(path, contentType, connection);
-				}
-				catch(const std::exception& e)
-				{
-					std::cout << e.what() << std::endl;
-				}
-				close(connection); //Close connection when his done
-				
-
-			}
-		}
-	}
-
 
 	while(true)
 	{
@@ -249,4 +183,32 @@ int main() {
 
 	return 0;
 }
+
+
+
+// int main_amandine() {
+//     // Création d'un socket serveur sur IPv4, TCP, port 8080, interface INADDR_ANY
+//     Socket serverSocket(AF_INET, SOCK_STREAM, 0, 8080, INADDR_ANY);
+	
+//     // Lier le socket à l'adresse
+//     serverSocket.bindSocket();
+	
+//     // Mettre le socket en écoute
+//     serverSocket.listenSocket(10);
+
+//     std::cout << "Le serveur écoute sur le port 8080..." << std::endl;
+
+//     // Boucle pour accepter les connexions entrantes
+//     int clientSocket = serverSocket.acceptConnection();
+//     std::string hello = "Hello World";
+//     std::string recv;
+//     serverSocket.sendData(clientSocket, hello);
+//     serverSocket.receiveData(clientSocket, recv);
+//     std::cout << recv << std::endl;
+//     serverSocket.closeSocket();
+//     // std::cout << clientSocket << std::endl;
+
+//     return 0;
+// }
+
 
