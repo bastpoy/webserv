@@ -28,7 +28,7 @@ DEPS		:=	$(patsubst $(OBJS_DIR)/%.o, $(DEPS_DIR)/%.d, $(OBJS))
 CXX			:=	c++ $(CXXFLAGS)
 CXXFLAGS	:=	-Werror -Wall -Wextra -std=c++98 -g3
 DEPFLAGS	:=	-MMD -MP -MF
-INCFLAGS	:=	-Iincludes
+INCFLAGS	=	-Iincludes
 RM			:=	rm -rf
 
 # Include automatically generated dependency files
@@ -80,8 +80,9 @@ all: $(NAME)
 # Clean object and dependency files
 clean:
 	@echo "$(RED)Cleaning up object files...$(RESET)"
-	@$(RM) $(OBJ)
+	@$(RM) $(OBJS)
 	@$(RM) $(OBJS_DIR)
+	@$(RM) $(DEPS)
 	@$(RM) $(DEPS_DIR)
 
 # Clean executable
