@@ -9,6 +9,7 @@ int main()
     try
     {
         config.parseConfig();
+        config.printConfig();
     }
     catch(const std::exception& e)
     {

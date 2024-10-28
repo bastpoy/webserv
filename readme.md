@@ -84,6 +84,8 @@ Location
 
 ## CONFIGURATION FILE
 
+### CARACTERISTIQUES
+
 - Si pas de server_name =>
         - repond aux requetes provenant de toute type de domaine.
         - Sinon je specifie pour savoir sur quel domaine j'ecoute
@@ -97,7 +99,7 @@ Location
 - set un fichier par defaut si la requete est un repertoire.
         => 
 
-## PARSING CONF
+### PARSING CONF
 
 - parsing a partir du fichier de configuration.
 - un bloc http 

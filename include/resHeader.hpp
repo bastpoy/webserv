@@ -26,6 +26,14 @@ class resHeader
             public:
                 virtual const char* what() const throw();
         };
+        class ConfigurationFileLocation : public std::exception{
+            public:
+                virtual const char* what() const throw();
+        };
+        class ConfigurationFileServer : public std::exception{
+            public:
+                virtual const char* what() const throw();
+        };
 
     private:
 
