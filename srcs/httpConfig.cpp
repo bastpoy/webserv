@@ -14,6 +14,11 @@ void httpConfig::addServer(serverConfig *server)
 
 //getter
 
+std::vector<serverConfig*> &httpConfig::getServer()
+{
+    return(this->server);
+}
+
 //setter
 
 

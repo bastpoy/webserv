@@ -15,7 +15,7 @@ class httpConfig
         ~httpConfig();
 
         //getter
-        std::vector<serverConfig*> getServer();
+        std::vector<serverConfig*> &getServer();
         
         //setter
         void addServer(serverConfig *server);

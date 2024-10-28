@@ -17,10 +17,9 @@
     };
 
 
-## NOTION HTTP
+## NOTIONS HTTP
 
 - Comprendre la RFC et implementer les differentes fonctionnalites de cette norme
-
 
 ### FORMAT DE BASE
 
@@ -131,4 +130,3 @@ Location
         => autoindex on
 
 - obligation d'avoir un server et une location
-    

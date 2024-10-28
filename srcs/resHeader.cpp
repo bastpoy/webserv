@@ -21,3 +21,18 @@ const char* resHeader::ConfigurationFileServer::what() const throw()
 {
     return("Error in the Server block configuration file");
 }
+
+const char* resHeader::ErrorGetAddrInfo::what() const throw()
+{
+    return("Error getting the address info");
+}
+
+const char* resHeader::ErrorBindAddress::what() const throw()
+{
+    return("Error binding socket with my address");
+}
+
+const char* resHeader::ErrorListening::what() const throw()
+{
+    return("Error listening on my currebt socket");
+}

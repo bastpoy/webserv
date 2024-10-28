@@ -1,6 +1,7 @@
 SRCSCPP = main.cpp srcs/resHeader.cpp
 SRCSPARSING = srcs/httpConfig.cpp srcs/locationConfig.cpp \
-				srcs/serverConfig.cpp srcs/main.cpp srcs/resHeader.cpp
+				srcs/serverConfig.cpp srcs/main.cpp srcs/resHeader.cpp \
+				srcs/serverAddr.cpp
 
 OBJSCPP = $(patsubst %.cpp, objects/%.o, $(SRCSCPP))
 OBJSPARSING = $(patsubst %.cpp, objects/%.o, $(SRCSPARSING))
