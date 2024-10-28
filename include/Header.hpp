@@ -16,6 +16,16 @@
 # include <fstream>      // std::ifstream
 # include <stdexcept>
 # include <map>
+# include <cstddef>
+# include "Client.hpp"
+# include "ConfigParser.hpp"
+# include "Logger.hpp"
+# include "Request.hpp"
+# include "RequestHandler.hpp"
+# include "Response.hpp"
+# include "Server.hpp"
+# include "Socket.hpp"
+# include "VirtualHost.hpp"
 
 /* ------------- COLORS ------------- */
 // Reset
