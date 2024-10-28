@@ -12,9 +12,9 @@ Accepter les connexions des clients et les rediriger vers un gestionnaire de req
 class Server
 {
 public:
-	void	listen(); // pour écouter sur une adresse IP et un port spécifiés.
-	void	acceptConnection(); // pour accepter les connexions entrantes.
-	void	setup(); //pour la configuration du serveur avec les options données (par exemple, plusieurs configurations de serveur virtuel).
+	void	listen();			// pour écouter sur une adresse IP et un port spécifiés.
+	void	acceptConnection();	// pour accepter les connexions entrantes.
+	void	setup();			// pour la configuration du serveur avec les options données (par exemple, plusieurs configurations de serveur virtuel).
 
 };
 

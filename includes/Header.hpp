@@ -1,31 +1,39 @@
 #ifndef HEADER_HPP
 # define HEADER_HPP
 
-# include <string>
-# include <vector>
-# include <exception>
-# include <utility>
-# include <sys/socket.h> // For socket functions
-# include <netinet/in.h> // For sockaddr_in
-# include <cstdlib> // For exit() and EXIT_FAILURE
-# include <iostream> // For cout
-# include <unistd.h> // For close
-# include <errno.h> // For errno
-# include <string.h> // For strerror
-# include <sstream> // For string streams
-# include <fstream>      // std::ifstream
-# include <stdexcept>
-# include <map>
-# include <cstddef>
-# include "Client.hpp"
-# include "ConfigParser.hpp"
-# include "Logger.hpp"
-# include "Request.hpp"
-# include "RequestHandler.hpp"
-# include "Response.hpp"
-# include "Server.hpp"
-# include "Socket.hpp"
-# include "VirtualHost.hpp"
+
+
+// Bibliothèques standard C++
+#include <string>				// Manipulation de chaînes
+#include <vector>				// Conteneur vector
+#include <map>					// Conteneur map
+#include <exception>			// Gestion des exceptions
+#include <stdexcept>			// Exceptions standard
+#include <utility>				// Utilitaires
+#include <cstddef>				// Types de taille
+
+#include <iostream>				// Pour cout
+#include <sstream>				// Pour les flux de chaînes
+#include <fstream>				// std::ifstream
+
+// Bibliothèques système / C
+#include <sys/socket.h>			// Pour les fonctions de socket
+#include <netinet/in.h>			// Pour sockaddr_in
+#include <cstdlib>				// Pour exit() et EXIT_FAILURE
+#include <errno.h>				// Pour errno
+#include <string.h>				// Pour strerror
+#include <unistd.h>				// Pour close
+
+// Fichiers d'en-tête spécifiques au projet
+#include "Client.hpp"			// Classe Client
+#include "ConfigParser.hpp"		// Classe pour parser la configuration
+#include "Logger.hpp"			// Logger pour les messages
+#include "Request.hpp"			// Classe pour les requêtes
+#include "RequestHandler.hpp"	// Gestion des requêtes
+#include "Response.hpp"			// Classe pour les réponses
+#include "Server.hpp"			// Classe pour le serveur
+#include "Socket.hpp"			// Classe pour les sockets
+#include "VirtualHost.hpp"		// Classe pour les hôtes virtuels
 
 /* ------------- COLORS ------------- */
 // Reset
