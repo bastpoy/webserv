@@ -2,6 +2,8 @@
 #include "serverConfig.hpp"
 #include "locationConfig.hpp"
 #include "serverAddr.hpp"
+#include "resHeader.hpp"
+#include <sys/epoll.h>
 
 int main()
 {
@@ -21,8 +23,6 @@ int main()
     }
     return (0);
 }
-#include "resHeader.hpp"
-#include <sys/epoll.h>
 
 template <typename T>
 std::string to_string(T value)
