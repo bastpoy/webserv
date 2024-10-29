@@ -20,8 +20,11 @@ SRCS_DIR	:=	srcs
 SRCS		=	srcs/main.cpp \
 				srcs/resHeader.cpp \
 				srcs/Socket.cpp
-SRCSPARSING = srcs/httpConfig.cpp srcs/locationConfig.cpp \
-				srcs/serverConfig.cpp srcs/main.cpp srcs/resHeader.cpp \
+SRCSPARSING =	srcs/httpConfig.cpp\
+				srcs/locationConfig.cpp \
+				srcs/serverConfig.cpp \
+				srcs/main.cpp \
+				srcs/resHeader.cpp \
 				srcs/serverAddr.cpp
 
 # Object directories and files

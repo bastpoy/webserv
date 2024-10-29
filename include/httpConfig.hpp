@@ -8,27 +8,27 @@
 class serverConfig;
 class httpConfig
 {
-    public:
+	public:
 
-        //basic
-        httpConfig();
-        ~httpConfig();
+		//basic
+		httpConfig();
+		~httpConfig();
 
-        //getter
-        std::vector<serverConfig> &getServer();
-        
-        //setter
-        void addServer(serverConfig &server);
-        
-        //parsing
-        void parseConfig();
-        void getServerAttributs(std::ifstream& file, serverConfig &server);
+		//getter
+		std::vector<serverConfig> &getServer();
+		
+		//setter
+		void addServer(serverConfig &server);
+		
+		//parsing
+		void parseConfig();
+		void getServerAttributs(std::ifstream& file, serverConfig &server);
 
-        //other
-        void printConfig();
+		//other
+		void printConfig();
 
-    private:
-        std::vector<serverConfig> server;
+	private:
+		std::vector<serverConfig> server;
 };
 
 #endif

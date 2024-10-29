@@ -3,18 +3,41 @@
 
 # include "Header.hpp"
 
-/*
-But : Charger et analyser les fichiers de configuration.
-Rôle :
-Lire les paramètres de configuration (port, racine du serveur, paramètres des serveurs virtuels).
-Faciliter la configuration flexible du serveur.
-*/
-class Config
+/**
+ * @brief	Class responsible for parsing the configuration file for the server.
+ * @note	This class reads and stores configuration parameters such as server port, root directory,
+ * 			and virtual server (host) settings. It allows for flexible server configuration and 
+ * 			manages the setup of multiple virtual hosts.
+ * @details	Similar functionality to "httpConfig.hpp", designed to handle HTTP server configurations.
+ */
+class ConfigParser
 {
-	int		_port;
-	int		_server_root;
-public:
-	void	parseConfigFile(); // pour analyser le fichier de configuration et remplir les attributs.
+	private:
+		std::vector<Server>	_servers; // Stores the list of configured servers
+	// 	int		_port;
+	// 	int		_server_root;
+
+	public:
+		// Canonical form (constructor, destructor, copy operations)
+		ConfigParser(void);
+		~ConfigParser(void);
+		ConfigParser(const ConfigParser &other);
+		ConfigParser	&operator=(const ConfigParser &other);
+
+		// Getter
+		std::vector<Server>	&getServers();
+
+		// Setter
+		void	addServer(Server &server);
+
+		// Parsing
+		void	parseConfig(); // pour analyser le fichier de configuration et remplir les attributs.
+		// void	parseConfigFile(); 
+		void	getServerAttributs(std::ifstream &file, Server &server);
+
+		// Other
+		void	printConfig();
+
 };
 
-# endif
+# endif /* CONFIG_HPP */

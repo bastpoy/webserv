@@ -1,8 +1,6 @@
 #ifndef HEADER_HPP
 # define HEADER_HPP
 
-
-
 // Bibliothèques standard C++
 #include <string>				// Manipulation de chaînes
 #include <vector>				// Conteneur vector
@@ -27,6 +25,7 @@
 // Fichiers d'en-tête spécifiques au projet
 #include "Client.hpp"			// Classe Client
 #include "ConfigParser.hpp"		// Classe pour parser la configuration
+#include "location.hpp"			// Classe pour les locations
 #include "Logger.hpp"			// Logger pour les messages
 #include "Request.hpp"			// Classe pour les requêtes
 #include "RequestHandler.hpp"	// Gestion des requêtes
@@ -68,5 +67,18 @@
 #define ON_MAGENTA "\033[45m"
 #define ON_CYAN    "\033[46m"
 #define ON_WHITE   "\033[47m"
+
+
+// Class Prototypes
+class Client;
+class ConfigParser;
+class location;
+class Logger;
+class Request;
+class RequestHandler;
+class Response;
+class Server;
+class Socket;
+class VirtualHost;
 
 #endif /* HEADER_HPP */
