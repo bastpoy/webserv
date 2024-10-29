@@ -10,7 +10,7 @@ class httpConfig
 {
     public:
 
-        //canonical
+        //basic
         httpConfig();
         ~httpConfig();
 
@@ -30,6 +30,7 @@ class httpConfig
 
     private:
         std::vector<serverConfig*> server;
+        bool isfree;
 };
 
 #endif

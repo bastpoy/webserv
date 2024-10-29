@@ -19,7 +19,7 @@ class serverAddr
         void setSockfd(int sockfd);
 
         //functions
-        void createListenAddr(httpConfig config);
+        void createListenAddr(httpConfig *config);
 
     private:
         std::vector<struct sockaddr_in*> listenAddr;

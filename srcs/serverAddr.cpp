@@ -33,11 +33,11 @@ void serverAddr::setSockfd(int sockfd)
     this->sockfd = sockfd;
 }
 
-void serverAddr::createListenAddr(httpConfig config)
+void serverAddr::createListenAddr(httpConfig *config)
 {
-    std::vector<serverConfig*>::iterator itbeg = config.getServer().begin();
+    std::vector<serverConfig*>::iterator itbeg = config->getServer().begin();
 
-    while(itbeg != config.getServer().end())
+    while(itbeg != config->getServer().end())
     {
         //creation addrinfo struc to stock my addrinfo informations
         struct addrinfo hints, *res;
@@ -65,6 +65,7 @@ void serverAddr::createListenAddr(httpConfig config)
         if(getaddrinfo(ip.c_str(), port.c_str(), &hints, &res) != 0)
         {
             gai_strerror(errno);
+            delete config;
             throw resHeader::ErrorGetAddrInfo();
         }
         //fill my sockaddr_in addr with the result of getaddrinfo

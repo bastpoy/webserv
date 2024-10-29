@@ -1,10 +1,26 @@
 #include "httpConfig.hpp"
 
 httpConfig::httpConfig()
-{}
+{
+    this->isfree = true;
+    std::cout << "creating" << std::endl;
+}
 
 httpConfig::~httpConfig()
-{}
+{
+    if(isfree)
+    {
+        std::vector<serverConfig*>::iterator it = server.begin();
+        while(it != server.end())
+        {
+            std::cout << (*it) << std::endl;
+            delete (*it);
+            it++;
+        }
+        server.clear();
+        isfree = false;
+    }
+}
 
 void httpConfig::addServer(serverConfig *server)
 {
@@ -13,7 +29,6 @@ void httpConfig::addServer(serverConfig *server)
 
 
 //getter
-
 std::vector<serverConfig*> &httpConfig::getServer()
 {
     return(this->server);

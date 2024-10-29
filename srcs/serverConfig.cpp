@@ -1,5 +1,28 @@
 #include "serverConfig.hpp"
 
+
+//basic
+serverConfig::serverConfig()
+{
+    this->isfree = true;
+}
+
+serverConfig::~serverConfig()
+{
+    if(this->isfree)
+    {
+        std::vector<locationConfig*>::iterator it = location.begin();
+        while(it != location.end())
+        {
+            delete (*it);
+            it++;
+        }
+        location.clear();    
+        this->isfree = false;
+    }
+}
+
+
 //getter
 int serverConfig::getPort() const
 {

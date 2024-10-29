@@ -9,6 +9,10 @@ class locationConfig;
 class serverConfig
 {
     public:
+        //basic
+        serverConfig();
+        ~serverConfig();
+
 
         //getter
         int getPort() const;
@@ -44,6 +48,7 @@ class serverConfig
         void printConfig();
 
     private:
+        bool isfree;
         int port;
         std::string server_name;  
         std::string path;
@@ -52,6 +57,7 @@ class serverConfig
         std::map<int, std::string> errorPage;
         std::map<int, std::string> redir;
         std::vector<locationConfig*> location;
+
 };
 
 #endif
