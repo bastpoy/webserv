@@ -3,6 +3,7 @@
 
 #include <sys/socket.h> // For socket functions
 #include <netinet/in.h> // For sockaddr_in
+#include <arpa/inet.h> //inet_pton
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
@@ -49,6 +50,10 @@ class resHeader
                 virtual const char* what() const throw();
         };
         class ErrorListening : public std::exception{
+        public:
+            virtual const char* what() const throw();
+        };
+        class ErrorCreatingSocket : public std::exception{
         public:
             virtual const char* what() const throw();
         };

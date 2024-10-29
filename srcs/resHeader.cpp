@@ -34,5 +34,10 @@ const char* resHeader::ErrorBindAddress::what() const throw()
 
 const char* resHeader::ErrorListening::what() const throw()
 {
-    return("Error listening on my currebt socket");
+    return("Error listening on my current socket");
+}
+
+const char* resHeader::ErrorCreatingSocket::what() const throw()
+{
+    return("Error listening on my current socket");
 }

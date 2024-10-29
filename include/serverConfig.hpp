@@ -15,24 +15,24 @@ class serverConfig
 
 
         //getter
-        int getPort() const;
+        std::string getPort() const;
         std::string getServerName() const;
         std::string getPath() const;
         std::string getMaxBody() const;
         std::string getIndex() const;
         std::map<int,std::string> &getErrorPage();
         std::map<int,std::string> &getRedir();
-        std::vector<locationConfig*> &getLocation();
+        std::vector<locationConfig> &getLocation();
 
         //setter
-        void setPort(int port);
+        void setPort(std::string port);
         void setServerName(std::string server_name);
         void setPath(std::string path);
         void setMaxBody(std::string maxBody);
         void setIndex(std::string index);
         void setErrorPage(int code, std::string errorFile);
         void setRedir(int code, std::string domain);
-        void setLocation(locationConfig *location);
+        void setLocation(locationConfig &location);
 
         //fill
         void fillPort(std::string line);
@@ -49,14 +49,14 @@ class serverConfig
 
     private:
         bool isfree;
-        int port;
+        std::string port;
         std::string server_name;  
         std::string path;
         std::string maxBody;
         std::string index;
         std::map<int, std::string> errorPage;
         std::map<int, std::string> redir;
-        std::vector<locationConfig*> location;
+        std::vector<locationConfig> location;
 
 };
 

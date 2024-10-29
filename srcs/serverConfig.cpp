@@ -8,23 +8,11 @@ serverConfig::serverConfig()
 }
 
 serverConfig::~serverConfig()
-{
-    if(this->isfree)
-    {
-        std::vector<locationConfig*>::iterator it = location.begin();
-        while(it != location.end())
-        {
-            delete (*it);
-            it++;
-        }
-        location.clear();    
-        this->isfree = false;
-    }
-}
+{}
 
 
 //getter
-int serverConfig::getPort() const
+std::string serverConfig::getPort() const
 {
     return (this->port);
 }
@@ -60,13 +48,13 @@ std::map<int,std::string> &serverConfig::getErrorPage()
     return (this->errorPage);
 }
 
-std::vector<locationConfig*> &serverConfig::getLocation()
+std::vector<locationConfig> &serverConfig::getLocation()
 {
     return (this->location);
 }
 
 //setter
-void serverConfig::setPort(int port)
+void serverConfig::setPort(std::string port)
 {
     this->port = port;
 }
@@ -91,7 +79,7 @@ void serverConfig::setIndex(std::string index)
     this->index = index;
 }
 
-void serverConfig::setLocation(locationConfig *location)
+void serverConfig::setLocation(locationConfig &location)
 {
     this->location.push_back(location);
 }
@@ -112,7 +100,7 @@ void serverConfig::fillPort(std::string line)
 {
     size_t pos = line.find("listen ");
     //get the port and convert to int
-    this->setPort(atoi(line.substr(pos + strlen("listen "), line.length()).c_str()));
+    this->setPort(line.substr(pos + strlen("listen "), line.length()).c_str());
     std::cout << "the port is: " << this->getPort() << std::endl;
 }
 
@@ -174,29 +162,29 @@ void serverConfig::fillRedir(std::string line)
 
 void serverConfig::fillLocation(std::ifstream &file, std::string line)
 {
-    locationConfig *location = new locationConfig();
+    locationConfig location;
     std::cout << "\nNew location" << std::endl;
 
     //get the path of the location
-    location->fillPath(line);
+    location.fillPath(line);
     //get all the information
     while(getline(file, line))
     {
         //fill the index of the file to serve
         if(line.find("autoindex ") != std::string::npos)
-            location->fillAutoIndex(line);
+            location.fillAutoIndex(line);
         //fill the maxbody size
         else if(line.find("client_max_body_size ") != std::string::npos)
-            location->fillMaxBody(line);
+            location.fillMaxBody(line);
         //fill the autoindex
         else if(line.find("index ") != std::string::npos)
-            location->fillIndex(line);
+            location.fillIndex(line);
         //fill a redirection 
         else if(line.find("return ") != std::string::npos)
-            location->fillRedir(line, this);
+            location.fillRedir(line, this);
         //fill an error code
         else if(line.find("error_page ") != std::string::npos)
-            location->fillErrorPage(line, this);
+            location.fillErrorPage(line, this);
         //get the end of location section
         else if(line.find("}") != std::string::npos)
         {
@@ -214,11 +202,11 @@ void serverConfig::fillLocation(std::ifstream &file, std::string line)
 
 void serverConfig::printConfig()
 {
-    std::vector<locationConfig*>::iterator itbeg = this->location.begin();
-    std::vector<locationConfig*>::iterator itend = this->location.end();
+    std::vector<locationConfig>::iterator itbeg = this->location.begin();
+    std::vector<locationConfig>::iterator itend = this->location.end();
     
     //print all server attributs
-    if(this->getPort())
+    if(!this->getPort().empty())
         std::cout << "listen " << this->getPort() << std::endl;
     if(!this->getServerName().empty())
         std::cout << "server_name " << this->getServerName() << std::endl;
@@ -237,7 +225,7 @@ void serverConfig::printConfig()
     //print every location of my current server
     while(itbeg != itend)
     {
-        (*itbeg)->printConfig();
+        (itbeg)->printConfig();
         itbeg++;
     }
 }

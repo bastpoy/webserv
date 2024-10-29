@@ -11,18 +11,18 @@ class serverAddr
         ~serverAddr();
 
         //getter
-        std::vector<struct sockaddr_in*> &getListenAddr();
+        std::vector<struct sockaddr_in> &getListenAddr();
         int getSocketFd() const;
 
         //setter
-        void setListenAddr(struct sockaddr_in *addr);
+        void setListenAddr(struct sockaddr_in addr);
         void setSockfd(int sockfd);
 
         //functions
-        void createListenAddr(httpConfig *config);
+        void createListenAddr(httpConfig &config);
 
     private:
-        std::vector<struct sockaddr_in*> listenAddr;
+        std::vector<struct sockaddr_in> listenAddr;
         int sockfd;
 };
 
