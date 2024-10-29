@@ -16,6 +16,16 @@ class Response
 		void	addHeader();		// pour ajouter des en-têtes à la réponse.
 		void	setBody();			// pour définir le corps de la réponse.
 		void	generateResponse();	// pour combiner tous les éléments de la réponse en une chaîne prête à être envoyée au client.
+
+		class ErrorOpeningFile : public std::exception{
+			public:
+				virtual const char* what() const throw();
+		};
+
+		class ErrorSendingResponse : public std::exception{
+			public:
+				virtual const char* what() const throw();
+		};
 };
 
 #endif
