@@ -4,9 +4,9 @@
 template <typename T>
 std::string to_string(T value)
 {
-  std::ostringstream oss;
-  oss << value;
-  return oss.str();
+	std::ostringstream oss;
+	oss << value;
+	return oss.str();
 }
 
 std::string readFile(std::string &path)
