@@ -68,9 +68,14 @@ std::string getContentType(const std::string &path)
 	return "application/octet-stream"; // Default content type
 }
 
+/**
+ * @brief exemple d'une utilisation de epoll simple.
+ * @param listen_fd le descripteur de socket à surveiller
+*/
 void simple_epoll(int listen_fd)
 {
-	epoll_event	ev, events[10];
+	epoll_event	ev;
+	epoll_event	events[10];
 	int			epoll_fd;
 
 	// Créer un descripteur epoll
@@ -82,14 +87,17 @@ void simple_epoll(int listen_fd)
 	epoll_ctl(epoll_fd, EPOLL_CTL_ADD, listen_fd, &ev);
 
 	// Boucle infinie pour attendre les événements
-	while (1) {
+	while (1)
+	{
 		int n = epoll_wait(epoll_fd, events, 10, -1);	// Attendre des événements
 
-		for (int i = 0; i < n; i++) {
-			if (events[i].events & EPOLLIN) {
+		for (int i = 0; i < n; i++)
+		{
+			if (events[i].events & EPOLLIN)
+			{
 				// Ici, on reçoit un événement de lecture
 				printf("Événement de lecture sur le descripteur %d\n", events[i].data.fd);
-				// Vous pouvez accepter une connexion ou lire des données ici
+				// on peut accepter une connexion ou lire des données ici
 			}
 		}
 	}
