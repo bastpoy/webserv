@@ -41,3 +41,8 @@ const char* resHeader::ErrorCreatingSocket::what() const throw()
 {
     return("Error listening on my current socket");
 }
+
+const char* resHeader::Error::what() const throw()
+{
+    return("");
+}

@@ -6,6 +6,7 @@
 #include <arpa/inet.h> //inet_pton
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/epoll.h>
 #include <netdb.h>
 #include <cstdlib> // For exit() and EXIT_FAILURE
 #include <stdlib.h>
@@ -19,8 +20,7 @@
 #include <stdexcept>
 #include <vector>
 #include <map>
-#include <sstream>
-
+#include <set>
 class resHeader
 {
     public:
@@ -54,6 +54,10 @@ class resHeader
             virtual const char* what() const throw();
         };
         class ErrorCreatingSocket : public std::exception{
+        public:
+            virtual const char* what() const throw();
+        };
+        class Error : public std::exception{
         public:
             virtual const char* what() const throw();
         };
