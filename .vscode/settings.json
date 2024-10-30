@@ -52,6 +52,7 @@
         "sstream": "cpp",
         "map": "cpp",
         "fstream": "cpp",
-        "cerrno": "cpp"
+        "cerrno": "cpp",
+        "set": "cpp"
     }
 }
