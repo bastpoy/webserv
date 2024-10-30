@@ -41,8 +41,8 @@ class Server
 		// Canonical form (constructor, destructor, copy operations)
 		Server(void);
 		~Server(void);
-		// Server(const Server &other);
-		// Server	&operator=(const Server &other);
+		Server(const Server &other);
+		Server	&operator=(const Server &other);
 
 		// Setter
 		void	setPort(std::string port);

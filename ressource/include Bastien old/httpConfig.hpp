@@ -1,34 +1,34 @@
-#ifndef HTTPCONFIG_HPP
-#define HTTPCONFIG_HPP
+// #ifndef HTTPCONFIG_HPP
+// #define HTTPCONFIG_HPP
 
-#include "serverConfig.hpp"
-#include "resHeader.hpp"
-#include "locationConfig.hpp"
+// #include "serverConfig.hpp"
+// #include "resHeader.hpp"
+// #include "locationConfig.hpp"
 
-class serverConfig;
-class httpConfig
-{
-	public:
+// class serverConfig;
+// class httpConfig
+// {
+// 	public:
 
-		//basic
-		httpConfig();
-		~httpConfig();
+// 		//basic
+// 		httpConfig();
+// 		~httpConfig();
 
-		//getter
-		std::vector<serverConfig> &getServer();
+// 		//getter
+// 		std::vector<serverConfig> &getServer();
 		
-		//setter
-		void addServer(serverConfig &server);
+// 		//setter
+// 		void addServer(serverConfig &server);
 		
-		//parsing
-		void parseConfig();
-		void getServerAttributs(std::ifstream& file, serverConfig &server);
+// 		//parsing
+// 		void parseConfig();
+// 		void getServerAttributs(std::ifstream& file, serverConfig &server);
 
-		//other
-		void printConfig();
+// 		//other
+// 		void printConfig();
 
-	private:
-		std::vector<serverConfig> server;
-};
+// 	private:
+// 		std::vector<serverConfig> server;
+// };
 
-#endif
+// #endif

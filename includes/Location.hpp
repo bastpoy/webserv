@@ -3,7 +3,7 @@
 
 #include "Header.hpp"
 
-class location
+class Location
 {
 	private:
 		std::string					path;
@@ -15,10 +15,18 @@ class location
 
 	public:
 		// Canonical form
-		location();
-		~location();
+		Location();
+		~Location();
 		// location(const location &other);
 		// location	&operator=(const location &other);
+
+		// Setter
+		void	setPath(std::string path);
+		void	setIndex(std::string index);
+		void	setMaxBody(std::string maxBody);
+		void	setAutoIndex(std::string autoIndex);
+		void	setRedir(int code, std::string path);
+		void	setErrorPage(int errCode, std::string errorPage);
 
 		// Getter
 		std::string					getPath() const;
@@ -27,14 +35,6 @@ class location
 		std::string					getAutoIndex() const;
 		std::map<int,std::string>	&getRedir();
 		std::map<int,std::string>	&getErrorPage();
-		
-		// Setter
-		void	setPath(std::string path);
-		void	setIndex(std::string index);
-		void	setMaxBody(std::string maxBody);
-		void	setAutoIndex(std::string autoIndex);
-		void	setRedir(int code, std::string path);
-		void	setErrorPage(int errCode, std::string errorPage);
 
 		// Fill
 		void	fillPath(std::string line);

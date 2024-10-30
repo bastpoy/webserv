@@ -21,11 +21,12 @@
 #include <errno.h>				// Pour errno
 #include <string.h>				// Pour strerror
 #include <unistd.h>				// Pour close
+#include <arpa/inet.h>			// Pour inet_ntoa
 
 // Fichiers d'en-tête spécifiques au projet
 #include "Client.hpp"			// Classe Client
 #include "ConfigParser.hpp"		// Classe pour parser la configuration
-#include "location.hpp"			// Classe pour les locations
+#include "Location.hpp"			// Classe pour les locations
 #include "Logger.hpp"			// Logger pour les messages
 #include "Request.hpp"			// Classe pour les requêtes
 #include "RequestHandler.hpp"	// Gestion des requêtes

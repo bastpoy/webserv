@@ -13,24 +13,26 @@ UNDERLINE	:= \033[4m
 
 # Executable name
 NAME		:=	webserv
-NAME1 = config
+# NAME1 = config
 
 # Source directories and files
 SRCS_DIR	:=	srcs
 SRCS		=	srcs/main.cpp \
 				srcs/resHeader.cpp \
 				srcs/Socket.cpp
-SRCSPARSING =	srcs/httpConfig.cpp\
+				srcs/httpConfig.cpp\
 				srcs/locationConfig.cpp \
 				srcs/serverConfig.cpp \
 				srcs/main.cpp \
 				srcs/resHeader.cpp \
 				srcs/serverAddr.cpp
 
+# SRCSPARSING =
+
 # Object directories and files
 OBJS_DIR	:=	.objs
 OBJS		:=	$(patsubst $(SRCS_DIR)/%.cpp, $(OBJS_DIR)/%.o, $(SRCS))
-OBJSPARSING = $(patsubst %.cpp, objects/%.o, $(SRCSPARSING))
+# OBJSPARSING = $(patsubst %.cpp, objects/%.o, $(SRCSPARSING))
 
 # Dependency directory
 DEPS_DIR	:=	.deps
@@ -45,7 +47,7 @@ RM			:=	rm -rf
 
 # Include automatically generated dependency files
 -include $(DEPS)
--include $(OBJSPARSING:.o=.d)
+# -include $(OBJSPARSING:.o=.d)
 
 # Build the executable
 $(NAME): $(OBJS)
@@ -57,8 +59,8 @@ $(OBJS_DIR)/%.o: $(SRCS_DIR)/%.cpp Makefile
 	@echo "Compiling $<..."
 	@$(CXX) $(INCFLAGS) -c $< -o $@ $(DEPFLAGS) $(DEPS_DIR)/$*.d
 
-$(NAME1): $(OBJSPARSING)
-	c++ $(CFLAGS) -o $(NAME1) $(OBJSPARSING)
+# $(NAME1): $(OBJSPARSING)
+# 	c++ $(CFLAGS) -o $(NAME1) $(OBJSPARSING)
 
 all: $(NAME)
 

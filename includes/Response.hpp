@@ -9,6 +9,10 @@ Rôle :
 Générer la réponse HTTP en fonction de la requête reçue.
 Gérer les codes de statut HTTP (200, 404, etc.), les en-têtes et le corps de la réponse.
 */
+
+/**
+ * @brief Toutes les exceptions
+*/
 class Response
 {
 	public:
@@ -26,6 +30,36 @@ class Response
 			public:
 				virtual const char* what() const throw();
 		};
+
+		class ConfigurationFileLocation : public std::exception{
+			public:
+				virtual const char* what() const throw();
+		};
+
+		class ConfigurationFileServer : public std::exception{
+			public:
+				virtual const char* what() const throw();
+		};
+
+		class ErrorGetAddrInfo : public std::exception{
+			public:
+				virtual const char* what() const throw();
+		};
+
+		class ErrorBindAddress : public std::exception{
+			public:
+				virtual const char* what() const throw();
+		};
+
+		class ErrorListening : public std::exception{
+			public:
+				virtual const char* what() const throw();
+		};
+
+		class ErrorCreatingSocket : public std::exception{
+			public:
+				virtual const char* what() const throw();
+		};
 };
 
-#endif
+#endif /* RESPONSE_HPP */

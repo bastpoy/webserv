@@ -21,21 +21,21 @@ class ConfigParser
 		// Canonical form (constructor, destructor, copy operations)
 		ConfigParser(void);
 		~ConfigParser(void);
-		ConfigParser(const ConfigParser &other);
-		ConfigParser	&operator=(const ConfigParser &other);
-
-		// Getter
-		std::vector<Server>	&getServers();
+		// ConfigParser(const ConfigParser &other);
+		// ConfigParser	&operator=(const ConfigParser &other);
 
 		// Setter
 		void	addServer(Server &server);
+
+		// Getter
+		std::vector<Server>	&getServers();
 
 		// Parsing
 		void	parseConfig(); // pour analyser le fichier de configuration et remplir les attributs.
 		// void	parseConfigFile(); 
 		void	getServerAttributs(std::ifstream &file, Server &server);
 
-		// Other
+		// Debug
 		void	printConfig();
 
 };
