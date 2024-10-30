@@ -1,5 +1,5 @@
-#ifndef CONFIG_HPP
-# define CONFIG_HPP
+#ifndef CONFIGPARSER_HPP
+# define CONFIGPARSER_HPP
 
 # include "Header.hpp"
 
@@ -14,12 +14,14 @@ class ConfigParser
 {
 	private:
 		std::vector<Server>	_servers; // Stores the list of configured servers
+		std::string			_path;
 	// 	int		_port;
 	// 	int		_server_root;
 
 	public:
 		// Canonical form (constructor, destructor, copy operations)
 		ConfigParser(void);
+		ConfigParser(char *path);
 		~ConfigParser(void);
 		ConfigParser(const ConfigParser &other);
 		ConfigParser	&operator=(const ConfigParser &other);
@@ -40,4 +42,4 @@ class ConfigParser
 
 };
 
-# endif /* CONFIG_HPP */
+# endif /* CONFIGPARSER_HPP */

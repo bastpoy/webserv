@@ -4,9 +4,15 @@
 /*	CANONICAL FORMS	*/
 /* ================ */
 
-ConfigParser::ConfigParser()
+ConfigParser::ConfigParser(void)
 {
-	std::cout << "creating" << std::endl;
+	std::cout << GREEN "Creating a ConfigParser " RESET << std::endl;
+}
+
+ConfigParser::ConfigParser(char *path)
+{
+	std::cout << GREEN "Creating a ConfigParser " RESET << std::endl;
+	this->_path = path;
 }
 
 ConfigParser::~ConfigParser()
@@ -19,6 +25,8 @@ ConfigParser::~ConfigParser()
 	//     it++;
 	// }
 	// server.clear();
+
+	std::cout << RED "Destroying a ConfigParser " RESET << std::endl;
 }
 
 ConfigParser::ConfigParser(const ConfigParser &other)
@@ -41,6 +49,7 @@ ConfigParser	&ConfigParser::operator=(const ConfigParser &other)
 void ConfigParser::addServer(Server &server)
 {
 	this->_servers.push_back(server);
+	std::cout << GREEN "Server added" RESET << std::endl;
 }
 
 //getter
@@ -49,12 +58,18 @@ std::vector<Server>	&ConfigParser::getServers()
 	return(this->_servers);
 }
 
-void ConfigParser::parseConfig()
+/* ================ */
+/*		PARSING		*/
+/* ================ */
+
+
+void	ConfigParser::parseConfig( )
 {
 	// ConfigParser *config;
 	std::string line;
+	// std::ifstream file("./conf/Bastien.conf");
+	std::ifstream file(this->_path);
 
-	std::ifstream file("./conf/Bastien.conf");
 	if(!file.is_open())
 	{
 		std::cout << strerror(errno) << std::endl;
