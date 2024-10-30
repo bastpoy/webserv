@@ -1,6 +1,7 @@
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
+# include <set>
 # include "Header.hpp"
 
 class Location;
@@ -22,7 +23,6 @@ Accepter les connexions des clients et les rediriger vers un gestionnaire de req
 class Server
 {
 	private:
-		// Server Address
 
 		// Server (config)
 		std::string 				_port;
@@ -33,16 +33,14 @@ class Server
 		std::map<int, std::string>	_errorPage;
 		std::map<int, std::string>	_redir;
 		std::vector<Location>		_location;
-
-		int								_sockfd;	// or server_fd
-		std::vector<struct sockaddr_in>	_listenAddr;
-
-	public:
+		// Server file descriptor
+        std::set<int> socketfd;
+	
+    public:
 		// Canonical form (constructor, destructor, copy operations)
 		Server(void);
 		~Server(void);
-		Server(const Server &other);
-		Server	&operator=(const Server &other);
+		// Server(const Server &other);
 
 		// Setter
 		void	setPort(std::string port);
@@ -55,7 +53,6 @@ class Server
 		void	setLocation(Location &location);
 			// ServerAddr Setters
 		void	setSocketFd(int sockfd);
-		void	setListenAddr(struct sockaddr_in addr);
 
 		// Getter
 		std::string						getPort() const;
@@ -66,9 +63,6 @@ class Server
 		std::map<int,std::string>		&getErrorPage();
 		std::map<int,std::string>		&getRedir();
 		std::vector<Location>			&getLocation();
-			// ServerAddr Getters
-		int								getSocketFd() const;
-		std::vector<struct sockaddr_in>	&getListenAddr();
 
 		// Fill
 		void	fillPort(std::string line);

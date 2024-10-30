@@ -5,33 +5,22 @@
 /* ================ */
 
 ConfigParser::ConfigParser()
-{
-	std::cout << "creating" << std::endl;
-}
+{}
 
 ConfigParser::~ConfigParser()
-{
-	// std::vector<serverConfig*>::iterator it = server.begin();
-	// while(it != server.end())
-	// {
-	//     std::cout << (*it) << std::endl;
-	//     delete (*it);
-	//     it++;
-	// }
-	// server.clear();
-}
+{}
 
 ConfigParser::ConfigParser(const ConfigParser &other)
 {
 	*this = other;
 }
 
-ConfigParser	&ConfigParser::operator=(const ConfigParser &other)
-{
-	if (this == &other)
-		return (*this);
-	return (*this);
-}
+// ConfigParser	&ConfigParser::operator=(const ConfigParser &other)
+// {
+// 	if (this == &other)
+// 		return (*this);
+// 	return (*this);
+// }
 
 /* ================ */
 /*		SETTER		*/
@@ -102,7 +91,6 @@ void ConfigParser::parseConfig()
 	}
 	while(getline(file, line))
 	{
-        std::cout << line << std::endl;
 		// fill new server block
 		if(line.find("server {") != std::string::npos)
 		{
@@ -112,10 +100,7 @@ void ConfigParser::parseConfig()
 			//get server attributs
 			this->getServerAttributs(file, server);
 			this->addServer(server);
-            std::cout << "le port " << server.getPort() << std::endl;
-            // std::vector<Server>::iterator itbeg = this->_servers.begin();
-            std::cout << "the port " << _servers.begin()->getPort() << std::endl;
-            std::cout << "le port " << server.getPort() << std::endl;
+            std::cout << "server " << server.getServerName() << std::endl;
         }
 	}
 }
