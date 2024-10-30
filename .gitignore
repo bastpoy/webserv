@@ -1,0 +1,7 @@
+.deps/
+.objs/
+.vscode/
+webserv
+config
+*.d
+*.o

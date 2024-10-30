@@ -95,6 +95,8 @@ void httpConfig::parseConfig()
             //get server attributs
             this->getServerAttributs(file, server);
             this->addServer(server);
+            std::cout << "port: "<< server.getPort() << std::endl;
+            std::cout << "port: "<<  this->server.begin()->getPort() << std::endl;
         }
     }
 }
