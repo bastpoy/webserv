@@ -6,13 +6,13 @@
 
 Server::Server()
 {
-	// std::cout << "creating a server configuration" << std::endl;
+	std::cout << GREEN "Creating a Server configuration" RESET << std::endl;
 	this->_isfree = true;
 }
 
 Server::~Server()
 {
-	// std::cout << "destroying a server configuration" << std::endl;
+	std::cout << RED "destroying a server configuration" RESET << std::endl;
 }
 
 Server::Server(const Server &other)
@@ -149,6 +149,15 @@ void	Server::fillPort(std::string line)
 	this->setPort(line.substr(pos + strlen("listen "), line.length()).c_str());
 	std::cout << "the port is: " << this->getPort() << std::endl;
 }
+
+// void	Server::fillPort(std::string line)
+// {
+// 	size_t pos = line.find("listen");
+// 	//get the port and convert to int
+// 	str.erase(std::remove(str.begin(), str.end(), ' '), str.end());
+// 	// this->setPort(line.substr(pos + strlen("listen "), line.length()).c_str());
+// 	// std::cout << "the port is: " << this->getPort() << std::endl;
+// }
 
 void	Server::fillServerName(std::string line)
 {

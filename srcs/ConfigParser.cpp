@@ -70,23 +70,22 @@ void	ConfigParser::parseConfig( )
 	// std::ifstream file("./conf/Bastien.conf");
 	std::ifstream file(this->_path);
 
-	if(!file.is_open())
+	if (!file.is_open())
 	{
 		std::cout << strerror(errno) << std::endl;
 		throw Response::ErrorOpeningFile();
 	}
-	while(getline(file, line))
+	while (getline(file, line))
 	{
-        std::cout << line << std::endl;
+		// std::cout << YELLOW << line << RESET << std::endl;
 		// fill new server block
-		if(line.find("server {") != std::string::npos)
+		if (line.find("server") != std::string::npos)
 		{
-			std::cout << "New server" << std::endl;
-			//create a server instance and add it to http class
+			std::cout << GREEN "New server detected" RESET << std::endl;
+			//create a server instance and add it to Server Class
 			Server server;
-			//get server attributs
-			this->getServerAttributs(file, server);
-			this->addServer(server);
+			getServerAttributs(file, server);
+			addServer(server);
 		}
 	}
 }

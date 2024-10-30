@@ -20,7 +20,7 @@ int main(int ac, char **av)
 		// Server			listenAddress;
 
 		config.parseConfig();
-		config.printConfig();
+		// config.printConfig();
 		// listenAddress.createListenAddr(config);
 	}
 	catch (const std::exception& e)
