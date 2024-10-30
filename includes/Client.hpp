@@ -12,10 +12,23 @@ Identifier la requête HTTP du client et l’envoyer au gestionnaire de requête
 */
 class Client
 {
-public:
-	void	readRequest(); // pour lire la requête envoyée par le client.
-	void	sendResponse(); // pour envoyer la réponse HTTP au client.
-	void	closeConnection(); // pour fermer la connexion.
+	private:
+		int								_socket_fd;
+		const struct sockaddr_storage&	_addr;
+		Response						*_response;
+		Request							*_request;
+	public:
+		Client(int socket_fd, const struct sockaddr_storage& addr);
+		~Client();
+		bool		clientConnection(); // Establishes a connection with the server.
+		ssize_t 	receive(char* buffer, size_t buffer_size); // Reads data from the client socket.
+		ssize_t 	send(const char* data, size_t data_size); // pour envoyer la réponse HTTP au client.
+		void		closeConnection(); // pour fermer la connexion.
+
+		void	setRequest(Request* request);
+		void	setResponse(Response* response);
+		Request*	getRequest() const;
+		Response*	getResponse() const;
 };
 
 # endif
