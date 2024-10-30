@@ -259,5 +259,4 @@ void serverAddr::createListenAddr(httpConfig &config)
             }
         }
     }
-
 }
