@@ -54,7 +54,7 @@ void ConfigParser::parseConfig()
 	// ConfigParser *config;
 	std::string line;
 
-	std::ifstream file("./conf/conf.conf");
+	std::ifstream file("./conf/Bastien.conf");
 	if(!file.is_open())
 	{
 		std::cout << strerror(errno) << std::endl;
