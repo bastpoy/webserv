@@ -1,6 +1,6 @@
 #include "../includes/CGIHandler.hpp"
 
-static std::string	execute(const std::string& script_path, const std::map<std::string, std::string>& env)
+std::string	execute(const std::string& script_path, const std::map<std::string, std::string>& env)
 {
 	// Create the CGI environment
 	std::vector<char*> cgi_env;
