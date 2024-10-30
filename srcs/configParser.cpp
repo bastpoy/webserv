@@ -62,6 +62,7 @@ void ConfigParser::parseConfig()
 	}
 	while(getline(file, line))
 	{
+        std::cout << line << std::endl;
 		// fill new server block
 		if(line.find("server {") != std::string::npos)
 		{
@@ -106,7 +107,7 @@ void ConfigParser::getServerAttributs(std::ifstream& file, Server &server)
 		//fill an entire location block
 		else if(line.find("location ") != std::string::npos)
 			server.fillLocation(file, line);
-			// getLocationAttributs(file, server, line);
+		// getLocationAttributs(file, server, line);
 		else if(line.find("}") != std::string::npos)
 		{
 			std::cout << "\n\n";

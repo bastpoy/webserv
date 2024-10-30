@@ -6,12 +6,12 @@
 
 Location::Location()
 {
-	std::cout << "creating a location configuration" << std::endl;
+	// std::cout << "creating a location configuration" << std::endl;
 }
 
 Location::~Location()
 {
-	std::cout << "destroying a location configuration" << std::endl;
+	// std::cout << "destroying a location configuration" << std::endl;
 }
 
 Location::Location(const Location &other)

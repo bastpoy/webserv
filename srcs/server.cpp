@@ -6,13 +6,13 @@
 
 Server::Server()
 {
-	std::cout << "creating a server configuration" << std::endl;
+	// std::cout << "creating a server configuration" << std::endl;
 	this->_isfree = true;
 }
 
 Server::~Server()
 {
-	std::cout << "destroying a server configuration" << std::endl;
+	// std::cout << "destroying a server configuration" << std::endl;
 }
 
 Server::Server(const Server &other)
