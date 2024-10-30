@@ -60,7 +60,7 @@ std::string getContentType(const std::string &path)
     if (dotPos != std::string::npos) {
         std::string extension = path.substr(dotPos);
         if (contentTypes.find(extension) != contentTypes.end()) {
-        return contentTypes[extension];
+            return contentTypes[extension];
         }
     }
     return "application/octet-stream"; // Default content type
@@ -72,6 +72,13 @@ int main() {
     if (sockfd == -1) {
         std::cerr << "Failed to create socket. errno: " << errno << std::endl;
         exit(EXIT_FAILURE);
+    }
+    
+    //add properties to allow the socket to be reusable even if it is in time wait
+    int opt = 1;
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1) {
+        std::cerr << "Failed to set SO_REUSEADDR" << std::endl;
+        return 1;
     }
 
     // Bind the socket to an address and port
@@ -142,8 +149,8 @@ int main() {
         {
             std::cout << e.what() << std::endl;
         }
-        close(connection);
         std::cout << "\n\n";
+        close(connection);
     }
     close(sockfd);
 
