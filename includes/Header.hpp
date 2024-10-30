@@ -24,16 +24,16 @@
 #include <arpa/inet.h>			// Pour inet_ntoa
 
 // Fichiers d'en-tête spécifiques au projet
-#include "Client.hpp"			// Classe Client
+#include "Server.hpp"			// Classe pour le serveur
 #include "ConfigParser.hpp"		// Classe pour parser la configuration
 #include "Location.hpp"			// Classe pour les locations
-#include "Logger.hpp"			// Logger pour les messages
+// #include "Logger.hpp"			// Logger pour les messages
 #include "Request.hpp"			// Classe pour les requêtes
 #include "RequestHandler.hpp"	// Gestion des requêtes
 #include "Response.hpp"			// Classe pour les réponses
-#include "Server.hpp"			// Classe pour le serveur
-#include "Socket.hpp"			// Classe pour les sockets
-#include "VirtualHost.hpp"		// Classe pour les hôtes virtuels
+#include "Client.hpp"			// Classe Client
+// #include "Socket.hpp"			// Classe pour les sockets
+// #include "VirtualHost.hpp"		// Classe pour les hôtes virtuels
 
 /* ------------- COLORS ------------- */
 // Reset
@@ -74,12 +74,12 @@
 class Client;
 class ConfigParser;
 class location;
-class Logger;
+// class Logger;
 class Request;
 class RequestHandler;
 class Response;
 class Server;
-class Socket;
-class VirtualHost;
+// class Socket;
+// class VirtualHost;
 
 #endif /* HEADER_HPP */

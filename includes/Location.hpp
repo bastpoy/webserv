@@ -3,6 +3,8 @@
 
 #include "Header.hpp"
 
+class Server;
+
 class Location
 {
 	private:
@@ -17,8 +19,8 @@ class Location
 		// Canonical form
 		Location();
 		~Location();
-		// location(const location &other);
-		// location	&operator=(const location &other);
+		Location(const Location &other);
+		Location	&operator=(const Location &other);
 
 		// Setter
 		void	setPath(std::string path);

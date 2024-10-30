@@ -4,6 +4,7 @@
 # include "Header.hpp"
 
 class Location;
+class ConfigParser;
 
 /*
 But : Représente le serveur HTTP principal.

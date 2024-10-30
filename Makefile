@@ -22,7 +22,8 @@ SRCS		=	srcs/client.cpp \
 				srcs/location.cpp \
 				srcs/main.cpp \
 				srcs/response.cpp \
-				srcs/server.cpp \
+				srcs/server.cpp
+# srcs/socket.cpp
 
 # SRCSPARSING =
 

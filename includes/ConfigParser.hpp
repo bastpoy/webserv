@@ -21,8 +21,8 @@ class ConfigParser
 		// Canonical form (constructor, destructor, copy operations)
 		ConfigParser(void);
 		~ConfigParser(void);
-		// ConfigParser(const ConfigParser &other);
-		// ConfigParser	&operator=(const ConfigParser &other);
+		ConfigParser(const ConfigParser &other);
+		ConfigParser	&operator=(const ConfigParser &other);
 
 		// Setter
 		void	addServer(Server &server);

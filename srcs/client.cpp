@@ -24,7 +24,7 @@ bool	Client::clientConnection()
 ssize_t	Client::receive(char* buffer, size_t buffer_size)
 {
 	ssize_t	bytes_read = read(_socket_fd, buffer, buffer_size);
-	if (bytes_read = -1)
+	if (bytes_read == -1)
 	{
 		std::cout << "Error reading from client socket" << std::endl;
 		return -1;
