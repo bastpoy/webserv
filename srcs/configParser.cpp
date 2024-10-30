@@ -49,33 +49,6 @@ std::vector<Server>	&ConfigParser::getServers()
 	return(this->_servers);
 }
 
-void ConfigParser::parseConfig()
-{
-	// ConfigParser *config;
-	std::string line;
-
-	std::ifstream file("./conf/Bastien.conf");
-	if(!file.is_open())
-	{
-		std::cout << strerror(errno) << std::endl;
-		throw Response::ErrorOpeningFile();
-	}
-	while(getline(file, line))
-	{
-        std::cout << line << std::endl;
-		// fill new server block
-		if(line.find("server {") != std::string::npos)
-		{
-			std::cout << "New server" << std::endl;
-			//create a server instance and add it to http class
-			Server server;
-			//get server attributs
-			this->getServerAttributs(file, server);
-			this->addServer(server);
-		}
-	}
-}
-
 //parsing
 void ConfigParser::getServerAttributs(std::ifstream& file, Server &server)
 {
@@ -116,6 +89,36 @@ void ConfigParser::getServerAttributs(std::ifstream& file, Server &server)
 	}
 }
 
+void ConfigParser::parseConfig()
+{
+	// ConfigParser *config;
+	std::string line;
+
+	std::ifstream file("./conf/Bastien.conf");
+	if(!file.is_open())
+	{
+		std::cout << strerror(errno) << std::endl;
+		throw Response::ErrorOpeningFile();
+	}
+	while(getline(file, line))
+	{
+        std::cout << line << std::endl;
+		// fill new server block
+		if(line.find("server {") != std::string::npos)
+		{
+			std::cout << "New server" << std::endl;
+			//create a server instance and add it to http class
+			Server server;
+			//get server attributs
+			this->getServerAttributs(file, server);
+			this->addServer(server);
+            std::cout << "le port " << server.getPort() << std::endl;
+            // std::vector<Server>::iterator itbeg = this->_servers.begin();
+            std::cout << "the port " << _servers.begin()->getPort() << std::endl;
+            std::cout << "le port " << server.getPort() << std::endl;
+        }
+	}
+}
 
 // Debug
 void ConfigParser::printConfig()

@@ -17,8 +17,7 @@ NAME		:=	webserv
 
 # Source directories and files
 SRCS_DIR	:=	srcs
-SRCS		=	srcs/client.cpp \
-				srcs/configParser.cpp \
+SRCS		=	srcs/configParser.cpp \
 				srcs/location.cpp \
 				srcs/main.cpp \
 				srcs/response.cpp \

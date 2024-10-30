@@ -23,11 +23,8 @@ class Server
 {
 	private:
 		// Server Address
-		int								_sockfd;	// or server_fd
-		std::vector<struct sockaddr_in>	_listenAddr;
 
 		// Server (config)
-		bool						_isfree;
 		std::string 				_port;
 		std::string					_server_name;
 		std::string					_path;
@@ -37,6 +34,8 @@ class Server
 		std::map<int, std::string>	_redir;
 		std::vector<Location>		_location;
 
+		int								_sockfd;	// or server_fd
+		std::vector<struct sockaddr_in>	_listenAddr;
 
 	public:
 		// Canonical form (constructor, destructor, copy operations)
@@ -92,5 +91,7 @@ class Server
 		// void	setup();			// pour la configuration du serveur avec les options données (par exemple, plusieurs configurations de serveur virtuel).
 
 };
+
+std::ostream& operator<<(std::ostream& os, const Server& server);
 
 # endif /* SERVER_HPP */

@@ -7,7 +7,6 @@
 Server::Server()
 {
 	// std::cout << "creating a server configuration" << std::endl;
-	this->_isfree = true;
 }
 
 Server::~Server()
@@ -24,6 +23,14 @@ Server	&Server::operator=(const Server &other)
 {
 	if (this == &other)
 		return (*this);
+    _port;
+	_server_name;
+	_path;
+	_maxBody;
+    _index;
+	_errorPage;
+	_redir;
+	_location;
 	return (*this);
 }
 
