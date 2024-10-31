@@ -26,6 +26,7 @@ SRCS		=	srcs/Client.cpp \
 # srcs/socket.cpp
 
 # SRCSPARSING =
+FILE_TO_DELETE	:=	www/assets/files/file_to_delete
 
 # Object directories and files
 OBJS_DIR	:=	.objs
@@ -60,9 +61,12 @@ $(OBJS_DIR)/%.o: $(SRCS_DIR)/%.cpp Makefile
 # $(NAME1): $(OBJSPARSING)
 # 	c++ $(CFLAGS) -o $(NAME1) $(OBJSPARSING)
 
-all: $(NAME)
+all: $(NAME) file_to_delete
 
 parsing : $(NAME1)
+
+file_to_delete:
+	@touch $(FILE_TO_DELETE)
 
 # Display help information
 help:
@@ -106,6 +110,7 @@ clean:
 fclean:	clean
 	@echo "$(RED)Cleaning up $(NAME)...$(RESET)"
 	@$(RM) $(NAME)
+	@$(RM) $(FILE_TO_DELETE)
 
 # Rebuild everything
 re:		fclean all
