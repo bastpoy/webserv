@@ -23,6 +23,7 @@
 #include <string.h>				// Pour strerror
 #include <unistd.h>				// Pour close
 #include <arpa/inet.h>			// Pour inet_ntoa
+#include <sys/epoll.h>
 
 // Fichiers d'en-tête spécifiques au projet
 #include "Server.hpp"			// Classe pour le serveur

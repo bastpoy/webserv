@@ -22,7 +22,7 @@ class ConfigParser
 		ConfigParser(void);
 		~ConfigParser(void);
 		ConfigParser(const ConfigParser &other);
-		ConfigParser	&operator=(const ConfigParser &other);
+		// ConfigParser	&operator=(const ConfigParser &other);
 
 		// Setter
 		void	addServer(Server &server);
@@ -39,5 +39,6 @@ class ConfigParser
 		void	printConfig();
 
 };
+
 
 # endif /* CONFIG_HPP */

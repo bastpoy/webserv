@@ -59,3 +59,8 @@ const char* Response::ErrorCreatingSocket::what() const throw()
 {
 	return("Error listening on my current socket");
 }
+
+const char* Response::Error::what() const throw()
+{
+	return("");
+}

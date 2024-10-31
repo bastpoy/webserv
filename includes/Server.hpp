@@ -1,6 +1,7 @@
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
+# include <set>
 # include "Header.hpp"
 
 class Location;
@@ -19,15 +20,24 @@ Accepter les connexions des clients et les rediriger vers un gestionnaire de req
  * 			Accepts connections from clients and redirects them to a request handler.
  * @details	Responsible for server configuration and management of virtual hosts.
 */
+
+typedef struct s_serverData
+{
+    std::string 				port;
+    std::string					server_name;
+    std::string					path;
+    std::string					maxBody;
+    std::string					index;
+    std::map<int, std::string>	errorPage;
+    std::map<int, std::string>	redir;
+    std::vector<Location>		location;
+}t_serverData;
+
 class Server
 {
 	private:
-		// Server Address
-		int								_sockfd;	// or server_fd
-		std::vector<struct sockaddr_in>	_listenAddr;
 
 		// Server (config)
-		bool						_isfree;
 		std::string 				_port;
 		std::string					_server_name;
 		std::string					_path;
@@ -36,14 +46,14 @@ class Server
 		std::map<int, std::string>	_errorPage;
 		std::map<int, std::string>	_redir;
 		std::vector<Location>		_location;
-
-
-	public:
+		// Server file descriptor
+        std::set<int> socketfd;
+	
+    public:
 		// Canonical form (constructor, destructor, copy operations)
 		Server(void);
 		~Server(void);
-		Server(const Server &other);
-		Server	&operator=(const Server &other);
+		// Server(const Server &other);
 
 		// Setter
 		void	setPort(std::string port);
@@ -56,7 +66,6 @@ class Server
 		void	setLocation(Location &location);
 			// ServerAddr Setters
 		void	setSocketFd(int sockfd);
-		void	setListenAddr(struct sockaddr_in addr);
 
 		// Getter
 		std::string						getPort() const;
@@ -67,9 +76,6 @@ class Server
 		std::map<int,std::string>		&getErrorPage();
 		std::map<int,std::string>		&getRedir();
 		std::vector<Location>			&getLocation();
-			// ServerAddr Getters
-		int								getSocketFd() const;
-		std::vector<struct sockaddr_in>	&getListenAddr();
 
 		// Fill
 		void	fillPort(std::string line);
@@ -92,5 +98,7 @@ class Server
 		// void	setup();			// pour la configuration du serveur avec les options données (par exemple, plusieurs configurations de serveur virtuel).
 
 };
+
+std::ostream& operator<<(std::ostream& os, const Server& server);
 
 # endif /* SERVER_HPP */

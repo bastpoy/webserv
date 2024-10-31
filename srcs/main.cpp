@@ -14,7 +14,6 @@ int main()
 		ConfigParser	config;
 		Server			listenAddress;
 
-        std::cout << "re" << std::endl;
 		config.parseConfig();
 		config.printConfig();
 		listenAddress.createListenAddr(config);

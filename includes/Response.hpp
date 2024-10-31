@@ -60,6 +60,10 @@ class Response
 			public:
 				virtual const char* what() const throw();
 		};
+		class Error : public std::exception{
+			public:
+				virtual const char* what() const throw();
+		};
 };
 
 #endif /* RESPONSE_HPP */
