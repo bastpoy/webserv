@@ -220,9 +220,6 @@ void	Server::fillLocation(std::ifstream &file, std::string line)
 	//add my location to my server
 }
 
-
-
-
 template <typename T>
 std::string to_string(T value) {
   std::ostringstream oss;
@@ -235,6 +232,7 @@ std::string readFile(std::string &path)
     std::ifstream file(path.c_str(), std::ios::binary);
     if(!file.is_open())
     {
+        std::cout << path << ": ";
         throw Response::ErrorOpeningFile();
     }
     return std::string(
@@ -245,7 +243,7 @@ std::string readFile(std::string &path)
 
 void getFileContent(std::string &uri , std::string &contentType, int connection)
 {
-    std::string defaultPath = "./website";
+    std::string defaultPath = ".";
     std::string filePath = defaultPath + uri; // Change this to your file path
     std::string content;
 
@@ -291,12 +289,7 @@ std::string getContentType(const std::string &path)
 void Server::createListenAddr(ConfigParser &config)
 {
 	std::vector<Server>::iterator itbeg = config.getServers().begin();
-
-    std::cout << "server " << itbeg->getServerName() << " port " << itbeg->getPort() << std::endl;
-    itbeg++;
-    std::cout << "server " << itbeg->getServerName() << " port " << itbeg->getPort() << std::endl; 
-    itbeg--;
-
+    // std::vector<Server> data(1, *itbeg);
     //creating the poll
     int epoll_fd = epoll_create(10);
     if (epoll_fd == -1) {
@@ -350,11 +343,21 @@ void Server::createListenAddr(ConfigParser &config)
 			std::cout << strerror(errno) << " ";
 			throw Response::ErrorListening();
 		}
+        t_serverData *data = new t_serverData;
+        data->port = itbeg->getPort();
+        data->server_name = itbeg->getServerName();
+        data->path = itbeg->getPath();
+        data->maxBody = itbeg->getMaxBody();
+        data->index = itbeg->getIndex();
+        data->errorPage = itbeg->getErrorPage();
+        data->redir = itbeg->getRedir();
+        data->location = itbeg->getLocation();
+
         struct epoll_event event;
         event.events = EPOLLIN; // Monitor for input events
         event.data.fd = sockfd;
         //I stock the info server on the event ptr data
-        // event.data.ptr = static_cast<void*>(&config.getServer());
+        // event.data.ptr = static_cast<void*>(data);
 
         //add the epoll event to my epoll_fd instance
         if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, sockfd, &event) == -1) {
@@ -417,7 +420,7 @@ void Server::createListenAddr(ConfigParser &config)
                 // check for modification inside the socket
                 if(events[i].events & EPOLLIN)
                 {
-                    // serverConfig* info = static_cast<serverConfig*>(events[i].data.ptr);
+                    // t_serverData *info = static_cast<t_serverData*>(events[i].data.ptr);
 
                     char buffer[1024];
                     std::cout << "\nReading data...\n";
@@ -459,8 +462,8 @@ void Server::createListenAddr(ConfigParser &config)
                     // (void)info;
                     
                     // std::cout << "le pointeur vaut: " << events[i].data.ptr << std::endl; 
-                    // if(info->getRedir().begin()->first) 
-                    //     std::cout << "return " << info->getRedir().begin()->first << " " << info->getRedir().begin()->second << std::endl;
+                    // if(info) 
+                    //     std::cout << "return " << info->server_name << " " << info->port<< std::endl;
 
                     //get the file content
                     try

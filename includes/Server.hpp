@@ -20,6 +20,19 @@ Accepter les connexions des clients et les rediriger vers un gestionnaire de req
  * 			Accepts connections from clients and redirects them to a request handler.
  * @details	Responsible for server configuration and management of virtual hosts.
 */
+
+typedef struct s_serverData
+{
+    std::string 				port;
+    std::string					server_name;
+    std::string					path;
+    std::string					maxBody;
+    std::string					index;
+    std::map<int, std::string>	errorPage;
+    std::map<int, std::string>	redir;
+    std::vector<Location>		location;
+}t_serverData;
+
 class Server
 {
 	private:
