@@ -12,7 +12,7 @@ Server::Server()
 
 Server::~Server()
 {
-	std::cout << RED "destroying a server configuration" RESET << std::endl;
+	std::cout << RED "Destroying a Server configuration" RESET << std::endl;
 }
 
 Server::Server(const Server &other)
@@ -33,6 +33,7 @@ Server	&Server::operator=(const Server &other)
 
 void Server::setPort(std::string port)
 {
+	port.erase(std::remove(port.begin(), port.end(), ' '), port.end());
 	this->_port = port;
 }
 
@@ -147,7 +148,7 @@ void	Server::fillPort(std::string line)
 	size_t pos = line.find("listen ");
 	//get the port and convert to int
 	this->setPort(line.substr(pos + strlen("listen "), line.length()).c_str());
-	std::cout << "the port is: " << this->getPort() << std::endl;
+	std::cout << "the port is:\t\t" YELLOW << this->getPort() << RESET << std::endl;
 }
 
 // void	Server::fillPort(std::string line)
@@ -164,7 +165,7 @@ void	Server::fillServerName(std::string line)
 	size_t pos = line.find("server_name ");
 	this->setServerName(line.substr(pos + strlen("server_name "), line.length() - (pos + strlen("server_name "))));
 	//print
-	std::cout << "the server is: " << this->getServerName() << std::endl;
+	std::cout << "the server is:\t\t" YELLOW << this->getServerName() << RESET << std::endl;
 }
 
 void	Server::fillPath(std::string line)
@@ -172,7 +173,7 @@ void	Server::fillPath(std::string line)
 	size_t pos = line.find("root ");
 	this->setPath(line.substr(pos + strlen("root "), line.length() -(pos + strlen("root "))));
 	//print
-	std::cout << "the path is: " << this->getPath() << std::endl;
+	std::cout << "the path is:\t\t" YELLOW << this->getPath() << RESET << std::endl;
 }
 
 void	Server::fillMaxBody(std::string line)
@@ -180,7 +181,7 @@ void	Server::fillMaxBody(std::string line)
 	size_t pos = line.find("client_max_body_size ");
 	this->setMaxBody(line.substr(pos + strlen("client_max_body_size "), line.length() - (pos + strlen("client_max_body_size "))));
 	//print
-	std::cout << "the maxBody is: " << this->getMaxBody() << std::endl;
+	std::cout << "the maxBody is:\t\t" YELLOW << this->getMaxBody() << RESET << std::endl;
 }
 
 void	Server::fillIndex(std::string line)
@@ -188,8 +189,20 @@ void	Server::fillIndex(std::string line)
 	size_t pos = line.find("index ");
 	this->setIndex(line.substr(pos + strlen("index "), line.length() - (pos + strlen("index "))));
 	//print
-	std::cout << "the index is: " << this->getIndex() << std::endl;
+	std::cout << "the index is:\t\t" YELLOW << this->getIndex() << RESET << std::endl;
 }
+
+// void	Server::fillErrorPage(std::string line)
+// {
+// 	size_t pos = line.find("error_page ");
+// 	int code = atoi(line.substr(pos + strlen("error_page "), 3).c_str());
+// 	std::string domain = line.substr(pos + strlen("error_page ") + 3, line.length());
+// 	this->setErrorPage(code, domain);
+
+// 	//print
+// 	std::map<int, std::string>::iterator it = this->getErrorPage().begin();
+// 	std::cout << "the errorCode is:\t" YELLOW << it->first << RESET "\n\tThe file is:\t" YELLOW << it->second << RESET <<  std::endl;
+// }
 
 void	Server::fillErrorPage(std::string line)
 {
@@ -200,7 +213,8 @@ void	Server::fillErrorPage(std::string line)
 
 	//print
 	std::map<int, std::string>::iterator it = this->getErrorPage().begin();
-	std::cout << "the errorCode is: " << it->first << "\t the file is: " << it->second <<  std::endl;
+	it->second.erase(std::remove(it->second.begin(), it->second.end(), ' '), it->second.end()); // erase spaces
+	std::cout << "the errorCode is:\t" YELLOW << it->first << RESET "\n\tThe file is:\t" YELLOW << it->second << RESET <<  std::endl;
 }
 
 void	Server::fillRedir(std::string line)
@@ -212,28 +226,29 @@ void	Server::fillRedir(std::string line)
 
 	//print
 	std::map<int, std::string>::iterator it = this->getRedir().begin();
-	std::cout << "the code is: " << it->first << "\t the domain is: " << it->second <<  std::endl;
+	std::cout << "the code is:\t\t" YELLOW << it->first << RESET "\n\tThe domain is: " YELLOW << it->second << RESET <<  std::endl;
 }
 
 void	Server::fillLocation(std::ifstream &file, std::string line)
 {
 	Location location;
-	std::cout << "\nNew location" << std::endl;
+	std::cout << GREEN "\nNew Location detected" RESET << std::endl;
 
 	//get the path of the location
 	location.fillPath(line);
+	std::cout << GREEN "Step 3" RESET << std::endl;
 	//get all the information
 	while(getline(file, line))
 	{
 		//fill the index of the file to serve
-		if (line.find("autoindex ") != std::string::npos)
+		if (line.find("index ") != std::string::npos)
+			location.fillIndex(line);
+		else if (line.find("autoindex ") != std::string::npos)
 			location.fillAutoIndex(line);
 		//fill the maxbody size
 		else if (line.find("client_max_body_size ") != std::string::npos)
 			location.fillMaxBody(line);
 		//fill the autoindex
-		else if (line.find("index ") != std::string::npos)
-			location.fillIndex(line);
 		//fill a redirection 
 		else if (line.find("return ") != std::string::npos)
 			location.fillRedir(line, this);

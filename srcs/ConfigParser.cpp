@@ -11,7 +11,7 @@ ConfigParser::ConfigParser(void)
 
 ConfigParser::ConfigParser(char *path)
 {
-	std::cout << GREEN "Creating a ConfigParser " RESET << std::endl;
+	std::cout << GREEN "Creating a ConfigParser from \"" << path << "\"" RESET << std::endl;
 	this->_path = path;
 }
 
@@ -81,7 +81,7 @@ void	ConfigParser::parseConfig( )
 		// fill new server block
 		if (line.find("server") != std::string::npos)
 		{
-			std::cout << GREEN "New server detected" RESET << std::endl;
+			std::cout << GREEN "\nNew Server detected" RESET << std::endl;
 			//create a server instance and add it to Server Class
 			Server server;
 			getServerAttributs(file, server);
@@ -98,7 +98,7 @@ void ConfigParser::getServerAttributs(std::ifstream& file, Server &server)
 	while(getline(file, line))
 	{
 		//fill the port
-		if (line.find("listen ") != std::string::npos)
+		if (line.find("listen") != std::string::npos)
 			server.fillPort(line);
 		//fill the different name of the server domain
 		else if(line.find("server_name ") != std::string::npos)

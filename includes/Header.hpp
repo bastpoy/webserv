@@ -13,6 +13,8 @@
 #include <iostream>				// Pour cout
 #include <sstream>				// Pour les flux de chaînes
 #include <fstream>				// std::ifstream
+#include <algorithm>			// Pour erase()
+
 
 // Bibliothèques système / C
 #include <sys/socket.h>			// Pour les fonctions de socket

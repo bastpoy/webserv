@@ -6,12 +6,12 @@
 
 Location::Location()
 {
-	// std::cout << "creating a location configuration" << std::endl;
+	std::cout << GREEN "Creating a Location configuration" RESET << std::endl;
 }
 
 Location::~Location()
 {
-	// std::cout << "destroying a location configuration" << std::endl;
+	std::cout << RED "Destroying a Location configuration" RESET << std::endl;
 }
 
 Location::Location(const Location &other)
@@ -88,15 +88,20 @@ std::map<int,std::string> &Location::getErrorPage()
 	return (this->errorPage);
 }
 
-//fill
+/* ================ */
+/*		FILL		*/
+/* ================ */
+
 void	Location::fillPath(std::string line)
 {
+
 	size_t pos = line.find("location ") + strlen("location ");
-	if(line.find(" {") == std::string::npos)
-		throw Response::ConfigurationFileLocation(); 
+	// if(line.find(" {") == std::string::npos)
+	// 	throw Response::ConfigurationFileLocation(); 
+	std::cout << GREEN "Step 2" RESET << std::endl;
 	size_t pos2 = line.find(" {");
 	this->setPath(line.substr(pos, pos2 - pos));
-	std::cout << "the path: " << this->getPath() << std::endl;
+	std::cout << "the path:\t\t" YELLOW << this->getPath() << RESET << std::endl;
 }
 
 void	Location::fillIndex(std::string line)
@@ -104,7 +109,7 @@ void	Location::fillIndex(std::string line)
 	size_t pos = line.find("index ");
 	this->setIndex(line.substr(pos + strlen("index "), line.length() - (pos + strlen("index "))));
 	//print
-	std::cout << "the index is: " << this->getIndex() << std::endl;            
+	std::cout << "the index is: " << this->getIndex() << std::endl;
 }
 
 void	Location::fillMaxBody(std::string line)
