@@ -4,7 +4,7 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Simple website</title>
-	<link rel="icon" type="image/x-icon" href="../assets/images/favicon.ico">
+	<link rel="icon" type="image/x-icon" href="../../assets/images/favicon.ico">
 </head>
 <body style="text-align: center;">
 	<nav style="padding:15px;">
@@ -23,5 +23,29 @@
 			<button type="submit">Delete</button>
 		</form>
 	</div>
+	<script>
+		function deleteResource(event) {
+			event.preventDefault(); // Empêche le formulaire de se soumettre normalement
+
+			// Confirmation avant suppression
+			if (confirm('Are you sure to delete this file ?')) {
+				fetch('/www/assets/files/file_to_delete', {
+					method: 'DELETE',
+				})
+				.then(response => {
+					if (response.ok) {
+						alert('File deleted !');
+						window.location.href = '../../index.html';
+					} else {
+						alert('Error deleting file');
+					}
+				})
+				.catch(error => {
+					console.error('Erreur:', error);
+					alert('Error deleting file');
+				});
+			}
+		}
+	</script>
 </body>
 </html>

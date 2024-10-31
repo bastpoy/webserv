@@ -65,6 +65,12 @@ all: $(NAME) file_to_delete
 
 parsing : $(NAME1)
 
+simple:
+	@make all -s
+	@clear
+	@./webserv 
+	
+
 file_to_delete:
 	@touch $(FILE_TO_DELETE)
 

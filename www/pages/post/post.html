@@ -4,7 +4,7 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Simple website</title>
-	<link rel="icon" type="image/x-icon" href="../assets/images/favicon.ico">
+	<link rel="icon" type="image/x-icon" href="../../assets/images/favicon.ico">
 </head>
 <body style="text-align: center;">
 	<nav style="padding:15px;">
@@ -18,19 +18,15 @@
 	<h1>POST</h1>
 	<h2>Upload</h2>
 	<div>
-		<div>
-			<input type="file"multiple>
-			<label for="fileInput">
-				<div>
-			</label>
-		</div>
-		<div>
-			<button style="margin:2rem;">
-				<span>Envoyer les fichiers</span>
-			</button>
-		</div>
+		<form method="post">
+			<div>
+				<input type="file"multiple>
+				<label for="fileInput"></label>
+			</div>
+			<button type="submit" style="margin:2rem;">Envoyer les fichiers</button>
+		</form>
 		<h2>Form</h2>
-		<form action="/submit" method="post">
+		<form method="post">
 			<label for="name">Name :</label>
 			<input type="text" id="name" name="name" required><br><br>
 			
@@ -40,7 +36,7 @@
 			<label for="message">Message :</label><br>
 			<textarea id="message" name="message" rows="4" cols="50" required></textarea><br><br>
 			
-			<input type="submit" value="send">
+			<button type="submit">Send</button>
 		</form>
 </body>
 </html>
