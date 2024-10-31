@@ -17,11 +17,11 @@ int main(int ac, char **av)
 			throw std::runtime_error("Usage: <program_name> <config_file>");
 
 		ConfigParser	config(av[1]); // Initialiser ConfigParser avec le fichier de configuration fourni
-		// Server			listenAddress;
+		Server			listenAddress;
 
 		config.parseConfig();
 		config.printConfig();
-		// listenAddress.createListenAddr(config);
+		listenAddress.createListenAddr(config);
 	}
 	catch (const std::exception& e)
 	{
