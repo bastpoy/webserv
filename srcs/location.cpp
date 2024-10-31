@@ -130,7 +130,7 @@ void	Location::fillRedir(std::string line, Server *server)
 	this->setRedir(code, domain);
 
 	//print
-	std::map<int, std::string>::iterator it = server->getRedir().begin();
+	std::map<std::string, std::string>::iterator it = server->getRedir().begin();
 	std::cout << "the code is: " << it->first << "\t the domain is: " << it->second <<  std::endl;
 }
 

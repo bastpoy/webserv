@@ -12,7 +12,7 @@ RUN		mkdir -p /var/www/website
 RUN		chown -R www-data:www-data /var/www/website
 RUN		chmod -R 745 /var/www/website
 
-COPY	../wwww /var/www/website
+COPY	./www /var/www/website
 
 EXPOSE	8080
 EXPOSE	9000

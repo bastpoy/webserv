@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Simple website</title>
+	<link rel="icon" type="image/x-icon" href="../assets/images/favicon.ico">
+</head>
+<body style="text-align: center;">
+	<nav style="padding:15px;">
+		<a href="../index.html" style="font-size: 20px;margin:1rem;width:150px;padding:5px;">Home</a>
+		<a href="https://github.com/bastpoy/webserv" target="_blank" style="font-size: 20px;margin:1rem;width:150px;padding:5px;">GitHub</a>
+		<a href="https://github.com/users/bastpoy/projects/1" target="_blank" style="font-size: 20px;margin:1rem;width:150px;padding:5px;">Tasks</a>
+		<a href="https://discord.com/channels/@me" target="_blank" style="font-size: 20px;margin:1rem;width:150px;padding:5px;">Discord</a>
+		<a href="https://dear-snowdrop-c6b.notion.site/WebServ-1288dbf5f160806ea3afea00cf7fb312?pvs=4" target="_blank" style="font-size: 20px;margin:1rem;width:150px;padding:5px;">Notion</a>
+		<a href="https://excalidraw.com/#json=o-XAOjTgJ4YdtBfRTEY67,l55wlch1aX7IasHuHfS6Iw" target="_blank" style="font-size: 20px;margin:1rem;width:150px;padding:5px;">Excalidraw</a>
+	</nav>
+	<h1>POST</h1>
+	<h2>Upload</h2>
+	<div>
+		<div>
+			<input type="file"multiple>
+			<label for="fileInput">
+				<div>
+			</label>
+		</div>
+		<div>
+			<button style="margin:2rem;">
+				<span>Envoyer les fichiers</span>
+			</button>
+		</div>
+		<h2>Form</h2>
+		<form action="/submit" method="post">
+			<label for="name">Name :</label>
+			<input type="text" id="name" name="name" required><br><br>
+			
+			<label for="email">Email :</label>
+			<input type="email" id="email" name="email" required><br><br>
+			
+			<label for="message">Message :</label><br>
+			<textarea id="message" name="message" rows="4" cols="50" required></textarea><br><br>
+			
+			<input type="submit" value="send">
+		</form>
+</body>
+</html>

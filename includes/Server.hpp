@@ -23,13 +23,14 @@ Accepter les connexions des clients et les rediriger vers un gestionnaire de req
 
 typedef struct s_serverData
 {
+    int                         sockfd;
     std::string 				port;
     std::string					server_name;
     std::string					path;
     std::string					maxBody;
     std::string					index;
     std::map<int, std::string>	errorPage;
-    std::map<int, std::string>	redir;
+    std::map<std::string, std::string>	redir;
     std::vector<Location>		location;
 }t_serverData;
 
@@ -44,7 +45,7 @@ class Server
 		std::string					_maxBody;
 		std::string					_index;
 		std::map<int, std::string>	_errorPage;
-		std::map<int, std::string>	_redir;
+		std::map<std::string, std::string>	_redir;
 		std::vector<Location>		_location;
 		// Server file descriptor
         std::set<int> socketfd;
@@ -62,7 +63,7 @@ class Server
 		void	setMaxBody(std::string maxBody);
 		void	setIndex(std::string index);
 		void	setErrorPage(int code, std::string errorFile);
-		void	setRedir(int code, std::string domain);
+		void	setRedir(std::string code, std::string domain);
 		void	setLocation(Location &location);
 			// ServerAddr Setters
 		void	setSocketFd(int sockfd);
@@ -74,7 +75,7 @@ class Server
 		std::string						getMaxBody() const;
 		std::string						getIndex() const;
 		std::map<int,std::string>		&getErrorPage();
-		std::map<int,std::string>		&getRedir();
+		std::map<std::string,std::string>		&getRedir();
 		std::vector<Location>			&getLocation();
 
 		// Fill

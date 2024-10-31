@@ -54,7 +54,7 @@ void Server::setLocation(Location &location)
 }
 
 
-void Server::setRedir(int code, std::string domain)
+void Server::setRedir(std::string code, std::string domain)
 {
 	this->_redir.insert(std::make_pair(code, domain));
 }
@@ -98,7 +98,7 @@ std::string	Server::getIndex() const
 	return (this->_index);
 }
 
-std::map<int,std::string>	&Server::getRedir()
+std::map<std::string,std::string>	&Server::getRedir()
 {
 	return (this->_redir);
 }
@@ -173,12 +173,12 @@ void	Server::fillErrorPage(std::string line)
 void	Server::fillRedir(std::string line)
 {
 	size_t pos = line.find("return ");
-	int code = atoi(line.substr(pos + strlen("return "), 3).c_str());
+	std::string code = line.substr(pos + strlen("return "), 3).c_str();
 	std::string domain = line.substr(pos + strlen("return ") + 3, line.length() - (pos + strlen("return ")));
 	this->setRedir(code, domain);
 
 	//print
-	std::map<int, std::string>::iterator it = this->getRedir().begin();
+	std::map<std::string, std::string>::iterator it = this->getRedir().begin();
 	std::cout << "the code is: " << it->first << "\t the domain is: " << it->second <<  std::endl;
 }
 
@@ -249,6 +249,7 @@ void getFileContent(std::string &uri , std::string &contentType, int connection)
 
     //read the file content 
     content = readFile(filePath);
+
     //return the response
     std::cout << "the content type: " << contentType << std::endl;
     std::string response = "HTTP/1.1 200 OK \r\n"
@@ -279,10 +280,49 @@ std::string getContentType(const std::string &path)
     if (dotPos != std::string::npos) {
         std::string extension = path.substr(dotPos);
         if (contentTypes.find(extension) != contentTypes.end()) {
-        return contentTypes[extension];
+            return contentTypes[extension];
         }
     }
     return "application/octet-stream"; // Default content type
+}
+
+
+bool redirHeader(std::map<std::string, std::string>::iterator redir, int fd)
+{
+    std::string response = "HTTP/1.1 301 Moved Permanently \r\n"
+                            "Location: " + redir->second + "\r\n"
+                            "Content-Type: text/html\r\n"
+                            // "Content-Type: " + contentType + "\r\n"
+                            "Content-Length: 0 \r\n"
+                            "Connection: keep-alive\r\n";
+                            //"\r\n" + content;
+    std::cout << "the response:\n" << response << std::endl;
+    if(send(fd, response.c_str(), response.size(), 0) < 0)
+    {
+        std::cout << strerror(errno) << std::endl;
+        std::cout << "Error redirection: " << strerror(errno) << std::endl;
+        return (false);
+    }
+    return(true);
+}
+
+bool redirectRequest(std::string buffer, t_serverData *data) 
+{
+    std::string firstLine = buffer.substr(0, buffer.find("\n"));
+    std::string typeRequest =  firstLine.substr(0, buffer.find(" "));
+
+    if(typeRequest == "GET")
+    {
+        std::cout << "GET REDIRECTION " << data->port << " " << data->server_name << std::endl;
+        if(data->redir.size())
+        {
+            std::cout << "get redirection for this port " <<  data->port << " and this server: " << data->server_name << std::endl;
+            return(redirHeader(data->redir.begin(), data->sockfd));
+        }
+    }
+    else
+        std::cout << "404 not found" << std::endl; 
+    return(false);
 }
 
 // Fill from ServerAddr
@@ -343,7 +383,9 @@ void Server::createListenAddr(ConfigParser &config)
 			std::cout << strerror(errno) << " ";
 			throw Response::ErrorListening();
 		}
+        //create a new instance of serverdata to stock info
         t_serverData *data = new t_serverData;
+        data->sockfd = sockfd;
         data->port = itbeg->getPort();
         data->server_name = itbeg->getServerName();
         data->path = itbeg->getPath();
@@ -355,9 +397,9 @@ void Server::createListenAddr(ConfigParser &config)
 
         struct epoll_event event;
         event.events = EPOLLIN; // Monitor for input events
-        event.data.fd = sockfd;
+        // event.data.fd = sockfd;
         //I stock the info server on the event ptr data
-        // event.data.ptr = static_cast<void*>(data);
+        event.data.ptr = static_cast<void*>(data);
 
         //add the epoll event to my epoll_fd instance
         if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, sockfd, &event) == -1) {
@@ -369,6 +411,8 @@ void Server::createListenAddr(ConfigParser &config)
         this->setSocketFd(sockfd);
 		itbeg++;
 	}
+
+    // EPOLL STARTING
 
     const int MAX_EVENTS = 20;
     struct epoll_event events[MAX_EVENTS];
@@ -386,7 +430,8 @@ void Server::createListenAddr(ConfigParser &config)
         // I iterate through each fd
         for (int i = 0; i < num_fds; ++i) 
         {
-            int fd = events[i].data.fd;
+            t_serverData *info = static_cast<t_serverData*>(events[i].data.ptr);
+            int fd = info->sockfd;
             // check if my fd is equal to a socket for handcheck
             if(this->socketfd.find(fd) != this->socketfd.end())
             {
@@ -401,10 +446,24 @@ void Server::createListenAddr(ConfigParser &config)
                     close(epoll_fd);
                     throw Response::Error();                    
                 }
+
+                t_serverData *data = new t_serverData;
+
+                data->sockfd = client_fd;
+                data->port = info->port;
+                data->server_name = info->server_name;
+                data->path = info->path;
+                data->maxBody = info->maxBody;
+                data->index = info->index;
+                data->errorPage = info->errorPage;
+                data->redir = info->redir;
+                data->location = info->location;
+
                 // add new fd to my epoll instance
                 struct epoll_event client_event;
                 client_event.events = EPOLLIN;
-                client_event.data.fd = client_fd;
+                client_event.data.ptr = static_cast<void*>(data);
+                
                 // client_event.data.ptr = events[i].data.ptr;
                 if(epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &client_event) == -1)
                 {
@@ -414,21 +473,20 @@ void Server::createListenAddr(ConfigParser &config)
                 }
                 std::cout << "\n-----New connection established-----\n";
             }
+            
             //Connection already etablish 
             else
             {
                 // check for modification inside the socket
                 if(events[i].events & EPOLLIN)
                 {
-                    // t_serverData *info = static_cast<t_serverData*>(events[i].data.ptr);
-
                     char buffer[1024];
                     std::cout << "\nReading data...\n";
                     ssize_t bytes_read = recv(fd, buffer, sizeof(buffer) - 1, 0);
                     if (bytes_read == -1) {
                         std::cerr << "recv() failed: " << strerror(errno) << std::endl;
                         close(fd);
-                        continue;
+                        throw Response::Error();
                     } else if (bytes_read == 0) {
                         // Connection closed by the client
                         std::cout << "Client disconnected: " << fd << std::endl;
@@ -438,42 +496,43 @@ void Server::createListenAddr(ConfigParser &config)
 
                     // Null-terminate the buffer to make it a valid C-string
                     buffer[bytes_read] = '\0';
-                    std::cout << "Received data from socket " << fd << ": " << buffer << std::endl;
+                    // std::cout << "Received data from socket " << fd << ": " << buffer << std::endl;
 
                     //formulate response
                     std::string path = buffer;
+                    std::string firstLine;
                     std::string content;
                     std::string contentType;
 
+                    if(redirectRequest(path, info))
+                    {
+                        std::cout << "response ok\n\n";
+                        continue;
+                    }
                     // get http request
                     if(!path.empty())
                     {
+                        //get first line
+                        firstLine = path.substr(0, path.find("\n"));
+                        
+                        std::cout << "first line : " << firstLine << std::endl;
+                        std::cout << "request type: " << firstLine.substr(0, path.find(" ")) << std::endl;
+
                         //get uri
                         path = path.substr(path.find('/'), path.size() - path.find('/'));
                         path = path.substr(0, path.find(' '));
-                        std::cout << "the uri: " << path << std::endl;
+                        
+                        // std::cout << "the uri: " << path << std::endl;
                         //get the type file
                         contentType = getContentType(path);
-                        std::cout << "the content type is: " << contentType << std::endl;
+                        // std::cout << "the content type is: " << contentType << std::endl;
                     }
                     else
                         contentType = "text/html";
 
-                    // (void)info;
-                    
-                    // std::cout << "le pointeur vaut: " << events[i].data.ptr << std::endl; 
-                    // if(info) 
-                    //     std::cout << "return " << info->server_name << " " << info->port<< std::endl;
-
                     //get the file content
-                    try
-                    {
-                        getFileContent(path, contentType, fd);
-                    }
-                    catch(const std::exception& e)
-                    {
-                        std::cout << e.what() << std::endl;
-                    }
+                    getFileContent(path, contentType, fd);
+
                     std::cout << "\n\n";
                     close(fd);
                 }
@@ -501,7 +560,7 @@ void	Server::printConfig()
 		std::cout << "index " << this->getIndex() << std::endl;
 	if(this->getErrorPage().begin()->first) 
 		std::cout << "error_page " << this->getErrorPage().begin()->first << " " << this->getErrorPage().begin()->second << std::endl;
-	if(this->getRedir().begin()->first) 
+	if(this->getRedir().size()) 
 		std::cout << "return " << this->getRedir().begin()->first << " " << this->getRedir().begin()->second << std::endl;
 	std::cout << std::endl;
 

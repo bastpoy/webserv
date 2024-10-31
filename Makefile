@@ -36,8 +36,8 @@ DEPS_DIR	:=	.deps
 DEPS		:=	$(patsubst $(OBJS_DIR)/%.o, $(DEPS_DIR)/%.d, $(OBJS))
 
 # Compiler and flags
+CXXFLAGS	:=	-Werror -Wall -Wextra -std=c++98 -g
 CXX			:=	c++ $(CXXFLAGS)
-CXXFLAGS	:=	-Werror -Wall -Wextra -std=c++98 -g3
 DEPFLAGS	:=	-MMD -MP -MF
 INCFLAGS	:=	-Iincludes
 RM			:=	rm -rf
