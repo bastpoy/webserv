@@ -240,29 +240,6 @@ std::string readFile(std::string &path)
 		std::istreambuf_iterator<char>()
 	);
 }
-void error404(std::string &uri , std::string &contentType, int connection)
-{
-	std::string defaultPath = ".";
-	std::string filePath = defaultPath + "/www/error/error404.html"; // Change this to your file path
-	std::string content;
-
-	std::cout << RED << uri << RESET << std::endl;
-	//read the file content 
-	content = readFile(filePath);
-	//return the response
-	std::cout << "the content type: " << contentType << std::endl;
-	std::string response = "HTTP/1.1 404 Not found \r\n"
-							// "Content-Type: text/html\r\n"
-							"Content-Type: " + contentType + "\r\n"
-							"Content-Length: " + to_string(content.size()) + "\r\n"
-							"Connection: close\r\n"
-							"\r\n" + content;
-	if(send(connection, response.c_str(), response.size(), 0) < 0)
-	{
-		std::cout << strerror(errno) << std::endl;
-		throw Response::ErrorSendingResponse(); 
-	}
-}
 
 void getFileContent(std::string &uri , std::string &contentType, int connection)
 {
@@ -286,54 +263,6 @@ void getFileContent(std::string &uri , std::string &contentType, int connection)
 		throw Response::ErrorSendingResponse(); 
 	}
 }
-
-// void getFileContent2(std::string &uri , std::string &contentType, int connection)
-// {
-// 	std::string	code;
-// 	// uri = "." + uri; // Change this to your file path
-// 	std::ifstream file(uri.c_str(), std::ios::binary);
-// 	// if(!file.is_open())
-// 	if(access(uri.c_str(), F_OK) != 0)
-// 	{
-// 		std::cout << uri << ": Fichier introuvable\n";
-// 		code = "404 Not Found";
-// 		uri = "/www/error/error404.html";
-// 	}
-// 	else if (access(uri.c_str(), R_OK) != 0)
-// 	{
-// 		std::cout << uri << ": Accès refusé (pas de droits de lecture)\n";
-// 		code = "403 Forbidden";
-// 		uri = "/www/error/error403.html";
-// 	}
-// 	else
-// 		code = "200 OK";
-
-// 	std::string filePath = "." + uri; // Change this to your file path
-
-// 	std::string content;
-
-// 	content = std::string(
-// 		std::istreambuf_iterator<char>(file),
-// 		std::istreambuf_iterator<char>()
-// 	);
-
-// 	std::cout << RED << uri << RESET << std::endl;
-
-// 	// content = readFile(filePath);
-// 	//return the response
-// 	std::cout << "the content type: " << contentType << std::endl;
-// 	std::string response = "HTTP/1.1 200 OK \r\n"
-// 							// "Content-Type: text/html\r\n"
-// 							"Content-Type: " + contentType + "\r\n"
-// 							"Content-Length: " + to_string(content.size()) + "\r\n"
-// 							"Connection: close\r\n"
-// 							"\r\n" + content;
-// 	if(send(connection, response.c_str(), response.size(), 0) < 0)
-// 	{
-// 		std::cout << strerror(errno) << std::endl;
-// 		throw Response::ErrorSendingResponse(); 
-// 	}
-// }
 
 void getFileContent2(std::string &uri , std::string &contentType, int connection)
 {
