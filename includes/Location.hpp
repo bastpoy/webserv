@@ -8,19 +8,19 @@ class Server;
 class Location
 {
 	private:
-		std::string					path;
-		std::string					index;
-		std::string					maxBody;
-		std::string					autoindex;
-		std::map<int,std::string>	redir;
-		std::map<int, std::string>	errorPage;
+		std::string					_path;
+		std::string					_index;
+		std::string					_maxBody;
+		std::string					_autoindex;
+		std::map<int,std::string>	_redir;
+		std::map<int, std::string>	_errorPage;
 
 	public:
 		// Canonical form
 		Location();
 		~Location();
-		Location(const Location &other);
-		Location	&operator=(const Location &other);
+		// Location(const Location &other);
+		// Location	&operator=(const Location &other);
 
 		// Setter
 		void	setPath(std::string path);

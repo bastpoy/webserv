@@ -6,86 +6,92 @@
 
 Location::Location()
 {
-	std::cout << GREEN "Creating a Location configuration" RESET << std::endl;
+	// std::cout << GREEN "Creating a Location configuration" RESET << std::endl;
 }
 
 Location::~Location()
 {
-	std::cout << RED "Destroying a Location configuration" RESET << std::endl;
+	// std::cout << RED "Destroying a Location configuration" RESET << std::endl;
 }
 
-Location::Location(const Location &other)
-{
-	*this = other;
-}
+// Location::Location(const Location &other)
+// {
+// 	*this = other;
+// }
 
-Location	&Location::operator=(const Location &other)
-{
-	if (this == &other)
-		return (*this);
-	return (*this);
-}
+// Location	&Location::operator=(const Location &other)
+// {
+// 	if (this == &other)
+// 		return (*this);
+// 	return (*this);
+// }
 
 //setter
 void	Location::setPath(std::string path)
 {
-	this->path = path;
+	path.erase(std::remove(path.begin(), path.end(), ' '), path.end());
+	this->_path = path;
 }
 
 void	Location::setIndex(std::string index)
 {
-	this->index = index;
+	index.erase(std::remove(index.begin(), index.end(), ' '), index.end());
+	this->_index = index;
 }
 
 void	Location::setMaxBody(std::string maxBody)
 {
-	this->maxBody = maxBody;
+	maxBody.erase(std::remove(maxBody.begin(), maxBody.end(), ' '), maxBody.end());
+	this->_maxBody = maxBody;
 }
 
 void	Location::setAutoIndex(std::string autoIndex)
 {
-	this->autoindex = autoIndex;
+	autoIndex.erase(std::remove(autoIndex.begin(), autoIndex.end(), ' '), autoIndex.end());
+	this->_autoindex = autoIndex;
 }
 
 void	Location::setRedir(int code, std::string domain)
 {
-	this->redir.insert(std::make_pair(code, domain));
+	domain.erase(std::remove(domain.begin(), domain.end(), ' '), domain.end());
+	this->_redir.insert(std::make_pair(code, domain));
 }
 
 void	Location::setErrorPage(int code, std::string errorFile)
 {
-	this->errorPage.insert(std::make_pair(code, errorFile));
+	errorFile.erase(std::remove(errorFile.begin(), errorFile.end(), ' '), errorFile.end());
+	this->_errorPage.insert(std::make_pair(code, errorFile));
 }
 
 //getter
 std::string Location::getPath() const
 {
-	return (this->path);
+	return (this->_path);
 }
 
 std::string Location::getIndex() const
 {
-	return (this->index);
+	return (this->_index);
 }
 
 std::string Location::getMaxBody() const
 {
-	return (this->maxBody);
+	return (this->_maxBody);
 }
 
 std::string Location::getAutoIndex() const
 {
-	return (this->autoindex);
+	return (this->_autoindex);
 }
 
 std::map<int,std::string> &Location::getRedir()
 {
-	return (this->redir);
+	return (this->_redir);
 }
 
 std::map<int,std::string> &Location::getErrorPage()
 {
-	return (this->errorPage);
+	return (this->_errorPage);
 }
 
 /* ================ */
@@ -98,33 +104,30 @@ void	Location::fillPath(std::string line)
 	size_t pos = line.find("location ") + strlen("location ");
 	// if(line.find(" {") == std::string::npos)
 	// 	throw Response::ConfigurationFileLocation(); 
-	std::cout << GREEN "Step 2" RESET << std::endl;
 	size_t pos2 = line.find(" {");
 	this->setPath(line.substr(pos, pos2 - pos));
-	std::cout << "the path:\t\t" YELLOW << this->getPath() << RESET << std::endl;
+	// std::cout << "the path:\t\t" YELLOW << this->getPath() << RESET << std::endl;
 }
 
 void	Location::fillIndex(std::string line)
 {
-	size_t pos = line.find("index ");
-	this->setIndex(line.substr(pos + strlen("index "), line.length() - (pos + strlen("index "))));
-	//print
-	std::cout << "the index is: " << this->getIndex() << std::endl;
+	size_t pos = line.find("index");
+	this->setIndex(line.substr(pos + strlen("index"), line.length() - (pos + strlen("index"))));
+	// std::cout << "the index is:\t\t" YELLOW << this->getIndex() << RESET << std::endl;
 }
 
 void	Location::fillMaxBody(std::string line)
 {
 	size_t pos = line.find("client_max_body_size ");
 	this->setMaxBody(line.substr(pos + strlen("client_max_body_size "), line.length() - (pos + strlen("client_max_body_size "))));
-	//print
-	std::cout << "the maxBody is: " << this->getMaxBody() << std::endl;
+	// std::cout << "the maxBody is: " << this->getMaxBody() << std::endl;
 }
 
 void	Location::fillAutoIndex(std::string line)
 {
 	size_t pos = line.find("autoindex ");
 	this->setAutoIndex(line.substr(pos + strlen("autoindex "), line.length() - (pos + strlen("autoindex "))));
-	std::cout << "The auto index is " << this->getAutoIndex() << std::endl;
+	// std::cout << "The auto index is " << this->getAutoIndex() << std::endl;
 }
 
 void	Location::fillRedir(std::string line, Server *server)
@@ -136,7 +139,7 @@ void	Location::fillRedir(std::string line, Server *server)
 
 	//print
 	std::map<int, std::string>::iterator it = server->getRedir().begin();
-	std::cout << "the code is: " << it->first << "\t the domain is: " << it->second <<  std::endl;
+	// std::cout << "the code is: " << it->first << RESET " (" YELLOW  << it->second << RESET ")" << std::endl;
 }
 
 void	Location::fillErrorPage(std::string line, Server *server)
@@ -148,22 +151,23 @@ void	Location::fillErrorPage(std::string line, Server *server)
 
 	//print
 	std::map<int, std::string>::iterator it = server->getErrorPage().begin();
-	std::cout << "the errorCode is: " << it->first << "\t the file is: " << it->second <<  std::endl;
+	// std::cout << "the errorCode is:\t" YELLOW << it->first << RESET " (" YELLOW << it->second << RESET ")" << std::endl;
 }
 
 //other
 void	Location::printConfig()
 {
 	if(!this->getPath().empty())
-		std::cout << "location " << this->getPath() << std::endl;
+		std::cout << "\tPath\t\t" YELLOW << this->getPath() << RESET << std::endl;
 	if(!this->getIndex().empty())
-		std::cout << "index " << this->getIndex() << std::endl;
+		std::cout << "\tindex\t\t" YELLOW << this->getIndex() << RESET << std::endl;
 	if(!this->getMaxBody().empty())
-		std::cout << "client_max_body_size " << this->getMaxBody() << std::endl;
+		std::cout << "\tclient_max_body_size\t\t" YELLOW << this->getMaxBody() << RESET << std::endl;
 	if(!this->getAutoIndex().empty())
-		std::cout << "autoindex " << this->getAutoIndex() << std::endl;
+		std::cout << "\tautoindex\t\t" YELLOW << this->getAutoIndex() << RESET << std::endl;
 	if(this->getErrorPage().begin()->first) 
-		std::cout << "error_page " << this->getErrorPage().begin()->first << " " << this->getErrorPage().begin()->second << std::endl;
+		std::cout << "\terror_page\t" YELLOW << this->getErrorPage().begin()->first << " " << this->getErrorPage().begin()->second << RESET << std::endl;
 	if(this->getRedir().begin()->first) 
-		std::cout << "return " << this->getRedir().begin()->first << " " << this->getRedir().begin()->second << std::endl;    
+		std::cout << "\treturn\t\t" YELLOW << this->getRedir().begin()->first << " " << this->getRedir().begin()->second << RESET << std::endl;    
+	std::cout << std::endl;
 }
