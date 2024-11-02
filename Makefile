@@ -21,7 +21,9 @@ SRCS		=	srcs/configParser.cpp \
 				srcs/location.cpp \
 				srcs/main.cpp \
 				srcs/response.cpp \
-				srcs/server.cpp
+				srcs/utils.cpp \
+				srcs/server.cpp \
+				srcs/serverParser.cpp
 # srcs/socket.cpp
 
 # SRCSPARSING =

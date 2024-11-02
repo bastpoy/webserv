@@ -4,7 +4,8 @@
 // Bibliothèques standard C++
 #include <string>				// Manipulation de chaînes
 #include <vector>				// Conteneur vector
-#include <map>					// Conteneur map
+#include <map>
+# include <set>				// Conteneur map
 #include <exception>			// Gestion des exceptions
 #include <stdexcept>			// Exceptions standard
 #include <utility>				// Utilitaires
@@ -25,14 +26,17 @@
 #include <sys/epoll.h>
 
 // Fichiers d'en-tête spécifiques au projet
-#include "Server.hpp"			// Classe pour le serveur
+// #include "ServerParser.hpp"			
+#include "ServerParser.hpp"     // Classe pour le serveur
+#include "Server.hpp"			// Classe Client
 #include "ConfigParser.hpp"		// Classe pour parser la configuration
 #include "Location.hpp"			// Classe pour les locations
 // #include "Logger.hpp"			// Logger pour les messages
 #include "Request.hpp"			// Classe pour les requêtes
 #include "RequestHandler.hpp"	// Gestion des requêtes
 #include "Response.hpp"			// Classe pour les réponses
-#include "Client.hpp"			// Classe Client
+#include "Client.hpp"
+#include "Utils.hpp"
 // #include "Socket.hpp"			// Classe pour les sockets
 // #include "VirtualHost.hpp"		// Classe pour les hôtes virtuels
 
