@@ -63,6 +63,11 @@ $(OBJS_DIR)/%.o: $(SRCS_DIR)/%.cpp Makefile
 
 all: $(NAME)
 
+simple:
+	@make all -s
+	@clear
+	@./webserv conf/config.conf
+
 parsing : $(NAME1)
 
 # Display help information
