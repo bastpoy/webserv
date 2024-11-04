@@ -17,14 +17,14 @@ NAME		:=	webserv
 
 # Source directories and files
 SRCS_DIR	:=	srcs
-SRCS		=	srcs/Client.cpp \
-				srcs/ConfigParser.cpp \
+SRCS		=	srcs/ConfigParser.cpp \
 				srcs/Location.cpp \
 				srcs/main.cpp \
-				srcs/response.cpp \
-				srcs/utils.cpp \
-				srcs/server.cpp \
-				srcs/serverParser.cpp
+				srcs/Response.cpp \
+				srcs/Utils.cpp \
+				srcs/Server.cpp \
+				srcs/ServerParser.cpp
+# srcs/Client.cpp
 # srcs/socket.cpp
 
 # SRCSPARSING =
