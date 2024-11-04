@@ -137,8 +137,11 @@ void	Server::fillServerName(std::string line)
 void	Server::fillPath(std::string line)
 {
 	size_t pos = line.find("root ");
-	this->setPath(line.substr(pos + strlen("root "), line.length() -(pos + strlen("root "))));
-	//print
+	this->setPath(line.substr(pos + strlen("root "), line.length() - (pos + strlen("root "))));
+	//if no "/" at the end add it
+    if(this->getPath().at(this->getPath().size() - 1) != '/')
+        this->setPath(this->getPath() + "/");
+    //print
 	std::cout << "the path is: " << this->getPath() << std::endl;
 }
 
@@ -198,7 +201,10 @@ void	Server::fillLocation(std::ifstream &file, std::string line)
 		//fill the maxbody size
 		else if (line.find("client_max_body_size ") != std::string::npos)
 			location.fillMaxBody(line);
-		//fill the autoindex
+		//fill the rootpath
+        else if (line.find("root ") != std::string::npos)
+            location.fillRoot(line);
+        //fill the autoindex
 		else if (line.find("index ") != std::string::npos)
 			location.fillIndex(line);
 		//fill a redirection 
@@ -404,7 +410,7 @@ void Server::createListenAddr(ConfigParser &config)
                         std::cout << "response ok\n\n";
                         continue;
                     }
-                    std::cout << "\n\n";
+                    std::cout << "Response non ok\n\n";
                     close(fd);
                 }
             }

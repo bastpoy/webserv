@@ -33,6 +33,12 @@ void	Location::setPath(std::string path)
 	this->_path = path;
 }
 
+void	Location::setRoot(std::string root)
+{
+	root.erase(std::remove(root.begin(), root.end(), ' '), root.end());
+	this->_root = root;
+}
+
 void	Location::setIndex(std::string index)
 {
 	index.erase(std::remove(index.begin(), index.end(), ' '), index.end());
@@ -69,6 +75,11 @@ std::string Location::getPath() const
 	return (this->_path);
 }
 
+std::string Location::getRoot() const
+{
+    return(this->_root);
+}
+
 std::string Location::getIndex() const
 {
 	return (this->_index);
@@ -100,13 +111,25 @@ std::map<int,std::string> &Location::getErrorPage()
 
 void	Location::fillPath(std::string line)
 {
-
 	size_t pos = line.find("location ") + strlen("location ");
 	// if(line.find(" {") == std::string::npos)
 	// 	throw Response::ConfigurationFileLocation(); 
 	size_t pos2 = line.find(" {");
 	this->setPath(line.substr(pos, pos2 - pos));
-	// std::cout << "the path:\t\t" YELLOW << this->getPath() << RESET << std::endl;
+    if(this->getPath().at(this->getPath().size() - 1) != '/')
+    {
+        this->setPath(this->getPath() + "/");
+    }
+	std::cout << "the path:\t\t" YELLOW << this->getPath() << RESET << std::endl;
+}
+
+void Location::fillRoot(std::string line)
+{
+	size_t pos = line.find("root ");
+	this->setRoot(line.substr(pos + strlen("root"), line.length() - (pos + strlen("root"))));
+	if(this->getRoot().at(this->getRoot().size() - 1) != '/')
+        this->setRoot(this->getRoot() + "/");
+    std::cout << "the root:\t\t" YELLOW << this->getRoot() << RESET << std::endl;    
 }
 
 void	Location::fillIndex(std::string line)
@@ -149,8 +172,9 @@ void	Location::fillErrorPage(std::string line, Server *server)
 	std::string domain = line.substr(pos + strlen("error_page ") + 3, line.length());
 	this->setErrorPage(code, domain);
 
+    (void)server;
 	//print
-	std::map<int, std::string>::iterator it = server->getErrorPage().begin();
+	// std::map<int, std::string>::iterator it = server->getErrorPage().begin();
 	// std::cout << "the errorCode is:\t" YELLOW << it->first << RESET " (" YELLOW << it->second << RESET ")" << std::endl;
 }
 

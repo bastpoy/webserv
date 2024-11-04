@@ -2,6 +2,7 @@
 
 bool isExtension(std::string path)
 {
+    //return false if there is not extension
     if(path.find(".html") == std::string::npos &&
         path.find(".css") == std::string::npos &&
         path.find(".js") == std::string::npos &&
@@ -13,16 +14,80 @@ bool isExtension(std::string path)
     return (true);
 }
 
+std::string check_location(std::string &filePath, std::vector<Location> &location, t_serverData *data)
+{
+    std::vector<Location>::iterator it = location.begin();
+
+    // it->getPath => pathLocation
+    // it->getIndex => indexLocation
+    // it->getRoot => rootLocation
+    // rootServer => rootServer
+    // indexServer => indexServer
+    // uri => path to the current uri
+
+    //modify locationPath to remove the first '/' 
+    it->setPath(it->getPath().substr(1, it->getPath().size() - 1));
+    std::string finalPath;
+    //iterate throught my different server location
+    while(it != location.end())
+    {
+        // if the path is equal to the location path
+        if(!it->getPath().empty() && filePath == it->getPath())
+        {
+            std::cout << "location path: " << it->getPath() << std::endl;
+            //I check if I have a root directory
+            if(!it->getRoot().empty())
+            {
+                //add root to the path
+                finalPath += it->getRoot() + it->getPath();
+            }
+            //if no location root
+            else
+            {
+                if(!data->path.empty())
+                    finalPath += data->path + it->getPath();
+                else
+                    finalPath += it->getPath();
+            }
+            // if i have a file to return inside location
+            if(!it->getIndex().empty())
+            {
+                //path is equal to serverRoot
+                finalPath += it->getIndex();
+            }
+            //else i return the server file
+            else
+                finalPath += data->index;
+            std::cout << "finalPath: " << finalPath << std::endl;
+            return(finalPath);
+        }
+        it++;
+    }
+    return ("");
+}
+
 void sendData(std::string &uri , std::string &contentType, t_serverData *data)
 {
+    std::vector<Location>location = data->location;
+    //root de server
     std::string defaultPath = data->path;
-    std::string filePath = defaultPath + uri; // Change this to your file path
+    std::string filePath; // Change this to your file path
+    std::string locationPath;
 
-    //if there is a index specify in the conf file and not extension in the path
-    if(!data->index.empty() && !isExtension(filePath))
-        filePath = filePath + data->index;
+    //if there is a index specify in the server and not extension in the path
+    if(!data->index.empty() && !isExtension(uri))
+        filePath = defaultPath + data->index;
+    else
+    {
+        filePath = defaultPath + uri;
+    }
     // check if there is a location path
-    // if there is check all the info inside to render files
+    locationPath = check_location(uri, data->location, data);
+    if(!locationPath.empty())
+    {
+        std::cout << "a location\n";
+        filePath = locationPath;
+    }
 
     std::cout << "the path is: " << filePath <<  " defautl path: " << defaultPath << " uri: " << uri << std::endl;
     std::cout << "the content type: " << contentType << std::endl;
@@ -43,7 +108,7 @@ void sendData(std::string &uri , std::string &contentType, t_serverData *data)
     }
 }
 
-std::string getContentType(const std::string &path) 
+std::string getContentType(std::string &path) 
 {
     std::map<std::string, std::string> contentTypes;
 
@@ -60,6 +125,13 @@ std::string getContentType(const std::string &path)
         if (contentTypes.find(extension) != contentTypes.end()) {
             return contentTypes[extension];
         }
+    }
+    //si je n'ai pas d'extensions donc pas de fichiers jer ajoute un backslach
+    else
+    {
+        if(path.size() == 0 || path.at(path.size() - 1) != '/')
+            path += "/";
+        
     }
     return "text/html"; // Default content type
 }
@@ -95,17 +167,17 @@ bool redirectRequest(std::string buffer, t_serverData *data)
             std::cout << "GET REDIRECTION " << data->port << " " << data->server_name << std::endl;
             return(redirHeader(data->redir.begin(), data->sockfd));
         }
-        // else I retrieve the info if it exists
+        // else I retrieve the info
         else
         {
-            std::string contentType;
-            std::string path = buffer.substr(buffer.find('/') + 1, buffer.size() - buffer.find('/'));
             std::cout << "GET RESPONSE" << std::endl;
-            
             //get the url of the request
+
+            std::string path = buffer.substr(buffer.find('/') + 1, buffer.size() - buffer.find('/'));
             path = path.substr(0, path.find(' '));
+            
             // get the type of the request file
-            contentType = getContentType(path);
+            std::string contentType = getContentType(path);
             // return the data to the client
             sendData(path, contentType, data);
         }
