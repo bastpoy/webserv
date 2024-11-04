@@ -69,6 +69,7 @@ void sendData(std::string &uri , std::string &contentType, t_serverData *data)
     std::string defaultPath = data->path + uri;
     std::string filePath; // Change this to your file path
     std::string locationPath;
+    std::string code;
 
     //if there is a index specify in the server and not extension in the path
     if(!data->index.empty() && !isExtension(uri))
@@ -87,66 +88,36 @@ void sendData(std::string &uri , std::string &contentType, t_serverData *data)
 
     std::cout << "the path is: " << filePath <<  " defautl path: " << defaultPath << " uri: " << uri << std::endl;
     std::cout << "the content type: " << contentType << std::endl;
-    //read the file content 
-    std::string content = readFile(filePath);
-
-    //return the response
-    std::string response = "HTTP/1.1 200 OK \r\n"
-                            "Content-Type: " + contentType + "\r\n"
-                            "Content-Length: " + to_string(content.size()) + "\r\n"
-                            "Connection: close\r\n"
-                            "\r\n" + content;
-    
-    if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
-    {
-        std::cout << strerror(errno) << std::endl;
-        throw Response::ErrorSendingResponse(); 
-    }
-}
-void getFileContent2(std::string &uri , std::string &contentType, int connection)
-{
-	std::string	content;
-	std::string	code = "200 OK";
-	std::string	filePath = "." + uri;
-
+    //r check if i can access the current ressource request 
 	if(access(filePath.c_str(), F_OK) != 0)
 	{
-		std::cout << uri <<RED ": Fichier introuvable\n" RESET;
+		std::cout << filePath <<RED ": Fichier introuvable\n" RESET;
 		code = "404 Not Found";
-		uri = "/www/error/error404.html";
+		filePath = "./www/error/error404.html";
 		contentType = "text/html";
 	}
 	else if (access(filePath.c_str(), R_OK) != 0)
 	{
-		std::cout << uri <<YELLOW ": Accès refusé (pas de droits de lecture)\n" RESET;
+		std::cout << filePath <<YELLOW ": Accès refusé (pas de droits de lecture)\n" RESET;
 		code = "403 Forbidden";
-		uri = "/www/error/error403.html";
+		filePath = "./www/error/error403.html";
 		contentType = "text/html";
 	}
 	else
 	{
 		code = "200 OK";
 	}
-	filePath = "." + uri; // Change this to your file path
-	
-	// content = readFile(filePath);
+    //read the file content 
+    std::string content = readFile(filePath);
+    //set the header header
+    std::string response = httpHeaderResponse(code, contentType, content);
 
-	std::ifstream file(filePath.c_str(), std::ios::binary);
-	if(!file.is_open())
-	{
-		std::cout << filePath << ": ";
-		throw Response::ErrorOpeningFile();
-	}
-	content = std::string(std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>());
-
-
-	std::cout << "contenu: " << content << std::endl;
-	std::string response = httpHeaderResponse(code, contentType, content);
-	if(send(connection, response.c_str(), response.size(), 0) < 0)
-	{
-		std::cout << strerror(errno) << std::endl;
-		throw Response::ErrorSendingResponse(); 
-	}
+    //send response
+    if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
+    {
+        std::cout << strerror(errno) << std::endl;
+        throw Response::ErrorSendingResponse(); 
+    }
 }
 
 std::string getContentType(std::string &path) 

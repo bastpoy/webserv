@@ -61,5 +61,4 @@
         "thread": "cpp",
         "semaphore": "cpp"
     },
-    "C_Cpp.errorSquiggles": "enabled"
 }
