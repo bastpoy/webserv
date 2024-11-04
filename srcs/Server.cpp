@@ -1,6 +1,5 @@
 #include "Header.hpp"
 
-
 std::string check_location(std::string &filePath, std::vector<Location> &location, t_serverData *data)
 {
     std::vector<Location>::iterator it = location.begin();
@@ -53,11 +52,21 @@ std::string check_location(std::string &filePath, std::vector<Location> &locatio
     return ("");
 }
 
+std::string httpHeaderResponse(std::string code, std::string contentType, std::string content)
+{
+    //make the header response
+    return ("HTTP/1.1 " + code + " \r\n"
+            "Content-Type: " + contentType + "\r\n"
+            "Content-Length: " + to_string(content.size()) + "\r\n"
+            "Connection: close\r\n"
+            "\r\n" + content);
+}
+
 void sendData(std::string &uri , std::string &contentType, t_serverData *data)
 {
     std::vector<Location>location = data->location;
     //root de server
-    std::string defaultPath = data->path;
+    std::string defaultPath = data->path + uri;
     std::string filePath; // Change this to your file path
     std::string locationPath;
 
@@ -66,7 +75,7 @@ void sendData(std::string &uri , std::string &contentType, t_serverData *data)
         filePath = defaultPath + data->index;
     else
     {
-        filePath = defaultPath + uri;
+        filePath = defaultPath;
     }
     // check if there is a location path
     locationPath = check_location(uri, data->location, data);
@@ -117,7 +126,6 @@ void getFileContent2(std::string &uri , std::string &contentType, int connection
 	else
 	{
 		code = "200 OK";
-
 	}
 	filePath = "." + uri; // Change this to your file path
 	
@@ -133,18 +141,14 @@ void getFileContent2(std::string &uri , std::string &contentType, int connection
 
 
 	std::cout << "contenu: " << content << std::endl;
-	std::string response = "HTTP/1.1 " + code + " \r\n"
-						// "Content-Type: text/html\r\n"
-						"Content-Type: " + contentType + "\r\n"
-						"Content-Length: " + to_string(content.size()) + "\r\n"
-						"Connection: close\r\n"
-						"\r\n" + content;
+	std::string response = httpHeaderResponse(code, contentType, content);
 	if(send(connection, response.c_str(), response.size(), 0) < 0)
 	{
 		std::cout << strerror(errno) << std::endl;
 		throw Response::ErrorSendingResponse(); 
 	}
 }
+
 std::string getContentType(std::string &path) 
 {
     std::map<std::string, std::string> contentTypes;
