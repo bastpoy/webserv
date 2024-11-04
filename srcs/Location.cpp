@@ -14,18 +14,6 @@ Location::~Location()
 	// std::cout << RED "Destroying a Location configuration" RESET << std::endl;
 }
 
-// Location::Location(const Location &other)
-// {
-// 	*this = other;
-// }
-
-// Location	&Location::operator=(const Location &other)
-// {
-// 	if (this == &other)
-// 		return (*this);
-// 	return (*this);
-// }
-
 //setter
 void	Location::setPath(std::string path)
 {
@@ -129,6 +117,8 @@ void Location::fillRoot(std::string line)
 	this->setRoot(line.substr(pos + strlen("root"), line.length() - (pos + strlen("root"))));
 	if(this->getRoot().at(this->getRoot().size() - 1) != '/')
         this->setRoot(this->getRoot() + "/");
+    if(this->getRoot().at(0) != '.')
+        this->setRoot("." + this->getRoot());
     std::cout << "the root:\t\t" YELLOW << this->getRoot() << RESET << std::endl;    
 }
 

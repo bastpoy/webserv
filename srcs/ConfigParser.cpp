@@ -11,35 +11,12 @@ ConfigParser::ConfigParser(void)
 
 ConfigParser::ConfigParser(char *path)
 {
-	// std::cout << GREEN "Creating a ConfigParser from \"" << path << "\"" RESET << std::endl;
 	this->_path = path;
 }
 
 ConfigParser::~ConfigParser()
 {
-	// std::vector<serverConfig*>::iterator it = server.begin();
-	// while(it != server.end())
-	// {
-	//     std::cout << (*it) << std::endl;
-	//     delete (*it);
-	//     it++;
-	// }
-	// server.clear();
-
-	// std::cout << RED "Destroying a ConfigParser " RESET << std::endl;
 }
-
-// ConfigParser::ConfigParser(const ConfigParser &other)
-// {
-// 	*this = other;
-// }
-
-// ConfigParser	&ConfigParser::operator=(const ConfigParser &other)
-// {
-// 	if (this == &other)
-// 		return (*this);
-// 	return (*this);
-// }
 
 /* ================ */
 /*		SETTER		*/

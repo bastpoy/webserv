@@ -1,18 +1,5 @@
 #include "Header.hpp"
 
-bool isExtension(std::string path)
-{
-    //return false if there is not extension
-    if(path.find(".html") == std::string::npos &&
-        path.find(".css") == std::string::npos &&
-        path.find(".js") == std::string::npos &&
-        path.find(".png") == std::string::npos &&
-        path.find(".jpg") == std::string::npos &&
-        path.find(".gif") == std::string::npos &&
-        path.find(".ico") == std::string::npos)
-        return (false);
-    return (true);
-}
 
 std::string check_location(std::string &filePath, std::vector<Location> &location, t_serverData *data)
 {
@@ -107,7 +94,57 @@ void sendData(std::string &uri , std::string &contentType, t_serverData *data)
         throw Response::ErrorSendingResponse(); 
     }
 }
+void getFileContent2(std::string &uri , std::string &contentType, int connection)
+{
+	std::string	content;
+	std::string	code = "200 OK";
+	std::string	filePath = "." + uri;
 
+	if(access(filePath.c_str(), F_OK) != 0)
+	{
+		std::cout << uri <<RED ": Fichier introuvable\n" RESET;
+		code = "404 Not Found";
+		uri = "/www/error/error404.html";
+		contentType = "text/html";
+	}
+	else if (access(filePath.c_str(), R_OK) != 0)
+	{
+		std::cout << uri <<YELLOW ": Accès refusé (pas de droits de lecture)\n" RESET;
+		code = "403 Forbidden";
+		uri = "/www/error/error403.html";
+		contentType = "text/html";
+	}
+	else
+	{
+		code = "200 OK";
+
+	}
+	filePath = "." + uri; // Change this to your file path
+	
+	// content = readFile(filePath);
+
+	std::ifstream file(filePath.c_str(), std::ios::binary);
+	if(!file.is_open())
+	{
+		std::cout << filePath << ": ";
+		throw Response::ErrorOpeningFile();
+	}
+	content = std::string(std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>());
+
+
+	std::cout << "contenu: " << content << std::endl;
+	std::string response = "HTTP/1.1 " + code + " \r\n"
+						// "Content-Type: text/html\r\n"
+						"Content-Type: " + contentType + "\r\n"
+						"Content-Length: " + to_string(content.size()) + "\r\n"
+						"Connection: close\r\n"
+						"\r\n" + content;
+	if(send(connection, response.c_str(), response.size(), 0) < 0)
+	{
+		std::cout << strerror(errno) << std::endl;
+		throw Response::ErrorSendingResponse(); 
+	}
+}
 std::string getContentType(std::string &path) 
 {
     std::map<std::string, std::string> contentTypes;
@@ -167,7 +204,7 @@ bool redirectRequest(std::string buffer, t_serverData *data)
             std::cout << "GET REDIRECTION " << data->port << " " << data->server_name << std::endl;
             return(redirHeader(data->redir.begin(), data->sockfd));
         }
-        // else I retrieve the info
+        // else I respond 
         else
         {
             std::cout << "GET RESPONSE" << std::endl;

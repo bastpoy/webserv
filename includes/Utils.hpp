@@ -4,6 +4,7 @@
 #include "Header.hpp"
 
 std::string readFile(std::string &path);
+bool isExtension(std::string path);
 
 template <typename T>
 std::string to_string(T value) {

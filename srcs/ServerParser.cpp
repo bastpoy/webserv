@@ -141,6 +141,9 @@ void	Server::fillPath(std::string line)
 	//if no "/" at the end add it
     if(this->getPath().at(this->getPath().size() - 1) != '/')
         this->setPath(this->getPath() + "/");
+    //if no . at the begining add it
+    if(this->getPath().at(0) != '.')
+        this->setPath("." + this->getPath());
     //print
 	std::cout << "the path is: " << this->getPath() << std::endl;
 }
