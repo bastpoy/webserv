@@ -19,6 +19,7 @@
 
 // Bibliothèques système / C
 #include <sys/socket.h>			// Pour les fonctions de socket
+#include <sys/wait.h>
 #include <netinet/in.h>			// Pour sockaddr_in
 #include <cstdlib>				// Pour exit() et EXIT_FAILURE
 #include <errno.h>				// Pour errno

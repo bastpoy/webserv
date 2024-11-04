@@ -1,10 +1,12 @@
 # Prerequisites
-.objs
-.o
-.deps
-.d
+*.objs
+*.o
+*.deps
+*.d
 
 # Executable
 webserv
 
-.vscode
+.vscode/
+
+file_to_delete

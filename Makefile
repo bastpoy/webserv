@@ -17,8 +17,9 @@ NAME		:=	webserv
 
 # Source directories and files
 SRCS_DIR	:=	srcs
-SRCS		=	srcs/configParser.cpp \
-				srcs/location.cpp \
+SRCS		=	srcs/Client.cpp \
+				srcs/ConfigParser.cpp \
+				srcs/Location.cpp \
 				srcs/main.cpp \
 				srcs/response.cpp \
 				srcs/utils.cpp \
@@ -27,6 +28,7 @@ SRCS		=	srcs/configParser.cpp \
 # srcs/socket.cpp
 
 # SRCSPARSING =
+FILE_TO_DELETE	:=	www/assets/files/file_to_delete
 
 # Object directories and files
 OBJS_DIR	:=	.objs
@@ -70,6 +72,15 @@ simple:
 
 parsing : $(NAME1)
 
+simple:
+	@make all -s
+	@clear
+	@./webserv 
+	
+
+file_to_delete:
+	@touch $(FILE_TO_DELETE)
+
 # Display help information
 help:
 	@echo "$(BLUE)Makefile commands:$(RESET)"
@@ -112,6 +123,7 @@ clean:
 fclean:	clean
 	@echo "$(RED)Cleaning up $(NAME)...$(RESET)"
 	@$(RM) $(NAME)
+	@$(RM) $(FILE_TO_DELETE)
 
 # Rebuild everything
 re:		fclean all
