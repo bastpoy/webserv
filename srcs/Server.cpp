@@ -52,74 +52,6 @@ std::string check_location(std::string &filePath, std::vector<Location> &locatio
     return ("");
 }
 
-std::string httpHeaderResponse(std::string code, std::string contentType, std::string content)
-{
-    //make the header response
-    return ("HTTP/1.1 " + code + " \r\n"
-            "Content-Type: " + contentType + "\r\n"
-            "Content-Length: " + to_string(content.size()) + "\r\n"
-            "Connection: close\r\n"
-            "\r\n" + content);
-}
-
-void sendData(std::string &uri , std::string &contentType, t_serverData *data)
-{
-    std::vector<Location>location = data->location;
-    //root de server
-    std::string defaultPath = data->path + uri;
-    std::string filePath; // Change this to your file path
-    std::string locationPath;
-    std::string code;
-
-    //if there is a index specify in the server and not extension in the path
-    if(!data->index.empty() && !isExtension(uri))
-        filePath = defaultPath + data->index;
-    else
-    {
-        filePath = defaultPath;
-    }
-    // check if there is a location path
-    locationPath = check_location(uri, data->location, data);
-    if(!locationPath.empty())
-    {
-        std::cout << "a location\n";
-        filePath = locationPath;
-    }
-
-    std::cout << "the path is: " << filePath <<  " defautl path: " << defaultPath << " uri: " << uri << std::endl;
-    std::cout << "the content type: " << contentType << std::endl;
-    //r check if i can access the current ressource request 
-	if(access(filePath.c_str(), F_OK) != 0)
-	{
-		std::cout << filePath <<RED ": Fichier introuvable\n" RESET;
-		code = "404 Not Found";
-		filePath = "./www/error/error404.html";
-		contentType = "text/html";
-	}
-	else if (access(filePath.c_str(), R_OK) != 0)
-	{
-		std::cout << filePath <<YELLOW ": Accès refusé (pas de droits de lecture)\n" RESET;
-		code = "403 Forbidden";
-		filePath = "./www/error/error403.html";
-		contentType = "text/html";
-	}
-	else
-	{
-		code = "200 OK";
-	}
-    //read the file content 
-    std::string content = readFile(filePath);
-    //set the header header
-    std::string response = httpHeaderResponse(code, contentType, content);
-
-    //send response
-    if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
-    {
-        std::cout << strerror(errno) << std::endl;
-        throw Response::ErrorSendingResponse(); 
-    }
-}
-
 std::string getContentType(std::string &path) 
 {
     std::map<std::string, std::string> contentTypes;
@@ -138,14 +70,85 @@ std::string getContentType(std::string &path)
             return contentTypes[extension];
         }
     }
-    //si je n'ai pas d'extensions donc pas de fichiers jer ajoute un backslach
+    //if i dont have exetension i add backslash
     else
     {
+        //if size of path = 0 or no '/' at the end
         if(path.size() == 0 || path.at(path.size() - 1) != '/')
             path += "/";
         
     }
     return "text/html"; // Default content type
+}
+
+std::string httpHeaderResponse(std::string code, std::string contentType, std::string content)
+{
+    //make the header response
+    return ("HTTP/1.1 " + code + " \r\n"
+            "Content-Type: " + contentType + "\r\n"
+            "Content-Length: " + to_string(content.size()) + "\r\n"
+            "Connection: close\r\n"
+            "\r\n" + content);
+}
+
+void checkAccessFile(std::string &code, std::string &filePath)
+{
+    // check if i can access the current ressource request 
+	if(access(filePath.c_str(), F_OK) != 0)
+	{
+		std::cout << filePath <<RED ": Fichier introuvable\n" RESET;
+		code = "404 Not Found";
+		filePath = "./www/error/error404.html";
+	}
+	else if (access(filePath.c_str(), R_OK) != 0)
+	{
+		std::cout << filePath <<YELLOW ": Accès refusé (pas de droits de lecture)\n" RESET;
+		code = "403 Forbidden";
+		filePath = "./www/error/error403.html";
+	}
+	else
+	{
+		code = "200 OK";
+	}
+}
+
+void sendData(std::string &uri, t_serverData *data)
+{
+    std::vector<Location>location = data->location;
+    //get the contentType
+    std::string contentType = getContentType(uri);
+    //root de server
+    std::string defaultPath = data->path + uri;
+    std::string filePath; // Change this to your file path
+    std::string locationPath;
+    std::string code;
+
+    //if there is a index specify in the server and not extension in the path
+    if(!data->index.empty() && !isExtension(uri))
+        filePath = defaultPath + data->index;
+    else
+        filePath = defaultPath;
+    // check if there is a location path
+    locationPath = check_location(uri, data->location, data);
+    if(!locationPath.empty())
+        filePath = locationPath;
+
+    //check acces of filePath
+    checkAccessFile(code, filePath);
+
+    std::cout << "the path is: " << filePath <<  " defautl path: " << defaultPath << " uri: " << uri << std::endl;
+    std::cout << "the content type: " << contentType << std::endl;
+    //read the file content 
+    std::string content = readFile(filePath);
+    // get the type of the request file
+    std::string response = httpHeaderResponse(code, contentType, content);
+
+    //send response
+    if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
+    {
+        std::cout << strerror(errno) << std::endl;
+        throw Response::ErrorSendingResponse(); 
+    }
 }
 
 bool redirHeader(std::map<std::string, std::string>::iterator redir, int fd)
@@ -188,10 +191,8 @@ bool redirectRequest(std::string buffer, t_serverData *data)
             std::string path = buffer.substr(buffer.find('/') + 1, buffer.size() - buffer.find('/'));
             path = path.substr(0, path.find(' '));
             
-            // get the type of the request file
-            std::string contentType = getContentType(path);
             // return the data to the client
-            sendData(path, contentType, data);
+            sendData(path, data);
         }
     }
     else

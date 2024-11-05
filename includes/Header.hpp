@@ -40,6 +40,7 @@
 #include "Response.hpp"			// Classe pour les réponses
 #include "Client.hpp"
 #include "Utils.hpp"
+#include "Error.hpp"
 // #include "Socket.hpp"			// Classe pour les sockets
 // #include "VirtualHost.hpp"		// Classe pour les hôtes virtuels
 

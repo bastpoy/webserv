@@ -6,6 +6,7 @@
 class Location;
 class ConfigParser;
 
+#define MAX_EVENTS 100
 /*
 But : Représente le serveur HTTP principal.
 Rôle :
@@ -86,9 +87,10 @@ class Server
 		void	fillErrorPage(std::string line);
 		void	fillRedir(std::string line);
 		void	fillLocation(std::ifstream &file, std::string line);
-			// ServerAddr Fill
+		
+        // ServerAddr Fill
 		void	createListenAddr(ConfigParser &config);
-
+        void    configuringNetwork(std::vector<Server>::iterator &itbeg, ConfigParser &config, int &epoll_fd);
 		// Debug
 		void	printConfig();
 
