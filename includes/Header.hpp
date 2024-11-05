@@ -26,6 +26,7 @@
 #include <sys/epoll.h>
 
 // Fichiers d'en-tête spécifiques au projet
+#include "CGIHandler.hpp"		// Classe pour gerer les CGI
 #include "Server.hpp"			// Classe pour le serveur
 #include "ConfigParser.hpp"		// Classe pour parser la configuration
 #include "Location.hpp"			// Classe pour les locations

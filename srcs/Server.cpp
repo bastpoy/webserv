@@ -520,7 +520,24 @@ void Server::createListenAddr(ConfigParser &config)
 					//get the file content
 					try
 					{
-						getFileContent2(path, contentType, fd);
+						std::cout << RED << "\n\n" << path << RESET << std::endl;
+						if (path.find(".py") != std::string::npos)
+						{
+							std::cout << RED<< ".py found" << RESET<< std::endl;
+							std::map<std::string, std::string> env;
+							// env["REQUEST_METHOD"] = "GET";
+							// env["QUERY_STRING"] = "name=John&age=30";  // Exemple de paramètres de requête
+							// env["CONTENT_LENGTH"] = "0";               // 0 pour les requêtes GET
+							// env["CONTENT_TYPE"] = "text/html";
+							// env["SCRIPT_NAME"] = "/cgi-bin/script.py";
+							// env["SERVER_PROTOCOL"] = "HTTP/1.1";
+							// env["REMOTE_ADDR"] = "127.0.0.1"; 
+							CGIHandler::execute(path, env);
+						}
+						else
+						{
+							getFileContent2(path, contentType, fd);
+						}
 					}
 					catch(const std::exception& e)
 					{

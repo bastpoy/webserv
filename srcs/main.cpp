@@ -208,29 +208,22 @@ int main()
 // 	return 0;
 // }
 
-// // int main_amandine() {
-// //     // Création d'un socket serveur sur IPv4, TCP, port 8080, interface INADDR_ANY
-// //     Socket serverSocket(AF_INET, SOCK_STREAM, 0, 8080, INADDR_ANY);
+// int main_amandine() {
+// 	std::map<std::string, std::string> env;
+// 	env["REQUEST_METHOD"] = "GET";
+// 	env["QUERY_STRING"] = "name=John&age=30";  // Exemple de paramètres de requête
+// 	env["CONTENT_LENGTH"] = "0";               // 0 pour les requêtes GET
+// 	env["CONTENT_TYPE"] = "";
+// 	env["SCRIPT_NAME"] = "/cgi-bin/script.py";
+// 	env["SERVER_PROTOCOL"] = "HTTP/1.1";
+// 	env["REMOTE_ADDR"] = "127.0.0.1"; 
+// 	// Création d'un socket serveur sur IPv4, TCP, port 8080, interface INADDR_ANY
+// 	CGIHandler cgi;
 	
-// //     // Lier le socket à l'adresse
-// //     serverSocket.bindSocket();
-	
-// //     // Mettre le socket en écoute
-// //     serverSocket.listenSocket(10);
-
-// //     std::cout << "Le serveur écoute sur le port 8080..." << std::endl;
-
-// //     // Boucle pour accepter les connexions entrantes
-// //     int clientSocket = serverSocket.acceptConnection();
-// //     std::string hello = "Hello World";
-// //     std::string recv;
-// //     serverSocket.sendData(clientSocket, hello);
-// //     serverSocket.receiveData(clientSocket, recv);
-// //     std::cout << recv << std::endl;
-// //     serverSocket.closeSocket();
-// //     // std::cout << clientSocket << std::endl;
-
-// //     return 0;
-// // }
+// 	// Lier le socket à l'adresse
+// 	std::string result = cgi.execute("/www/pages/cgi-bin/script.py", env);
+// 	std::cout << result << std::endl;
+// 	return 0;
+// }
 
 
