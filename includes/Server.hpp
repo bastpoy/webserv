@@ -4,7 +4,6 @@
 #include "Header.hpp"
 
 
-bool redirectRequest(std::string buffer, t_serverData *data);
-
+void createListenAddr(ConfigParser &config);
 
 #endif

@@ -51,10 +51,6 @@ class Server
         std::set<int> socketfd;
 	
     public:
-		// Canonical form (constructor, destructor, copy operations)
-		Server(void);
-		~Server(void);
-		// Server(const Server &other);
 
 		// Setter
 		void	setPort(std::string port);
@@ -65,7 +61,7 @@ class Server
 		void	setErrorPage(int code, std::string errorFile);
 		void	setRedir(std::string code, std::string domain);
 		void	setLocation(Location &location);
-			// ServerAddr Setters
+		// ServerAddr Setters
 		void	setSocketFd(int sockfd);
 
 		// Getter

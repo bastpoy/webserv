@@ -40,27 +40,12 @@ const char* Response::ConfigurationFileServer::what() const throw()
 	return("Error in the Server block configuration file");
 }
 
-const char* Response::ErrorGetAddrInfo::what() const throw()
-{
-	return("Error getting the address info");
-}
-
-const char* Response::ErrorBindAddress::what() const throw()
-{
-	return("Error binding socket with my address");
-}
-
-const char* Response::ErrorListening::what() const throw()
-{
-	return("Error listening on my current socket");
-}
-
-const char* Response::ErrorCreatingSocket::what() const throw()
-{
-	return("Error listening on my current socket");
-}
-
 const char* Response::Error::what() const throw()
 {
 	return("");
+}
+
+const char* Response::ErrorBodyPostRequest::what() const throw()
+{
+	return("Error format http POST body");
 }

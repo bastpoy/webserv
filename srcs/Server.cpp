@@ -1,172 +1,146 @@
 #include "Header.hpp"
 
-std::string check_location(std::string &filePath, std::vector<Location> &location, t_serverData *data)
+//------SERVER FUNCTIONS-------
+
+//Fill data epoll with server iterator
+struct epoll_event fillEpoolDataIterator(int sockfd, std::vector<Server>::iterator itbeg)
 {
-    std::vector<Location>::iterator it = location.begin();
+    t_serverData *data = new t_serverData;
+    struct epoll_event event;
+    
+    data->sockfd = sockfd;
+    data->port = itbeg->getPort();
+    data->server_name = itbeg->getServerName();
+    data->path = itbeg->getPath();
+    data->maxBody = itbeg->getMaxBody();
+    data->index = itbeg->getIndex();
+    data->errorPage = itbeg->getErrorPage();
+    data->redir = itbeg->getRedir();
+    data->location = itbeg->getLocation();
 
-    // it->getPath => pathLocation
-    // it->getIndex => indexLocation
-    // it->getRoot => rootLocation
-    // rootServer => rootServer
-    // indexServer => indexServer
-    // uri => path to the current uri
+    event.events = EPOLLIN; // Monitor for input events
+    //I stock the info server on the event ptr data
+    event.data.ptr = static_cast<void*>(data);
 
-    //modify locationPath to remove the first '/' 
-    it->setPath(it->getPath().substr(1, it->getPath().size() - 1));
-    std::string finalPath;
-    //iterate throught my different server location
-    while(it != location.end())
-    {
-        // if the path is equal to the location path
-        if(!it->getPath().empty() && filePath == it->getPath())
-        {
-            std::cout << "location path: " << it->getPath() << std::endl;
-            //I check if I have a root directory
-            if(!it->getRoot().empty())
-            {
-                //add root to the path
-                finalPath += it->getRoot() + it->getPath();
-            }
-            //if no location root
-            else
-            {
-                if(!data->path.empty())
-                    finalPath += data->path + it->getPath();
-                else
-                    finalPath += it->getPath();
-            }
-            // if i have a file to return inside location
-            if(!it->getIndex().empty())
-            {
-                //path is equal to serverRoot
-                finalPath += it->getIndex();
-            }
-            //else i return the server file
-            else
-                finalPath += data->index;
-            std::cout << "finalPath: " << finalPath << std::endl;
-            return(finalPath);
-        }
-        it++;
-    }
-    return ("");
+    return (event);
 }
 
-std::string getContentType(std::string &path) 
+//Fill data epoll with info from the new client
+struct epoll_event fillEpoolDataInfo(int &client_fd, t_serverData *info)
 {
-    std::map<std::string, std::string> contentTypes;
+    t_serverData *data = new t_serverData;
 
-    contentTypes.insert(std::pair<std::string, std::string>(".html", "text/html"));
-    contentTypes.insert(std::pair<std::string, std::string>(".css", "text/css"));
-    contentTypes.insert(std::pair<std::string, std::string>(".js", "application/javascript"));
-    contentTypes.insert(std::pair<std::string, std::string>(".png", "image/png"));
-    contentTypes.insert(std::pair<std::string, std::string>(".jpg", "image/jpeg"));
-    contentTypes.insert(std::pair<std::string, std::string>(".gif", "image/gif"));
+    data->sockfd = client_fd;
+    data->port = info->port;
+    data->server_name = info->server_name;
+    data->path = info->path;
+    data->maxBody = info->maxBody;
+    data->index = info->index;
+    data->errorPage = info->errorPage;
+    data->redir = info->redir;
+    data->location = info->location;
 
-    size_t dotPos = path.find_last_of(".");
-    if (dotPos != std::string::npos) {
-        std::string extension = path.substr(dotPos);
-        if (contentTypes.find(extension) != contentTypes.end()) {
-            return contentTypes[extension];
-        }
-    }
-    //if i dont have exetension i add backslash
-    else
+    struct epoll_event client_event;
+
+    client_event.events = EPOLLIN;
+    client_event.data.ptr = static_cast<void*>(data);
+
+    return(client_event);
+}
+
+//IP managing, Binding, Listening
+void setupSocket(int &sockfd, struct sockaddr_in &addr, std::vector<Server>::iterator itbeg)
+{
+    //translate my string ip address into a network adress
+    if(inet_pton(AF_INET, itbeg->getServerName().c_str(), &addr.sin_addr.s_addr) < 0)
     {
-        //if size of path = 0 or no '/' at the end
-        if(path.size() == 0 || path.at(path.size() - 1) != '/')
-            path += "/";
+        std::cout << "wrong IP address: " << strerror(errno) << std::endl;
+        throw Response::Error();
+    }
+
+    //bind my socket with the current fill sockaddr_in
+    if (bind(sockfd, (struct sockaddr*)&addr, sizeof(sockaddr)) < 0) 
+    {
+        std::cout << "BIND: "<< strerror(errno) << " ";
+        throw Response::Error();
+    }
+
+    //listen on the current socket created
+    if (listen(sockfd, 10) < 0)
+    {
+        std::cout << strerror(errno) << " ";
+        throw Response::Error();
+    }
+}
+
+// Configuration network
+void Server::configuringNetwork(std::vector<Server>::iterator &itbeg, ConfigParser &config, int &epoll_fd)
+{
+	while(itbeg != config.getServers().end())
+	{
+		//creation addrinfo struc to stock my addrinfo informations
+		struct sockaddr_in addr;
+		
+		//I create my socket
+		int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+		if (sockfd == -1)
+            errorCloseEpollFd(epoll_fd, 2);
+
+        //add properties to allow the socket to be reusable even if it is in time wait
+        int opt = 1;
+        if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1)
+            errorCloseEpollFd(epoll_fd, 3);
         
-    }
-    return "text/html"; // Default content type
+        std::cout << itbeg->getPort() << "-" << itbeg->getServerName() << "-" << std::endl;
+
+		//fill my sockaddr_in addr with the result of getaddrinfo
+		addr.sin_family = AF_INET;
+		addr.sin_port = htons(atoi(itbeg->getPort().c_str()));
+
+        setupSocket(sockfd, addr, itbeg);
+
+        //create a new instance of epool_event to stock info        
+        struct epoll_event event = fillEpoolDataIterator(sockfd, itbeg);
+
+        //add the epoll event to my epoll_fd instance
+        if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, sockfd, &event) == -1)
+            errorCloseEpollFd(epoll_fd, 4);
+        
+        //add every socket to my set container
+        this->setSocketFd(sockfd);
+		itbeg++;
+	}    
 }
 
-std::string httpHeaderResponse(std::string code, std::string contentType, std::string content)
+int acceptConnection(int &fd, int &epoll_fd, struct sockaddr_in &client_addr)
 {
-    //make the header response
-    return ("HTTP/1.1 " + code + " \r\n"
-            "Content-Type: " + contentType + "\r\n"
-            "Content-Length: " + to_string(content.size()) + "\r\n"
-            "Connection: close\r\n"
-            "\r\n" + content);
+    socklen_t client_addr_len = sizeof(client_addr);
+    //accept the connection
+    int client_fd = accept(fd, (struct sockaddr*)&client_addr, &client_addr_len);
+    if (client_fd == -1)
+        errorCloseEpollFd(epoll_fd, 6);
+    return(client_fd);
 }
 
-void checkAccessFile(std::string &code, std::string &filePath)
+//reading the request http data
+std::string readingData(int &fd)
 {
-    // check if i can access the current ressource request 
-	if(access(filePath.c_str(), F_OK) != 0)
-	{
-		std::cout << filePath <<RED ": Fichier introuvable\n" RESET;
-		code = "404 Not Found";
-		filePath = "./www/error/error404.html";
-	}
-	else if (access(filePath.c_str(), R_OK) != 0)
-	{
-		std::cout << filePath <<YELLOW ": Accès refusé (pas de droits de lecture)\n" RESET;
-		code = "403 Forbidden";
-		filePath = "./www/error/error403.html";
-	}
-	else
-	{
-		code = "200 OK";
-	}
-}
-
-void sendData(std::string &uri, t_serverData *data)
-{
-    std::vector<Location>location = data->location;
-    //get the contentType
-    std::string contentType = getContentType(uri);
-    //root de server
-    std::string defaultPath = data->path + uri;
-    std::string filePath; // Change this to your file path
-    std::string locationPath;
-    std::string code;
-
-    //if there is a index specify in the server and not extension in the path
-    if(!data->index.empty() && !isExtension(uri))
-        filePath = defaultPath + data->index;
-    else
-        filePath = defaultPath;
-    // check if there is a location path
-    locationPath = check_location(uri, data->location, data);
-    if(!locationPath.empty())
-        filePath = locationPath;
-
-    //check acces of filePath
-    checkAccessFile(code, filePath);
-
-    std::cout << "the path is: " << filePath <<  " defautl path: " << defaultPath << " uri: " << uri << std::endl;
-    std::cout << "the content type: " << contentType << std::endl;
-    //read the file content 
-    std::string content = readFile(filePath);
-    // get the type of the request file
-    std::string response = httpHeaderResponse(code, contentType, content);
-
-    //send response
-    if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
+    char buffer[1024];
+    ssize_t bytes_read = recv(fd, buffer, sizeof(buffer) - 1, 0);
+    //Error reading data
+    if (bytes_read == -1)
+        errorCloseEpollFd(fd, 5);
+    else if (bytes_read == 0) 
     {
-        std::cout << strerror(errno) << std::endl;
-        throw Response::ErrorSendingResponse(); 
+        // Connection closed by the client
+        std::cout << "Client disconnected: " << fd << std::endl;
+        close(fd);
+        return ("");
     }
-}
 
-bool redirHeader(std::map<std::string, std::string>::iterator redir, int fd)
-{
-    std::string response = "HTTP/1.1 302 Found \r\n"
-                            "Location: " + redir->second + "\r\n"
-                            "Content-Type: text/html\r\n"
-                            "Content-Length: 0 \r\n"
-                            "Connection: keep-alive\r\n\r\n";
-
-    std::cout << "the response:\n" << response << std::endl;
-    if(send(fd, response.c_str(), response.size(), 0) < 0)
-    {
-        std::cout << strerror(errno) << std::endl;
-        std::cout << "Error redirection: " << strerror(errno) << std::endl;
-        return (false);
-    }
-    return(true);
+    // Null-terminate the buffer to make it a valid C-string
+    buffer[bytes_read] = '\0';
+    return(buffer);
 }
 
 bool redirectRequest(std::string buffer, t_serverData *data) 
@@ -187,15 +161,98 @@ bool redirectRequest(std::string buffer, t_serverData *data)
         {
             std::cout << "GET RESPONSE" << std::endl;
             //get the url of the request
-
+        
             std::string path = buffer.substr(buffer.find('/') + 1, buffer.size() - buffer.find('/'));
             path = path.substr(0, path.find(' '));
             
             // return the data to the client
-            sendData(path, data);
+            getRequest(path, data);
         }
     }
+    else if(typeRequest == "POST")
+    {
+        std::cout << "\nPOST REQUEST\n" << std::endl;
+        //search the body in the header
+        size_t pos = buffer.find("\r\n\r\n");
+        // if i have a body in the pose request
+        if(pos != std::string::npos)
+        {
+            std::string body = buffer.substr(pos + 4, buffer.size());
+            // std::cout << "-" << body << "-" << std::endl;
+            parsePostBody(body);
+        }
+    }
+    else if(typeRequest == "DELETE")
+    {}
     else
         std::cout << "404 not found" << std::endl; 
     return(false);
 }
+
+// Fill from ServerAddr
+void Server::createListenAddr(ConfigParser &config)
+{
+	std::vector<Server>::iterator itbeg = config.getServers().begin();
+
+    //creating the poll
+    int epoll_fd = epoll_create(10);
+    if (epoll_fd == -1)
+        errorCloseEpollFd(epoll_fd, 7);
+
+    //iterate through every server and retrieve information
+    this->configuringNetwork(itbeg, config, epoll_fd);
+
+    // EPOLL STARTING
+    struct epoll_event events[MAX_EVENTS];
+
+    std::cout << "\nWaiting for connection...\n";
+
+    while (true) {
+        //epollwait return a number corresponding to all the files descriptor
+        int num_fds = epoll_wait(epoll_fd, events, MAX_EVENTS, -1);
+        if (num_fds == -1) 
+            errorCloseEpollFd(epoll_fd, 1);
+        // I iterate through each fd
+        for (int i = 0; i < num_fds; ++i) 
+        {
+            t_serverData *info = static_cast<t_serverData*>(events[i].data.ptr);
+            int fd = info->sockfd;
+
+            // check if my fd is equal to a socket for handcheck
+            if(this->socketfd.find(fd) != this->socketfd.end())
+            {
+                // listen to add new fd to my epoll structure
+                struct sockaddr_in client_addr;
+                //new fd_client for communication
+                int client_fd = acceptConnection(fd, epoll_fd, client_addr);
+                // add new fd to my epoll instance
+                struct epoll_event client_event = fillEpoolDataInfo(client_fd, info);
+                // add the new fd to be control by my epoll instance
+                if(epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &client_event) == -1)
+                    errorCloseEpollFd(epoll_fd, 4);
+                std::cout << "\n-----New connection established-----\n";
+            }
+            
+            //Connection already etablish 
+            else
+            {
+                // check for modification inside the socket
+                if(events[i].events & EPOLLIN)
+                {
+                    std::cout << "\nReading data...\n";
+                    //read data
+                    std::string path = readingData(fd);
+                    if (path.empty())
+                        continue;
+                    std::cout << path << std::endl;
+                    //response request
+                    if(redirectRequest(path, info))
+                        continue;
+                    close(fd);
+                }
+            }
+        }
+    }
+}
+
+

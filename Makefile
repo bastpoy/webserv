@@ -24,7 +24,9 @@ SRCS		=	srcs/ConfigParser.cpp \
 				srcs/Utils.cpp \
 				srcs/Server.cpp \
 				srcs/ServerParser.cpp \
-				srcs/Error.cpp
+				srcs/Error.cpp \
+				srcs/Post.cpp \
+				srcs/Get.cpp
 # srcs/Client.cpp
 # srcs/socket.cpp
 

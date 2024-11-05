@@ -41,26 +41,11 @@ class Response
 				virtual const char* what() const throw();
 		};
 
-		class ErrorGetAddrInfo : public std::exception{
-			public:
-				virtual const char* what() const throw();
-		};
-
-		class ErrorBindAddress : public std::exception{
-			public:
-				virtual const char* what() const throw();
-		};
-
-		class ErrorListening : public std::exception{
-			public:
-				virtual const char* what() const throw();
-		};
-
-		class ErrorCreatingSocket : public std::exception{
-			public:
-				virtual const char* what() const throw();
-		};
 		class Error : public std::exception{
+			public:
+				virtual const char* what() const throw();
+		};
+		class ErrorBodyPostRequest : public std::exception{
 			public:
 				virtual const char* what() const throw();
 		};
