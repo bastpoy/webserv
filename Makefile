@@ -70,7 +70,7 @@ simple:
 	@clear
 	@./webserv conf/config.conf
 
-parsing : $(NAME1)
+# parsing : $(NAME1)
 
 simple:
 	@make all -s

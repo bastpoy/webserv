@@ -139,9 +139,9 @@ void	Server::fillPath(std::string line)
 	size_t pos = line.find("root ");
 	this->setPath(line.substr(pos + strlen("root "), line.length() - (pos + strlen("root "))));
 	//if no "/" at the end add it
-    if(this->getPath().at(this->getPath().size() - 1) != '/')
-        this->setPath(this->getPath() + "/");
-    //print
+	if(this->getPath().at(this->getPath().size() - 1) != '/')
+		this->setPath(this->getPath() + "/");
+	//print
 	std::cout << "the path is: " << this->getPath() << std::endl;
 }
 
@@ -202,9 +202,9 @@ void	Server::fillLocation(std::ifstream &file, std::string line)
 		else if (line.find("client_max_body_size ") != std::string::npos)
 			location.fillMaxBody(line);
 		//fill the rootpath
-        else if (line.find("root ") != std::string::npos)
-            location.fillRoot(line);
-        //fill the autoindex
+		else if (line.find("root ") != std::string::npos)
+			location.fillRoot(line);
+		//fill the autoindex
 		else if (line.find("index ") != std::string::npos)
 			location.fillIndex(line);
 		//fill a redirection 
@@ -232,12 +232,12 @@ void Server::createListenAddr(ConfigParser &config)
 {
 	std::vector<Server>::iterator itbeg = config.getServers().begin();
 
-    //creating the poll
-    int epoll_fd = epoll_create(10);
-    if (epoll_fd == -1) {
-        std::cerr << "Failed to create epoll instance: " << strerror(errno) << std::endl;
-        throw Response::Error();
-    }
+	//creating the poll
+	int epoll_fd = epoll_create(10);
+	if (epoll_fd == -1) {
+		std::cerr << "Failed to create epoll instance: " << strerror(errno) << std::endl;
+		throw Response::Error();
+	}
 
 	while(itbeg != config.getServers().end())
 	{
@@ -252,20 +252,20 @@ void Server::createListenAddr(ConfigParser &config)
 			throw Response::ErrorCreatingSocket();
 		}
 
-        //add properties to allow the socket to be reusable even if it is in time wait
-        int opt = 1;
-        if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1) {
-            std::cerr << "Failed to set SO_REUSEADDR" << std::endl;
-            throw Response::Error();
-        }
-        
-        std::cout << itbeg->getPort() << "-" << itbeg->getServerName() << "-" << std::endl;
+		//add properties to allow the socket to be reusable even if it is in time wait
+		int opt = 1;
+		if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1) {
+			std::cerr << "Failed to set SO_REUSEADDR" << std::endl;
+			throw Response::Error();
+		}
+		
+		std::cout << itbeg->getPort() << "-" << itbeg->getServerName() << "-" << std::endl;
 
 		//fill my sockaddr_in addr with the result of getaddrinfo
 		addr.sin_family = AF_INET;
 		addr.sin_port = htons(atoi(itbeg->getPort().c_str()));
 
-        //translate my string ip address into a network adress
+		//translate my string ip address into a network adress
 		if(inet_pton(AF_INET, itbeg->getServerName().c_str(), &addr.sin_addr.s_addr) < 0)
 		{
 			std::cout << "wrong IP address: " << strerror(errno) << std::endl;
@@ -285,137 +285,137 @@ void Server::createListenAddr(ConfigParser &config)
 			std::cout << strerror(errno) << " ";
 			throw Response::ErrorListening();
 		}
-        //create a new instance of serverdata to stock info
-        t_serverData *data = new t_serverData;
-        data->sockfd = sockfd;
-        data->port = itbeg->getPort();
-        data->server_name = itbeg->getServerName();
-        data->path = itbeg->getPath();
-        data->maxBody = itbeg->getMaxBody();
-        data->index = itbeg->getIndex();
-        data->errorPage = itbeg->getErrorPage();
-        data->redir = itbeg->getRedir();
-        data->location = itbeg->getLocation();
+		//create a new instance of serverdata to stock info
+		t_serverData *data = new t_serverData;
+		data->sockfd = sockfd;
+		data->port = itbeg->getPort();
+		data->server_name = itbeg->getServerName();
+		data->path = itbeg->getPath();
+		data->maxBody = itbeg->getMaxBody();
+		data->index = itbeg->getIndex();
+		data->errorPage = itbeg->getErrorPage();
+		data->redir = itbeg->getRedir();
+		data->location = itbeg->getLocation();
 
-        struct epoll_event event;
-        event.events = EPOLLIN; // Monitor for input events
-        // event.data.fd = sockfd;
-        //I stock the info server on the event ptr data
-        event.data.ptr = static_cast<void*>(data);
+		struct epoll_event event;
+		event.events = EPOLLIN; // Monitor for input events
+		// event.data.fd = sockfd;
+		//I stock the info server on the event ptr data
+		event.data.ptr = static_cast<void*>(data);
 
-        //add the epoll event to my epoll_fd instance
-        if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, sockfd, &event) == -1) {
-            std::cerr << "Failed to add socket to epoll: " << strerror(errno) << std::endl;
-            throw Response::Error();
-        }
-        
-        //add every socket to my set container
-        this->setSocketFd(sockfd);
+		//add the epoll event to my epoll_fd instance
+		if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, sockfd, &event) == -1) {
+			std::cerr << "Failed to add socket to epoll: " << strerror(errno) << std::endl;
+			throw Response::Error();
+		}
+		
+		//add every socket to my set container
+		this->setSocketFd(sockfd);
 		itbeg++;
 	}
 
-    // EPOLL STARTING
+	// EPOLL STARTING
 
-    const int MAX_EVENTS = 20;
-    struct epoll_event events[MAX_EVENTS];
+	const int MAX_EVENTS = 20;
+	struct epoll_event events[MAX_EVENTS];
 
-    std::cout << "\nWaiting for connection...\n";
+	std::cout << "\nWaiting for connection...\n";
 
-    while (true) {
-        //epollwait return a number corresponding to all the files descriptor
-        int num_fds = epoll_wait(epoll_fd, events, MAX_EVENTS, -1);
-        if (num_fds == -1) {
-            std::cerr << "epoll_wait error: " << strerror(errno) << std::endl;
-            close(epoll_fd);
-            throw Response::Error();
-        }
-        // I iterate through each fd
-        for (int i = 0; i < num_fds; ++i) 
-        {
-            t_serverData *info = static_cast<t_serverData*>(events[i].data.ptr);
-            int fd = info->sockfd;
-            // check if my fd is equal to a socket for handcheck
-            if(this->socketfd.find(fd) != this->socketfd.end())
-            {
-                // listen to add new fd to my epoll structure
-                struct sockaddr_in client_addr;
-                socklen_t client_addr_len = sizeof(client_addr);
-                
-                //accept the connection
-                int client_fd = accept(fd, (struct sockaddr*)&client_addr, &client_addr_len);
-                if (client_fd == -1) {
-                    std::cerr << "accept() failed: " << strerror(errno) << std::endl;
-                    close(epoll_fd);
-                    throw Response::Error();                    
-                }
+	while (true) {
+		//epollwait return a number corresponding to all the files descriptor
+		int num_fds = epoll_wait(epoll_fd, events, MAX_EVENTS, -1);
+		if (num_fds == -1) {
+			std::cerr << "epoll_wait error: " << strerror(errno) << std::endl;
+			close(epoll_fd);
+			throw Response::Error();
+		}
+		// I iterate through each fd
+		for (int i = 0; i < num_fds; ++i) 
+		{
+			t_serverData *info = static_cast<t_serverData*>(events[i].data.ptr);
+			int fd = info->sockfd;
+			// check if my fd is equal to a socket for handcheck
+			if(this->socketfd.find(fd) != this->socketfd.end())
+			{
+				// listen to add new fd to my epoll structure
+				struct sockaddr_in client_addr;
+				socklen_t client_addr_len = sizeof(client_addr);
+				
+				//accept the connection
+				int client_fd = accept(fd, (struct sockaddr*)&client_addr, &client_addr_len);
+				if (client_fd == -1) {
+					std::cerr << "accept() failed: " << strerror(errno) << std::endl;
+					close(epoll_fd);
+					throw Response::Error();                    
+				}
 
-                t_serverData *data = new t_serverData;
+				t_serverData *data = new t_serverData;
 
-                data->sockfd = client_fd;
-                data->port = info->port;
-                data->server_name = info->server_name;
-                data->path = info->path;
-                data->maxBody = info->maxBody;
-                data->index = info->index;
-                data->errorPage = info->errorPage;
-                data->redir = info->redir;
-                data->location = info->location;
+				data->sockfd = client_fd;
+				data->port = info->port;
+				data->server_name = info->server_name;
+				data->path = info->path;
+				data->maxBody = info->maxBody;
+				data->index = info->index;
+				data->errorPage = info->errorPage;
+				data->redir = info->redir;
+				data->location = info->location;
 
-                // add new fd to my epoll instance
-                struct epoll_event client_event;
-                client_event.events = EPOLLIN;
-                client_event.data.ptr = static_cast<void*>(data);
-                
-                // client_event.data.ptr = events[i].data.ptr;
-                if(epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &client_event) == -1)
-                {
-                    std::cerr << "Failed to add socket to epoll: " << strerror(errno) << std::endl;
-                    close(epoll_fd);
-                    throw Response::Error();
-                }
-                std::cout << "\n-----New connection established-----\n";
-            }
-            
-            //Connection already etablish 
-            else
-            {
-                // check for modification inside the socket
-                if(events[i].events & EPOLLIN)
-                {
-                    char buffer[1024];
-                    std::cout << "\nReading data...\n";
-                    ssize_t bytes_read = recv(fd, buffer, sizeof(buffer) - 1, 0);
-                    if (bytes_read == -1) {
-                        std::cerr << "recv() failed: " << strerror(errno) << std::endl;
-                        close(fd);
-                        throw Response::Error();
-                    } else if (bytes_read == 0) {
-                        // Connection closed by the client
-                        std::cout << "Client disconnected: " << fd << std::endl;
-                        close(fd);
-                        continue;
-                    }
+				// add new fd to my epoll instance
+				struct epoll_event client_event;
+				client_event.events = EPOLLIN;
+				client_event.data.ptr = static_cast<void*>(data);
+				
+				// client_event.data.ptr = events[i].data.ptr;
+				if(epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &client_event) == -1)
+				{
+					std::cerr << "Failed to add socket to epoll: " << strerror(errno) << std::endl;
+					close(epoll_fd);
+					throw Response::Error();
+				}
+				std::cout << "\n-----New connection established-----\n";
+			}
+			
+			//Connection already etablish 
+			else
+			{
+				// check for modification inside the socket
+				if(events[i].events & EPOLLIN)
+				{
+					char buffer[1024];
+					std::cout << "\nReading data...\n";
+					ssize_t bytes_read = recv(fd, buffer, sizeof(buffer) - 1, 0);
+					if (bytes_read == -1) {
+						std::cerr << "recv() failed: " << strerror(errno) << std::endl;
+						close(fd);
+						throw Response::Error();
+					} else if (bytes_read == 0) {
+						// Connection closed by the client
+						std::cout << "Client disconnected: " << fd << std::endl;
+						close(fd);
+						continue;
+					}
 
-                    // Null-terminate the buffer to make it a valid C-string
-                    buffer[bytes_read] = '\0';
-                    // std::cout << "Received data from socket " << fd << ": " << buffer << std::endl;
+					// Null-terminate the buffer to make it a valid C-string
+					buffer[bytes_read] = '\0';
+					// std::cout << "Received data from socket " << fd << ": " << buffer << std::endl;
 
-                    //formulate response
-                    std::string path = buffer;
-                    // std::cout << path << std::endl;
+					//formulate response
+					std::string path = buffer;
+					// std::cout << path << std::endl;
 
-                    //response request
-                    if(redirectRequest(path, info))
-                    {
-                        std::cout << "response ok\n\n";
-                        continue;
-                    }
-                    std::cout << "Response non ok\n\n";
-                    close(fd);
-                }
-            }
-        }
-    }
+					//response request
+					if(redirectRequest(path, info))
+					{
+						std::cout << "response ok\n\n";
+						continue;
+					}
+					std::cout << "Response non ok\n\n";
+					close(fd);
+				}
+			}
+		}
+	}
 }
 
 // Debug
