@@ -6,7 +6,7 @@
 class CGIHandler
 {
 	public:
-		static void	execute(const std::string script_path, int connection);
+		static void	execute(std::string uri, int connection);
 };
 
 #endif

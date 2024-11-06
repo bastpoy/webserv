@@ -1,11 +1,11 @@
 #include "Header.hpp"
 
-std::string Response::sendResponse(std::string statusCode, std::string contentType, int fd)
+std::string Response::sendResponse(std::string statusCode, std::string contentType)
 {
 	std::string	response;
 	response = "HTTP/1.1 " + statusCode + " \r\n";
 	response += "Content-Type: " + contentType + " \r\n";
-	response += "Content-Length: " + std::to_string(response.size()) + "\r\n";
+	response += "Content-Length: " + to_string(response.size()) + "\r\n";
 	response += "\r\n";
 
 	return response;

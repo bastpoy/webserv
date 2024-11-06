@@ -132,11 +132,11 @@ void getRequest(std::string &uri, t_serverData *data)
 	locationPath = check_location(uri, data->location, data);
 	if(!locationPath.empty())
 		filePath = locationPath;
-
+	if (filePath.find(".py") != std::string::npos)
+		return (CGIHandler::execute(("/www/" + uri).c_str(), data->sockfd));
 	//check acces of filePath
 	checkAccessFile(code, filePath);
-
-	std::cout << "the path is: " << filePath <<  " defautl path: " << defaultPath << " uri: " << uri << std::endl;
+	std::cout << "the path is: " << filePath <<  " default path: " << defaultPath << " uri: " << uri << std::endl;
 	std::cout << "the content type: " << contentType << std::endl;
 	//read the file content 
 	std::string content = readFile(filePath);
