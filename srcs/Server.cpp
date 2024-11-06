@@ -127,7 +127,6 @@ std::string readingData(int &fd)
 {
     char buffer[1024];
     ssize_t bytes_read = recv(fd, buffer, sizeof(buffer) - 1, 0);
-    //Error reading data
     if (bytes_read == -1)
         errorCloseEpollFd(fd, 5);
     else if (bytes_read == 0) 
@@ -139,8 +138,44 @@ std::string readingData(int &fd)
     }
 
     // Null-terminate the buffer to make it a valid C-string
+    std::cout << "bytes read is equal: " << bytes_read << std::endl;
     buffer[bytes_read] = '\0';
     return(buffer);
+}
+
+bool read_full_body(int client_socket, std::string &body, int content_length) {
+    int total_read = body.size();
+    const int buffer_size = 1024;   // Use a large buffer if desired
+    char buffer[buffer_size];
+
+    while (total_read < content_length) {
+        // Calculate how much more data we need to read
+        int bytes_to_read = std::min(content_length - total_read, buffer_size);
+        
+        // Read data into the buffer
+        int bytes_read = recv(client_socket, buffer, bytes_to_read, 0);
+        
+        if (bytes_read < 0) 
+        {
+            std::cout << "Error reading from socket: " << strerror(errno) << std::endl;
+            throw Response::Error();
+        } 
+        else if (bytes_read == 0) 
+        {
+            std::cerr << "Connection closed by the client." << std::endl;
+            break; // Connection closed
+        }
+
+        // Append the read data to the body string
+        body.append(buffer, bytes_read);
+        total_read += bytes_read;
+
+        // Optional: Output how much data has been read so far for debugging
+        // std::cout << "Read " << bytes_read << " bytes, total read: " << total_read << "/" << content_length << std::endl;
+    }
+
+    // Check if we read the expected content length
+    return total_read == content_length;
 }
 
 bool redirectRequest(std::string buffer, t_serverData *data) 
@@ -174,18 +209,54 @@ bool redirectRequest(std::string buffer, t_serverData *data)
         std::cout << "\nPOST REQUEST\n" << std::endl;
         //search the body in the header
         size_t pos = buffer.find("\r\n\r\n");
-        // if i have a body in the pose request
+        // If i have a body in the post request
         if(pos != std::string::npos)
         {
+            // retrieve the body and remove the \r\n\r\n before by adding + 4
             std::string body = buffer.substr(pos + 4, buffer.size());
-            // std::cout << "-" << body << "-" << std::endl;
-            parsePostBody(body);
+            std::string header = buffer.substr(0, pos);
+            // If I have an upload
+            if(header.find("multipart/form-data") != std::string::npos)
+            {
+                std::cout << "UPLOADING FILE" << std::endl;
+                //get the size of the file to upload
+                std::cout << header << " and \n\n" << body << std::endl;
+                int size = getContentLength(header);
+                std::string fileName = getFileName(body);
+                fileName = "./www/upload/" + fileName;
+                //read all the data of the upload file
+                read_full_body(data->sockfd, body, size);
+                std::ofstream output(fileName.c_str());
+                if(!output.is_open())
+                {
+                    throw Response::ErrorOpeningFile();
+                }
+                //put the download data inside a file
+                output << body;
+                output.close();
+                sendPostData("201 Created", "application/json", "", data);
+            }
+            // If i have a form
+            else
+            {
+                std::string file = "./www/keyvalue.json";
+                parsePostBody(body);
+                //put all the data from the body inside a file
+                translateJson();
+                //send response POST
+                sendPostData("201 Created", "application/json", readFile(file), data);
+            }
+        }
+        // error post body
+        else
+        {
+            throw Response::ErrorBodyPostRequest();
         }
     }
     else if(typeRequest == "DELETE")
     {}
     else
-        std::cout << "404 not found" << std::endl; 
+        std::cout << "404 not found" << std::endl;
     return(false);
 }
 
@@ -232,7 +303,6 @@ void Server::createListenAddr(ConfigParser &config)
                     errorCloseEpollFd(epoll_fd, 4);
                 std::cout << "\n-----New connection established-----\n";
             }
-            
             //Connection already etablish 
             else
             {
@@ -244,7 +314,7 @@ void Server::createListenAddr(ConfigParser &config)
                     std::string path = readingData(fd);
                     if (path.empty())
                         continue;
-                    std::cout << path << std::endl;
+                    // std::cout << path << std::endl;
                     //response request
                     if(redirectRequest(path, info))
                         continue;

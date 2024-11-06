@@ -27,6 +27,7 @@
 #include <unistd.h>				// Pour close
 #include <arpa/inet.h>			// Pour inet_ntoa
 #include <sys/epoll.h>
+#include <fcntl.h>
 
 // Fichiers d'en-tête spécifiques au projet
 #include "ServerParser.hpp"     // Classe pour le serveur

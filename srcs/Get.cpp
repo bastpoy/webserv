@@ -81,7 +81,7 @@ std::string getContentType(std::string &path)
     return "text/html"; // Default content type
 }
 
-std::string httpHeaderResponse(std::string code, std::string contentType, std::string content)
+std::string httpGetResponse(std::string code, std::string contentType, std::string content)
 {
     //make the header response
     return ("HTTP/1.1 " + code + " \r\n"
@@ -141,7 +141,7 @@ void getRequest(std::string &uri, t_serverData *data)
     //read the file content 
     std::string content = readFile(filePath);
     // get the type of the request file
-    std::string response = httpHeaderResponse(code, contentType, content);
+    std::string response = httpGetResponse(code, contentType, content);
 
     //send response
     if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
