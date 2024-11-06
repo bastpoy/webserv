@@ -11,9 +11,7 @@
 objects/
 webserv
 
-.vscode/
+
 
 file_to_delete
 config
-*.d
-*.o
