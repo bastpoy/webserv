@@ -23,15 +23,15 @@ Accepter les connexions des clients et les rediriger vers un gestionnaire de req
 
 typedef struct s_serverData
 {
-    int                         sockfd;
-    std::string 				port;
-    std::string					server_name;
-    std::string					path;
-    std::string					maxBody;
-    std::string					index;
-    std::map<int, std::string>	errorPage;
-    std::map<std::string, std::string>	redir;
-    std::vector<Location>		location;
+	int									sockfd;
+	std::string 						port;
+	std::string							server_name;
+	std::string							path;
+	std::string							maxBody;
+	std::string							index;
+	std::map<int, std::string>			errorPage;
+	std::map<std::string, std::string>	redir;
+	std::vector<Location>				location;
 }t_serverData;
 
 class Server
@@ -39,18 +39,18 @@ class Server
 	private:
 
 		// Server (config)
-		std::string 				_port;
-		std::string					_server_name;
-		std::string					_path;
-		std::string					_maxBody;
-		std::string					_index;
-		std::map<int, std::string>	_errorPage;
+		std::string 						_port;
+		std::string							_server_name;
+		std::string							_path;
+		std::string							_maxBody;
+		std::string							_index;
+		std::map<int, std::string>			_errorPage;
 		std::map<std::string, std::string>	_redir;
-		std::vector<Location>		_location;
+		std::vector<Location>				_location;
 		// Server file descriptor
-        std::set<int> socketfd;
+		std::set<int>						socketfd;
 	
-    public:
+	public:
 
 		// Setter
 		void	setPort(std::string port);
@@ -65,14 +65,14 @@ class Server
 		void	setSocketFd(int sockfd);
 
 		// Getter
-		std::string						getPort() const;
-		std::string						getServerName() const;
-		std::string						getPath() const;
-		std::string						getMaxBody() const;
-		std::string						getIndex() const;
-		std::map<int,std::string>		&getErrorPage();
-		std::map<std::string,std::string>		&getRedir();
-		std::vector<Location>			&getLocation();
+		std::string							getPort() const;
+		std::string							getServerName() const;
+		std::string							getPath() const;
+		std::string							getMaxBody() const;
+		std::string							getIndex() const;
+		std::map<int,std::string>			&getErrorPage();
+		std::map<std::string,std::string>	&getRedir();
+		std::vector<Location>				&getLocation();
 
 		// Fill
 		void	fillPort(std::string line);
@@ -84,9 +84,9 @@ class Server
 		void	fillRedir(std::string line);
 		void	fillLocation(std::ifstream &file, std::string line);
 		
-        // ServerAddr Fill
+		// ServerAddr Fill
 		void	createListenAddr(ConfigParser &config);
-        void    configuringNetwork(std::vector<Server>::iterator &itbeg, ConfigParser &config, int &epoll_fd);
+		void	configuringNetwork(std::vector<Server>::iterator &itbeg, ConfigParser &config, int &epoll_fd);
 		// Debug
 		void	printConfig();
 
@@ -97,6 +97,6 @@ class Server
 
 };
 
-std::ostream& operator<<(std::ostream& os, const Server& server);
+std::ostream&	operator<<(std::ostream& os, const Server& server);
 
 # endif /* SERVER_HPP */

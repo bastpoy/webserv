@@ -29,7 +29,7 @@
 #include <sys/epoll.h>
 
 // Fichiers d'en-tête spécifiques au projet
-#include "ServerParser.hpp"     // Classe pour le serveur
+#include "ServerParser.hpp"		// Classe pour le serveur
 #include "Server.hpp"			// Classe Client
 #include "ConfigParser.hpp"		// Classe pour parser la configuration
 #include "Location.hpp"			// Classe pour les locations

@@ -12,10 +12,10 @@ Rôle :
 class Request
 {
 	private:
-		std::string	_method;
-		std::string	_path;
+		std::string							_method;
+		std::string							_path;
 		std::map<std::string, std::string>	_headers;
-		std::string	_body;
+		std::string							_body;
 	public:
 		void	parseRequest(); // pour analyser les données brutes et remplir les attributs de la requête.
 
