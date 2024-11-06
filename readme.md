@@ -17,10 +17,9 @@
     };
 
 
-## NOTION HTTP
+## NOTIONS HTTP
 
 - Comprendre la RFC et implementer les differentes fonctionnalites de cette norme
-
 
 ### FORMAT DE BASE
 
@@ -82,13 +81,52 @@ Location
 
 - C'est une option sur un serveur qui va permettre de gerer des requetes specifiques comme des passages de script en parametre
 
-## TACHES
+## CONFIGURATION FILE
 
-- Comprendre la RFC sur http et les en-tetes requete et reponses
-- Comment implementer epoll pour le multiplexing
-- Commencer par gerer les simples requetes
-- Decouper mes requetes en examinant le header de la requete
-- Pouvoir GET POST DELETE
-- Comprendre le CGI et comment l'implemeneter
-- Setup routes http?
-- Activer, desactiver le listing des repertoires?
+### CARACTERISTIQUES
+
+- Si pas de server_name =>
+        - repond aux requetes provenant de toute type de domaine.
+        - Sinon je specifie pour savoir sur quel domaine j'ecoute
+- Premier serveur par default si la requete ne correspond a aucun domaine
+- default page error 
+        => dans server et location
+- limiter la taille du body des clients
+        => dans server et location
+- Activer ou desactiver le listing des repertoires:
+        => dans location
+- set un fichier par defaut si la requete est un repertoire.
+        => 
+
+### PARSING CONF
+
+- parsing a partir du fichier de configuration.
+- un bloc http 
+    => un nombre de server dans ce http
+        => redirection
+        => location
+        => root
+- class: 
+        - http
+        - server
+        - location
+
+- dans http: 
+        => server(plusieurs)
+- dans server:
+        => listen (port)
+        => server_name 
+        => root
+        => index
+        => return (redirection)
+        => location
+        => error_page
+        => client_max_body_size 
+- dans location:
+        => index
+        => return (redirection)
+        => error_page
+        => client_max_body_size
+        => autoindex on
+
+- obligation d'avoir un server et une location

@@ -1,8 +1,7 @@
-# Prerequisites
-.objs
-.o
-.deps
-.d
-
-# Executable
+.deps/
+.objs/
+.vscode/
 webserv
+config
+*.d
+*.o
