@@ -71,15 +71,9 @@ all: $(NAME)
 simple:
 	@make all -s
 	@clear
-	@./webserv conf/config.conf
+	@./webserv conf/Bastien.conf
 
-parsing : $(NAME1)
-
-simple:
-	@make all -s
-	@clear
-	@./webserv 
-	
+# parsing : $(NAME1)
 
 file_to_delete:
 	@touch $(FILE_TO_DELETE)
