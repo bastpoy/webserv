@@ -16,10 +16,7 @@ Gérer les codes de statut HTTP (200, 404, etc.), les en-têtes et le corps de l
 class Response
 {
 	public:
-		void	setStatusCode();	// pour définir le code de statut.
-		void	addHeader();		// pour ajouter des en-têtes à la réponse.
-		void	setBody();			// pour définir le corps de la réponse.
-		void	generateResponse();	// pour combiner tous les éléments de la réponse en une chaîne prête à être envoyée au client.
+		static std::string	sendResponse(std::string statusCode, std::string contentType, int connection);
 
 		class ErrorOpeningFile : public std::exception{
 			public:
