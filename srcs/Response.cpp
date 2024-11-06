@@ -1,23 +1,14 @@
 #include "Header.hpp"
 
-void Response::setStatusCode()
+std::string Response::sendResponse(std::string statusCode, std::string contentType, int fd)
 {
-	//TODO
-}
+	std::string	response;
+	response = "HTTP/1.1 " + statusCode + " \r\n";
+	response += "Content-Type: " + contentType + " \r\n";
+	response += "Content-Length: " + std::to_string(response.size()) + "\r\n";
+	response += "\r\n";
 
-void Response::addHeader()
-{
-	//TODO
-}
-
-void Response::setBody()
-{
-	//TODO
-}
-
-void Response::generateResponse()
-{
-	//TODO
+	return response;
 }
 
 const char* Response::ErrorOpeningFile::what() const throw()

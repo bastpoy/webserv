@@ -23,6 +23,7 @@ SRCS		=	srcs/ConfigParser.cpp \
 				srcs/Response.cpp \
 				srcs/Utils.cpp \
 				srcs/Server.cpp \
+				srcs/CGIHandler.cpp \
 				srcs/ServerParser.cpp \
 				srcs/Error.cpp \
 				srcs/Post.cpp \
