@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Simple website</title>
+	<link rel="icon" type="image/x-icon" href="../../assets/images/favicon.ico">
+</head>
+<body style="text-align: center;">
+	<nav style="padding:15px;">
+		<a href="../../index.html" style="font-size: 20px;margin:1rem;width:150px;padding:5px;">Home</a>
+		<a href="https://github.com/bastpoy/webserv" target="_blank" style="font-size: 20px;margin:1rem;width:150px;padding:5px;">GitHub</a>
+		<a href="https://github.com/users/bastpoy/projects/1" target="_blank" style="font-size: 20px;margin:1rem;width:150px;padding:5px;">Tasks</a>
+		<a href="https://discord.com/channels/@me" target="_blank" style="font-size: 20px;margin:1rem;width:150px;padding:5px;">Discord</a>
+		<a href="https://dear-snowdrop-c6b.notion.site/WebServ-1288dbf5f160806ea3afea00cf7fb312?pvs=4" target="_blank" style="font-size: 20px;margin:1rem;width:150px;padding:5px;">Notion</a>
+		<a href="https://excalidraw.com/#json=o-XAOjTgJ4YdtBfRTEY67,l55wlch1aX7IasHuHfS6Iw" target="_blank" style="font-size: 20px;margin:1rem;width:150px;padding:5px;">Excalidraw</a>
+	</nav>
+	<h1>DELETE</h1>
+	<div>
+		<form id="deleteForm" onsubmit="deleteResource(event)">
+			<h3>Delete a resource</h3>
+			<p>Suppression of this file: <strong style="color: red;">/webserv/www/assets/files/toDelete</strong></p>
+			<button type="submit">Delete</button>
+		</form>
+	</div>
+	<script>
+		function deleteResource(event) {
+			event.preventDefault(); // Empêche le formulaire de se soumettre normalement
+
+			// Confirmation avant suppression
+			if (confirm('Are you sure to delete this file ?')) {
+				fetch('/www/assets/files/file_to_delete', {
+					method: 'DELETE',
+				})
+				.then(response => {
+					if (response.ok) {
+						alert('File deleted !');
+						window.location.href = '../../index.html';
+					} else {
+						alert('Error deleting file');
+					}
+				})
+				.catch(error => {
+					console.error('Erreur:', error);
+					alert('Error deleting file');
+				});
+			}
+		}
+	</script>
+</body>
+</html>

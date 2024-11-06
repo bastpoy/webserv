@@ -1,8 +1,19 @@
+# Prerequisites
+*.objs
+*.o
+*.deps
+*.d
+
+# Executable
 .deps/
 .objs/
 .vscode/
 objects/
 webserv
+
+.vscode/
+
+file_to_delete
 config
 *.d
 *.o
