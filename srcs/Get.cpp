@@ -137,7 +137,6 @@ void getRequest(std::string &uri, t_serverData *data)
     checkAccessFile(code, filePath);
 
     std::cout << "the path is: " << filePath <<  " defautl path: " << defaultPath << " uri: " << uri << std::endl;
-    std::cout << "the content type: " << contentType << std::endl;
     //read the file content 
     std::string content = readFile(filePath);
     // get the type of the request file
@@ -151,7 +150,7 @@ void getRequest(std::string &uri, t_serverData *data)
     }
 }
 
-bool redirHeader(std::map<std::string, std::string>::iterator redir, int fd)
+void redirRequest(std::map<std::string, std::string>::iterator redir, int fd)
 {
     std::string response = "HTTP/1.1 302 Found \r\n"
                             "Location: " + redir->second + "\r\n"
@@ -164,7 +163,5 @@ bool redirHeader(std::map<std::string, std::string>::iterator redir, int fd)
     {
         std::cout << strerror(errno) << std::endl;
         std::cout << "Error redirection: " << strerror(errno) << std::endl;
-        return (false);
     }
-    return(true);
 }

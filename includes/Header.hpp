@@ -37,7 +37,6 @@
 #include "Request.hpp"			// Classe pour les requêtes
 #include "RequestHandler.hpp"	// Gestion des requêtes
 #include "Response.hpp"			// Classe pour les réponses
-#include "Client.hpp"
 #include "Utils.hpp"
 #include "Error.hpp"
 #include "Post.hpp"             //handle POST request
