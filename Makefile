@@ -1,15 +1,21 @@
 .DEFAULT_GOAL := all
 
-# Colors and Styles
-RED			:= \033[0;31m
-GREEN		:= \033[0;32m
-YELLOW		:= \033[0;33m
-BLUE		:= \033[0;34m
-MAGENTA		:= \033[0;35m
-CYAN		:= \033[0;36m
-RESET		:= \033[0m
-BOLD		:= \033[1m
-UNDERLINE	:= \033[4m
+# # Colors and Styles
+RESET		:=	\e[0m
+RED			:=	\e[31m
+GREEN		:=	\e[32m
+PURPLE		:=	\e[95m
+BLUE		:=	\e[34m
+YELLOW		:=	\e[33m
+MAGENTA		:=	\e[35m
+CYAN		:=	\e[36m
+
+# Colored Messages
+MESSAGE_CLEAR		=	\e[0K\r\c
+MESSAGE_OK			=	[\e[32mOK\e[0m]
+MESSAGE_COMPILE		=	$(BLUE)Compiling :$(RESET)
+MESSAGE_DONE		=	$(MESSAGE_OK) WebServ compiled.
+MESSAGE_CLEAN		=	$(PURPLE)WebServ cleanup completed.$(RESET)
 
 # Executable name
 NAME		:=	webserv
@@ -45,7 +51,7 @@ DEPS_DIR	:=	.deps
 DEPS		:=	$(patsubst $(OBJS_DIR)/%.o, $(DEPS_DIR)/%.d, $(OBJS))
 
 # Compiler and flags
-CXXFLAGS	:=	-Werror -Wall -Wextra -std=c++98 -g
+CXXFLAGS	:=	-Werror -Wall -Wextra -std=c++98 -march=native
 CXX			:=	c++ $(CXXFLAGS)
 DEPFLAGS	:=	-MMD -MP -MF
 INCFLAGS	:=	-Iincludes
@@ -58,20 +64,19 @@ RM			:=	rm -rf
 # Build the executable
 $(NAME): $(OBJS)
 	@$(CXX) -o $(NAME) $(OBJS)
+	@echo "$(MESSAGE_DONE)"
 
 # Compile source files into object files
 $(OBJS_DIR)/%.o: $(SRCS_DIR)/%.cpp Makefile
 	@mkdir -p $(dir $@) $(DEPS_DIR)
-	@echo "Compiling $<..."
+	@echo "[...] $(MESSAGE_COMPILE) $<...\r\c"
 	@$(CXX) $(INCFLAGS) -c $< -o $@ $(DEPFLAGS) $(DEPS_DIR)/$*.d
-
-# $(NAME1): $(OBJSPARSING)
-# 	c++ $(CFLAGS) -o $(NAME1) $(OBJSPARSING)
+	@echo "$(MESSAGE_CLEAR)"
 
 all: $(NAME)
 
 simple:
-	@make all -s
+	@make -j4 -s
 	@clear
 	@./webserv conf/Bastien.conf
 
