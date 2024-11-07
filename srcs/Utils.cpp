@@ -9,7 +9,8 @@ bool isExtension(std::string path)
 		path.find(".png") == std::string::npos &&
 		path.find(".jpg") == std::string::npos &&
 		path.find(".gif") == std::string::npos &&
-		path.find(".ico") == std::string::npos)
+		path.find(".ico") == std::string::npos &&
+		path.find(".py") == std::string::npos)
 		return (false);
 	return (true);
 }

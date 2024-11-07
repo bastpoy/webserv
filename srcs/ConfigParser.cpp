@@ -88,6 +88,8 @@ void ConfigParser::getServerAttributs(std::ifstream& file, Server &server)
 			server.fillPath(line);
 		else if(line.find("client_max_body_size") != std::string::npos)
 			server.fillMaxBody(line);
+		else if(line.find("autoindex") != std::string::npos)
+			server.fillAutoIndex(line);
 		else if(line.find("index") != std::string::npos)
 			server.fillIndex(line);
 		else if(line.find("return") != std::string::npos)

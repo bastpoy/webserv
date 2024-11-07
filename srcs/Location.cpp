@@ -173,12 +173,12 @@ void	Location::printConfig()
 {
 	if(!this->getPath().empty())
 		std::cout << "\tPath\t\t" YELLOW << this->getPath() << RESET << std::endl;
+	if(!this->getAutoIndex().empty())
+		std::cout << "\tautoindex\t\t" YELLOW << this->getAutoIndex() << RESET << std::endl;
 	if(!this->getIndex().empty())
 		std::cout << "\tindex\t\t" YELLOW << this->getIndex() << RESET << std::endl;
 	if(!this->getMaxBody().empty())
 		std::cout << "\tclient_max_body_size\t\t" YELLOW << this->getMaxBody() << RESET << std::endl;
-	if(!this->getAutoIndex().empty())
-		std::cout << "\tautoindex\t\t" YELLOW << this->getAutoIndex() << RESET << std::endl;
 	if(this->getErrorPage().begin()->first) 
 		std::cout << "\terror_page\t" YELLOW << this->getErrorPage().begin()->first << " " << this->getErrorPage().begin()->second << RESET << std::endl;
 	if(this->getRedir().begin()->first) 

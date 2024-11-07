@@ -13,6 +13,7 @@ struct epoll_event fillEpoolDataIterator(int sockfd, std::vector<Server>::iterat
 	data->server_name = itbeg->getServerName();
 	data->path = itbeg->getPath();
 	data->maxBody = itbeg->getMaxBody();
+	data->autoindex = itbeg->getAutoIndex();
 	data->index = itbeg->getIndex();
 	data->errorPage = itbeg->getErrorPage();
 	data->redir = itbeg->getRedir();
@@ -35,6 +36,7 @@ struct epoll_event fillEpoolDataInfo(int &client_fd, t_serverData *info)
 	data->server_name = info->server_name;
 	data->path = info->path;
 	data->maxBody = info->maxBody;
+	data->autoindex = info->autoindex;
 	data->index = info->index;
 	data->errorPage = info->errorPage;
 	data->redir = info->redir;

@@ -29,6 +29,11 @@ void Server::setIndex(std::string index)
 	this->_index = index;
 }
 
+void Server::setAutoIndex(std::string autoindex)
+{
+	this->_autoindex = autoindex;
+}
+
 void Server::setLocation(Location &location)
 {
 	this->_location.push_back(location);
@@ -77,6 +82,11 @@ std::string	Server::getMaxBody() const
 std::string	Server::getIndex() const
 {
 	return (this->_index);
+}
+
+std::string	Server::getAutoIndex() const
+{
+	return (this->_autoindex);
 }
 
 std::map<std::string,std::string>	&Server::getRedir()
@@ -145,6 +155,15 @@ void	Server::fillIndex(std::string line)
 	std::cout << "the index is: " << this->getIndex() << std::endl;
 }
 
+void	Server::fillAutoIndex(std::string line)
+{
+	std::cout << RED "\nJe passe laaaaa" RESET << std::endl;
+	size_t pos = line.find("autoindex ");
+	this->setAutoIndex(line.substr(pos + strlen("autoindex "), line.length() - (pos + strlen("autoindex "))));
+	//print
+	std::cout << "The autoindex is: " << this->getAutoIndex() << std::endl;
+}
+
 void	Server::fillErrorPage(std::string line)
 {
 	size_t pos = line.find("error_page ");
@@ -179,7 +198,7 @@ void	Server::fillLocation(std::ifstream &file, std::string line)
 	//get all the information
 	while(getline(file, line))
 	{
-		//fill the index of the file to serve
+		//fill the autoindex of the file to serve
 		if (line.find("autoindex ") != std::string::npos)
 			location.fillAutoIndex(line);
 		//fill the maxbody size
@@ -188,7 +207,7 @@ void	Server::fillLocation(std::ifstream &file, std::string line)
 		//fill the rootpath
 		else if (line.find("root ") != std::string::npos)
 			location.fillRoot(line);
-		//fill the autoindex
+		//fill the index
 		else if (line.find("index ") != std::string::npos)
 			location.fillIndex(line);
 		//fill a redirection 

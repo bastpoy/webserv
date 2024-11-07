@@ -5,7 +5,7 @@
 #include <string>				// Manipulation de chaînes
 #include <vector>				// Conteneur vector
 #include <map>
-# include <set>				// Conteneur map
+# include <set>					// Conteneur map
 #include <exception>			// Gestion des exceptions
 #include <stdexcept>			// Exceptions standard
 #include <utility>				// Utilitaires
@@ -16,8 +16,9 @@
 #include <fstream>				// std::ifstream
 #include <algorithm>			// Pour erase()
 
-
 // Bibliothèques système / C
+#include <dirent.h>				// For auto indexing
+#include <sys/stat.h>			// For auto indexing
 #include <sys/socket.h>			// Pour les fonctions de socket
 #include <sys/wait.h>
 #include <netinet/in.h>			// Pour sockaddr_in
@@ -40,8 +41,8 @@
 #include "Client.hpp"
 #include "Utils.hpp"
 #include "Error.hpp"
-#include "Post.hpp"             //handle POST request
-#include "Get.hpp"              //handle GET request
+#include "Post.hpp"				// Handle POST request
+#include "Get.hpp"				// Handle GET request
 
 /* ------------- COLORS ------------- */
 // Reset
@@ -89,5 +90,11 @@ class Response;
 class Server;
 // class Socket;
 // class VirtualHost;
+
+// Auto Index Functions
+bool isDirectory(const std::string& path);
+std::vector<std::string> listDirectory(const std::string& directory);
+std::string generateAutoIndexPage(const std::string& directory, const std::vector<std::string>& files);
+std::string handleAutoIndex(const std::string& path);
 
 #endif /* HEADER_HPP */

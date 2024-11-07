@@ -6,7 +6,7 @@
 class CGIHandler
 {
 	public:
-		static void	execute(std::string uri, int connection);
+		static std::string	execute(std::string uri, std::string &code);
 };
 
 #endif

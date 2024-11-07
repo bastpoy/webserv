@@ -1,21 +1,22 @@
 #include "../includes/CGIHandler.hpp"
 
-void	CGIHandler::execute(std::string uri, int fd) {
+std::string	CGIHandler::execute(std::string uri, std::string &code) {
 	pid_t pid;
 	int pipefd[2];
 	std::string	realpath;
 	
 	char cwd[1024];
 	getcwd(cwd, sizeof(cwd));
-	realpath = cwd + uri;
+	// realpath = cwd + uri;
+	realpath = uri;
 	if (pipe(pipefd) == -1) {
 		perror("pipe");
-		return ;
+		return NULL;
 	}
 
 	if ((pid = fork()) == -1) {
 		perror("fork");
-		return ;
+		return NULL;
 	}
 
 	if (pid == 0) {
@@ -42,16 +43,7 @@ void	CGIHandler::execute(std::string uri, int fd) {
 		close(pipefd[0]);
 		waitpid(pid, NULL, 0);
 
-		std::string response = "HTTP/1.1 200 OK\r\n";
-		response += "Content-Type: text/html\r\n";
-		response += "Content-Length: " + to_string(output.str().length()) + "\r\n";
-		response += "\r\n";
-		response += output.str(); 
-
-		if(send(fd, response.c_str(), response.size(), 0) < 0)
-		{
-			std::cout << strerror(errno) << std::endl;
-			throw Response::ErrorSendingResponse(); 
-		}
+		code = "200 OK";
+		return (output.str());
 	}
 }
