@@ -221,7 +221,7 @@ bool redirectRequest(std::string buffer, t_serverData *data)
                 std::cout << "UPLOADING FILE" << std::endl;
                 //get the size of the file to upload
                 std::cout << header << " and \n\n" << body << std::endl;
-                int size = getContentLength(header);
+                int size = getContentLength(header, data);
                 std::string fileName = getFileName(body);
                 fileName = "./www/upload/" + fileName;
                 //read all the data of the upload file
@@ -311,18 +311,23 @@ void Server::createListenAddr(ConfigParser &config)
                 {
                     std::cout << "\nReading data...\n";
                     //read data
-                    std::string path = readingData(fd);
-                    if (path.empty())
-                        continue;
-                    // std::cout << path << std::endl;
-                    //response request
-                    if(redirectRequest(path, info))
-                        continue;
+                    try
+                    {
+                        std::string path = readingData(fd);
+                        if (path.empty())
+                            continue;
+                        // std::cout << path << std::endl;
+                        //response request
+                        if(redirectRequest(path, info))
+                            continue;
+                    }
+                    catch(const std::exception& e)
+                    {
+                        std::cerr << e.what() << '\n';
+                    }                    
                     close(fd);
                 }
             }
         }
     }
 }
-
-

@@ -152,9 +152,28 @@ void sendPostData(std::string code , std::string contentType, std::string conten
     }
 }
 
-// get the content for uploading files
+void contentToLarge(std::string size, t_serverData *data)
+{
+    //send json response to the client
+    std::string jsonContent = 
+    "{\n\t\"error\": \"Upload failed\",\n\t\"message\" : \"Maximum allowed upload size is "+ size + "bytes\"" + "\n}";
+    std::cout << jsonContent << std::endl;
 
-int getContentLength(std::string header)
+    //header response
+    std::string response = "HTTP/1.1 413 Content Too Large\r\n"
+                            "Content-Type: application/json\r\n"
+                            "Content-Length: " + to_string(jsonContent.size()) + "\r\n"
+                            "\r\n" + jsonContent;
+
+    //send response
+    if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
+    {
+        std::cout << strerror(errno) << std::endl;
+        throw Response::ErrorSendingResponse(); 
+    }
+}
+
+int getContentLength(std::string header, t_serverData *data)
 {
     //function to retrieve the content-length
     std::string content = "Content-Length: ";
@@ -164,10 +183,21 @@ int getContentLength(std::string header)
     {
         throw Response::ErrorBodyPostRequest();
     }
+    //get the maxbody
     std::string size = header.substr(pos + content.size(), header.size());
     pos = size.find("\n");
     size = size.substr(0, pos);
-    return(atoi(size.c_str()));
+
+    int max_body = atoi(data->maxBody.c_str());
+    int intSize = atoi(size.c_str());
+    std::cout << max_body << " header size " << intSize << std::endl;
+    //if the request size is superior to the max_body return an error
+    if(intSize > max_body)
+    {
+        contentToLarge(data->maxBody, data);
+        throw Response::Error();
+    }
+    return(intSize);
 }
 
 std::string getFileName(std::string body)
@@ -185,3 +215,4 @@ std::string getFileName(std::string body)
     std::cout << fileName << std::endl;
     return (fileName);
 }
+

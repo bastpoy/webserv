@@ -49,3 +49,8 @@ const char* Response::ErrorBodyPostRequest::what() const throw()
 {
 	return("Error format http POST body");
 }
+
+const char* Response::ErrorMaxBody::what() const throw()
+{
+	return("Error in the syntax of the max body");
+}
