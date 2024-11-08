@@ -96,7 +96,7 @@ void checkAccessFile(std::string &code, std::string &filePath)
 	// check if i can access the current ressource request 
 	if(access(filePath.c_str(), F_OK) != 0)
 	{
-		std::cout << filePath <<RED ": Fichier introuvable\n" RESET;
+		std::cout << filePath << ": " RED "Fichier introuvable\n" RESET << access(filePath.c_str(), F_OK) << std::endl;
 		code = "404 Not Found";
 		filePath = "./www/error/error404.html";
 	}
@@ -153,52 +153,60 @@ void checkAccessFile(std::string &code, std::string &filePath)
 
 void getRequest(std::string &uri, t_serverData *data)
 {
-	std::vector<Location>location = data->location;
-	//get the contentType
-	std::string contentType = getContentType(uri);
-	//root de server
-	std::string defaultPath = data->path + uri;
-	std::string filePath; // Change this to your file path
-	std::string locationPath;
-	std::string code;
-	std::string content;
-	std::string response;
+	std::string				defaultPath	=	data->path + uri;		// Root of server
+	std::string				filePath;								// Change this to your file path
+	std::string				locationPath;
+	std::string				code;
+	std::string				content;								// Html Content
+	std::string				response;								// Header + Html Content
 
 	//if there is a index specify in the server and not extension in the path
 	if(!data->index.empty() && !isExtension(uri))
 		filePath = defaultPath + data->index;
 	else
 		filePath = defaultPath;
+
 	// check if there is a location path
 	locationPath = check_location(uri, data->location, data);
 	if(!locationPath.empty())
 		filePath = locationPath;
+
 	//check acces of filePath
 	// checkAccessFile(code, filePath);
-	// Auto Index
-	std::cout << RED "autoindex: " << (data->autoindex == "on" ? "true" : "off") << RESET << std::endl;
-	std::cout << RED "isDirectory: " << isDirectory(filePath) << RESET << std::endl;
-	if (isDirectory(filePath) && data->autoindex == "on")
+
+	// Debug
+	std::cout << "The filePath\t:\t\"" YELLOW << filePath << RESET "\"" << std::endl; 
+	std::cout << "The defaultPath\t:\t\"" YELLOW << defaultPath << RESET  "\""<< std::endl; 
+	std::cout << "The uri\t:\t\t\"" YELLOW << uri << RESET "\"" << std::endl; 
+	std::cout << "The autoindex\t:\t" YELLOW << (data->autoindex == "on" ? "true" : "off") << RESET << std::endl;
+	std::cout << "The isDirectory\t:\t" YELLOW << isDirectory(("./" + uri)) << RESET << std::endl;
+
+	if (isDirectory(("./" + uri)) && data->autoindex == "on")// Auto Index
 	{
-		std::vector<std::string> files = listDirectory(filePath);
-		content = generateAutoIndexPage(filePath, files);  // Contenu de la page HTML de l'autoindex
+		std::cout << BLUE "It's a directory" RESET << std::endl; // Debug
+		std::vector<std::string> files = listDirectory(("./" + uri));
+		content = generateAutoIndexPage(("./" + uri), files);  // Contenu de la page HTML de l'autoindex
+		std::cout << "The content\t:\t" YELLOW << content << RESET << std::endl;
 	}
 	else if (filePath.find(".py") != std::string::npos)
 	{
+		std::cout << BLUE "It's a CGI" RESET << std::endl; // Debug
 		checkAccessFile(code, filePath);
 		content = CGIHandler::execute(filePath.c_str(), code);
 	}
 	else
 	{
+		std::cout << BLUE "It's a file" RESET << std::endl; // Debug
 		checkAccessFile(code, filePath);
 		//read the file content
 		content = readFile(filePath);
 		// get the type of the request file
-		response = httpHeaderResponse(code, contentType, content);
-
 	}
-	std::cout << "the path is: " << filePath <<  " default path: " << defaultPath << " uri: " << uri << std::endl;
-	std::cout << "the content type: " << contentType << std::endl;
+
+	response = httpHeaderResponse(code, getContentType(uri), content);
+	// Debug
+	std::cout << "\nThe filePath :\t\"" YELLOW << filePath << RESET "\"\nDefault path :\t\"" YELLOW << defaultPath << RESET "\"\nUri :\t\t\"" YELLOW << uri << RESET "\"" << std::endl; 
+	std::cout << "\nThe content type: " << getContentType(uri) << RESET << std::endl;
 	//send response
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 	{
