@@ -92,9 +92,9 @@ class Server;
 // class VirtualHost;
 
 // Auto Index Functions
-bool isDirectory(const std::string& path);
-std::vector<std::string> listDirectory(const std::string& directory);
-std::string generateAutoIndexPage(const std::string& directory, const std::vector<std::string>& files);
-std::string handleAutoIndex(const std::string& path);
+bool						isDirectory(const std::string& path);
+std::vector<std::string>	listDirectory(const std::string& directory);
+std::string					generateAutoIndexPage(const std::string directory, const std::vector<std::string>& files);
+std::string					handleAutoIndex(const std::string& path);
 
 #endif /* HEADER_HPP */

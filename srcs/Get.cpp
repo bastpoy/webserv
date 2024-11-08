@@ -2,9 +2,9 @@
 
 std::string check_location(std::string &filePath, std::vector<Location> &location, t_serverData *data)
 {
-    std::vector<Location>::iterator it = location.begin();
-    if(it == location.end())
-        return("");
+	std::vector<Location>::iterator it = location.begin();
+	if(it == location.end())
+		return("");
 
 	// it->getPath => pathLocation
 	// it->getIndex => indexLocation
@@ -153,70 +153,82 @@ void checkAccessFile(std::string &code, std::string &filePath)
 // 	}
 // }
 
-void getRequest(std::string &uri, t_serverData *data)
+void getRequest(std::string uri, t_serverData *data)
 {
-    bool autoindex = true;
-    std::vector<Location>location = data->location;
-    //get the contentType
-    std::string contentType = getContentType(uri);
-    std::string filePath; // Change this to your file path
-    std::string locationPath = check_location(uri, data->location, data);
-    //check first if i have a location
-    if(!locationPath.empty())
-        filePath = locationPath;
-    //if not check inside my server block
-    else
-    {
-        std::cout << "no location match" << std::endl;
-        // if no root inside my server
-        if(data->path.empty())
-        {
-            forbidden(data);
-            throw Response::Error();
-        }
-        //if a file inside my uri
-        if(isExtension(uri))
-        {
-            // I dont do the download for now i dont know how to do it
-            // if i have a file i serve it
-            filePath = data->path + uri;
-        }
-        // if an index inside my server
-        else if (!data->index.empty())
-        {
-            filePath = data->path + uri + data->index;
-        }
-        //if i have an autoindex 
-        else if(!data->autoIndex.empty() && data->autoIndex == "on")
-        {
-            filePath = data->path + uri;
-            autoindex = true;
-            std::cout << "i have an autoindex" << std::endl;
-        }
-        else
-        {
-            forbidden(data);
-            throw Response::Error();
-        }
-    }
-    std::cout << "the path is: " << filePath << " uri : " << uri << std::endl;
-    std::string code;
+	// bool autoindex = true;
+	std::vector<Location>location = data->location;
+	//get the contentType
+	std::string contentType = getContentType(uri);
+	std::string filePath = check_location(uri, data->location, data);
+	std::string	content;
+	std::string code;
 
-    //check acces of filePath
+	//check first if i have a location
+	if(filePath.empty())
+	{
+		std::cout << "no location match" << std::endl;
+		// if no root inside my server
+		if(data->path.empty())
+		{
+			forbidden(data);
+			throw Response::Error();
+		}
+		//if a file inside my uri
+		if(isExtension(uri))
+		{
+			// I dont do the download for now i dont know how to do it
+			// if i have a file i serve it
+			filePath = data->path + uri;
+
+			std::cout << "The data->path\t:\t" YELLOW << data->path << RESET "" << std::endl; 
+			std::cout << "The uri\t:\t\t" YELLOW << uri << RESET "" << std::endl; 
+			std::cout << "The filePath\t:\t" YELLOW << filePath << RESET "" << std::endl; 
+
+
+			if (filePath.find(".py") != std::string::npos)
+			{
+				std::cout << BLUE "It's a CGI" RESET << std::endl; // Debug
+				checkAccessFile(code, filePath);
+				content = CGIHandler::execute(uri.c_str(), code);
+			}
+		}
+		// if an index inside my server
+		else if (!data->index.empty())
+		{
+			filePath = data->path + uri + data->index;
+		}
+		//if i have an autoindex 
+		else if(!data->autoindex.empty() && data->autoindex == "on")
+		{
+			filePath = data->path + uri;
+			std::cout << "i have an autoindex" << std::endl;
+			std::vector<std::string> files = listDirectory(filePath);
+			content = generateAutoIndexPage(uri, files);
+		}
+		else
+		{
+			forbidden(data);
+			throw Response::Error();
+		}
+	}
+	std::cout << "the filePath is: " << filePath << " uri : " << uri << std::endl;
+
 	//check acces of filePath
-    checkAccessFile(code, filePath);
+	//check acces of filePath
+	checkAccessFile(code, filePath);
 
-    //read the file content 
-    std::string content = readFile(filePath);
-    // get the type of the request file
-    std::string response = httpGetResponse(code, contentType, content);
+	//read the file content 
+	if((data->autoindex.empty() || data->autoindex == "off") && filePath.find(".py") == std::string::npos)
+		content = readFile(filePath);
+	// get the type of the request file
+	std::string response = httpGetResponse(code, contentType, content);
 
-    //send response
-    if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
-    {
-        std::cout << strerror(errno) << std::endl;
-        throw Response::ErrorSendingResponse(); 
-    }
+	//send response
+	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
+	{
+		std::cout << strerror(errno) << std::endl;
+		throw Response::ErrorSendingResponse(); 
+	}
 }
 
 //-------
@@ -273,7 +285,7 @@ void getRequest2amandine(std::string &uri, t_serverData *data)
 		// get the type of the request file
 	}
 
-	response = httpHeaderResponse(code, getContentType(uri), content);
+	response = httpGetResponse(code, getContentType(uri), content);
 	// Debug
 	std::cout << "\nThe filePath :\t" YELLOW << filePath << RESET "\nDefault path :\t" YELLOW << defaultPath << RESET "\nUri :\t\t" YELLOW << uri << RESET "" << std::endl; 
 	std::cout << "\nThe content type: " << getContentType(uri) << RESET << std::endl;
@@ -295,10 +307,10 @@ void redirRequest(std::map<std::string, std::string>::iterator redir, int fd)
 							"Content-Length: 0 \r\n"
 							"Connection: keep-alive\r\n\r\n";
 
-    std::cout << "the response:\n" << response << std::endl;
-    if(send(fd, response.c_str(), response.size(), 0) < 0)
-    {
-        std::cout << strerror(errno) << std::endl;
-        std::cout << "Error redirection: " << strerror(errno) << std::endl;
-    }
+	std::cout << "the response:\n" << response << std::endl;
+	if(send(fd, response.c_str(), response.size(), 0) < 0)
+	{
+		std::cout << strerror(errno) << std::endl;
+		std::cout << "Error redirection: " << strerror(errno) << std::endl;
+	}
 }

@@ -152,16 +152,16 @@ void	Server::fillMaxBody(std::string line)
 {
 	size_t pos = line.find("client_max_body_size ");
 	std::string size = line.substr(pos + strlen("client_max_body_size "), line.length() - (pos + strlen("client_max_body_size ")));
-    //check if there is non autorize caracter in the maxbody
-    if(size.find_first_not_of("0123456789kmKM") != std::string::npos)
-        throw Response::ErrorMaxBody();
-    //replace the k and m by real number and check for errors
-    maxBodyParsing("k", size);
-    maxBodyParsing("K", size);
-    maxBodyParsing("m", size);
-    maxBodyParsing("M", size);
+	//check if there is non autorize caracter in the maxbody
+	if(size.find_first_not_of("0123456789kmKM") != std::string::npos)
+		throw Response::ErrorMaxBody();
+	//replace the k and m by real number and check for errors
+	maxBodyParsing("k", size);
+	maxBodyParsing("K", size);
+	maxBodyParsing("m", size);
+	maxBodyParsing("M", size);
 
-    this->setMaxBody(size);
+	this->setMaxBody(size);
 	//print
 	// std::cout << "the maxBody is: " << this->getMaxBody() << std::endl;
 }
@@ -287,17 +287,17 @@ void	Server::printConfig()
 
 void    maxBodyParsing(std::string caracter, std::string &size)
 {
-    size_t pos;
-    
-    if(size.find(caracter) != std::string::npos)
-    {
-        pos = size.find(caracter);
-        //compare the position of the actual caracter
-        if(size.size() - 1 != pos)
-            throw Response::ErrorMaxBody();
-        if(caracter == "k" || caracter == "K")
-            size.replace(pos, 1, "000");
-        else
-            size.replace(pos, 1, "000000");
-    }
+	size_t pos;
+	
+	if(size.find(caracter) != std::string::npos)
+	{
+		pos = size.find(caracter);
+		//compare the position of the actual caracter
+		if(size.size() - 1 != pos)
+			throw Response::ErrorMaxBody();
+		if(caracter == "k" || caracter == "K")
+			size.replace(pos, 1, "000");
+		else
+			size.replace(pos, 1, "000000");
+	}
 }

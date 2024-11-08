@@ -25,7 +25,7 @@ class Location
 
 		// Setter
 		void	setPath(std::string path);
-		void    setRoot(std::string root);
+		void	setRoot(std::string root);
 		void	setIndex(std::string index);
 		void	setMaxBody(std::string maxBody);
 		void	setAutoIndex(std::string autoIndex);
@@ -42,7 +42,7 @@ class Location
 
 		// Fill
 		void	fillPath(std::string line);
-		void    fillRoot(std::string line);
+		void	fillRoot(std::string line);
 		void	fillIndex(std::string line);
 		void	fillMaxBody(std::string line);
 		void	fillAutoIndex(std::string line);

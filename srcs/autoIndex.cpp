@@ -22,7 +22,7 @@ std::vector<std::string> listDirectory(const std::string& directory)
 	return files;
 }
 
-std::string generateAutoIndexPage(const std::string& directory, const std::vector<std::string>& files)
+std::string generateAutoIndexPage(const std::string directory, const std::vector<std::string>& files)
 {
 	std::string html;
 	
@@ -34,15 +34,10 @@ std::string generateAutoIndexPage(const std::string& directory, const std::vecto
 
 	for (std::vector<std::string>::const_iterator it = files.begin(); it != files.end(); ++it)
 	{
-		if (*it == ".")
-			html += "\t<li><a href=\"\">./</a></li>\n";
-		else if (*it == "..")
-			html += "\t<li><a href=\"../\">../</a></li>\n";
-		else
+		if (*it != "." && *it != "..")
 			html += "\t<li><a href=\"" + directory + *it + "\">" + *it + (isDirectory(directory + *it) ? "/" : "") + "</a></li>\n";
 		std::cout << MAGENTA "it: " << *it << RESET << std::endl;
 	}
-
 	html += "</ul></body></html>";
 	return html;
 }
