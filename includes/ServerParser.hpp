@@ -29,6 +29,7 @@ typedef struct s_serverData
     std::string					path;
     std::string					maxBody;
     std::string					index;
+    std::string                 autoIndex;
     std::map<int, std::string>	errorPage;
     std::map<std::string, std::string>	redir;
     std::vector<Location>		location;
@@ -44,6 +45,7 @@ class Server
 		std::string					_path;
 		std::string					_maxBody;
 		std::string					_index;
+        std::string                 _autoindex;
 		std::map<int, std::string>	_errorPage;
 		std::map<std::string, std::string>	_redir;
 		std::vector<Location>		_location;
@@ -58,6 +60,7 @@ class Server
 		void	setPath(std::string path);
 		void	setMaxBody(std::string maxBody);
 		void	setIndex(std::string index);
+		void	setAutoIndex(std::string autoIndex);
 		void	setErrorPage(int code, std::string errorFile);
 		void	setRedir(std::string code, std::string domain);
 		void	setLocation(Location &location);
@@ -70,6 +73,7 @@ class Server
 		std::string						getPath() const;
 		std::string						getMaxBody() const;
 		std::string						getIndex() const;
+		std::string						getAutoIndex() const;
 		std::map<int,std::string>		&getErrorPage();
 		std::map<std::string,std::string>		&getRedir();
 		std::vector<Location>			&getLocation();
@@ -80,6 +84,7 @@ class Server
 		void	fillPath(std::string line);
 		void	fillMaxBody(std::string line);
 		void	fillIndex(std::string line);
+		void	fillAutoIndex(std::string line);
 		void	fillErrorPage(std::string line);
 		void	fillRedir(std::string line);
 		void	fillLocation(std::ifstream &file, std::string line);

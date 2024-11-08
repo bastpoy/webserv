@@ -75,3 +75,35 @@ void internalError(t_serverData *data)
         throw Response::ErrorSendingResponse(); 
     }    
 }
+
+void forbidden(t_serverData *data)
+{
+    std::string contentFile = readFile("./www/error/error403.html");
+
+    std::string response = "HTTP/1.1 403 Forbiden\r\n"
+                            "Content-Type: text/html\r\n"
+                            "Content-Length: " + to_string(contentFile.size()) + "\r\n"
+                            "\r\n" + contentFile;
+    //send response
+    if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
+    {
+        std::cout << strerror(errno) << std::endl;
+        throw Response::ErrorSendingResponse(); 
+    }
+}
+
+void notFound(t_serverData *data)
+{
+    std::string contentFile = readFile("./www/error/error404.html");
+
+    std::string response = "HTTP/1.1 404 Not Found\r\n"
+                            "Content-Type: text/html\r\n"
+                            "Content-Length: " + to_string(contentFile.size()) + "\r\n"
+                            "\r\n" + contentFile;
+    //send response
+    if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
+    {
+        std::cout << strerror(errno) << std::endl;
+        throw Response::ErrorSendingResponse(); 
+    }
+}

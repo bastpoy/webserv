@@ -29,6 +29,11 @@ void Server::setIndex(std::string index)
 	this->_index = index;
 }
 
+void Server::setAutoIndex(std::string index)
+{
+	this->_autoindex = index;
+}
+
 void Server::setLocation(Location &location)
 {
 	this->_location.push_back(location);
@@ -78,6 +83,11 @@ std::string	Server::getIndex() const
 	return (this->_index);
 }
 
+std::string	Server::getAutoIndex() const
+{
+	return (this->_autoindex);
+}
+
 std::map<std::string,std::string>	&Server::getRedir()
 {
 	return (this->_redir);
@@ -123,7 +133,9 @@ void	Server::fillPath(std::string line)
         this->setPath(this->getPath() + "/");
     //if no . at the begining add it
     if(this->getPath().at(0) != '.')
+    {
         this->setPath("." + this->getPath());
+    }
     //print
 	std::cout << "the path is: " << this->getPath() << std::endl;
 }
@@ -152,6 +164,14 @@ void	Server::fillIndex(std::string line)
 	this->setIndex(line.substr(pos + strlen("index "), line.length() - (pos + strlen("index "))));
 	//print
 	std::cout << "the index is: " << this->getIndex() << std::endl;
+}
+
+void	Server::fillAutoIndex(std::string line)
+{
+	size_t pos = line.find("autoindex ");
+	this->setAutoIndex(line.substr(pos + strlen("autoindex "), line.length() - (pos + strlen("autoindex "))));
+	//print
+	std::cout << "the autoindex is: " << this->getAutoIndex() << std::endl;
 }
 
 void	Server::fillErrorPage(std::string line)
@@ -236,6 +256,8 @@ void	Server::printConfig()
 		std::cout << "client_max_body_size " << this->getMaxBody() << std::endl;
 	if(!this->getIndex().empty())
 		std::cout << "index " << this->getIndex() << std::endl;
+	if(!this->getAutoIndex().empty())
+		std::cout << "autoindex " << this->getAutoIndex() << std::endl;
 	if(this->getErrorPage().begin()->first) 
 		std::cout << "error_page " << this->getErrorPage().begin()->first << " " << this->getErrorPage().begin()->second << std::endl;
 	if(this->getRedir().size()) 

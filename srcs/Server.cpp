@@ -13,6 +13,7 @@ struct epoll_event fillEpoolDataIterator(int sockfd, std::vector<Server>::iterat
     data->server_name = itbeg->getServerName();
     data->path = itbeg->getPath();
     data->maxBody = itbeg->getMaxBody();
+    data->autoIndex = itbeg->getAutoIndex();
     data->index = itbeg->getIndex();
     data->errorPage = itbeg->getErrorPage();
     data->redir = itbeg->getRedir();
@@ -36,6 +37,7 @@ struct epoll_event fillEpoolDataInfo(int &client_fd, t_serverData *info)
     data->path = info->path;
     data->maxBody = info->maxBody;
     data->index = info->index;
+    data->autoIndex = info->autoIndex;
     data->errorPage = info->errorPage;
     data->redir = info->redir;
     data->location = info->location;
@@ -142,7 +144,6 @@ std::string readingData(int &fd)
     buffer[bytes_read] = '\0';
     return(buffer);
 }
-
 
 bool redirectRequest(std::string buffer, t_serverData *data) 
 {
