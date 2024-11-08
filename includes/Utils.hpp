@@ -3,7 +3,7 @@
 
 #include "Header.hpp"
 
-std::string readFile(std::string &path);
+std::string readFile(std::string path);
 bool isExtension(std::string path);
 
 template <typename T>

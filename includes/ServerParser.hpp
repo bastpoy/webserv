@@ -102,6 +102,7 @@ class Server
 
 };
 
+void    maxBodyParsing(std::string caracter, std::string &size);
 std::ostream&	operator<<(std::ostream& os, const Server& server);
 
 # endif /* SERVER_HPP */

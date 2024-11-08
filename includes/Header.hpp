@@ -28,6 +28,7 @@
 #include <unistd.h>				// Pour close
 #include <arpa/inet.h>			// Pour inet_ntoa
 #include <sys/epoll.h>
+#include <fcntl.h>
 
 // Fichiers d'en-tête spécifiques au projet
 #include "CGIHandler.hpp"		// Classe pour gerer les CGI
@@ -38,7 +39,6 @@
 #include "Request.hpp"			// Classe pour les requêtes
 #include "RequestHandler.hpp"	// Gestion des requêtes
 #include "Response.hpp"			// Classe pour les réponses
-#include "Client.hpp"
 #include "Utils.hpp"
 #include "Error.hpp"
 #include "Post.hpp"				// Handle POST request

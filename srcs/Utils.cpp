@@ -15,7 +15,7 @@ bool isExtension(std::string path)
 	return (true);
 }
 
-std::string readFile(std::string &path)
+std::string readFile(std::string path)
 {
 	std::ifstream file(path.c_str(), std::ios::binary);
 	if(!file.is_open())

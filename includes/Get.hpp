@@ -4,6 +4,6 @@
 #include "Header.hpp"
 
 void getRequest(std::string &uri, t_serverData *data);
-bool redirHeader(std::map<std::string, std::string>::iterator redir, int fd);
+void redirRequest(std::map<std::string, std::string>::iterator redir, int fd);
 
 #endif

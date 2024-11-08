@@ -2,7 +2,9 @@
 
 std::string check_location(std::string &filePath, std::vector<Location> &location, t_serverData *data)
 {
-	std::vector<Location>::iterator it = location.begin();
+    std::vector<Location>::iterator it = location.begin();
+    if(it == location.end())
+        return("");
 
 	// it->getPath => pathLocation
 	// it->getIndex => indexLocation
@@ -81,7 +83,7 @@ std::string getContentType(std::string &path)
 	return "text/html"; // Default content type
 }
 
-std::string httpHeaderResponse(std::string code, std::string contentType, std::string content)
+std::string httpGetResponse(std::string code, std::string contentType, std::string content)
 {
 	//make the header response
 	return ("HTTP/1.1 " + code + " \r\n"
@@ -153,6 +155,73 @@ void checkAccessFile(std::string &code, std::string &filePath)
 
 void getRequest(std::string &uri, t_serverData *data)
 {
+    bool autoindex = true;
+    std::vector<Location>location = data->location;
+    //get the contentType
+    std::string contentType = getContentType(uri);
+    std::string filePath; // Change this to your file path
+    std::string locationPath = check_location(uri, data->location, data);
+    //check first if i have a location
+    if(!locationPath.empty())
+        filePath = locationPath;
+    //if not check inside my server block
+    else
+    {
+        std::cout << "no location match" << std::endl;
+        // if no root inside my server
+        if(data->path.empty())
+        {
+            forbidden(data);
+            throw Response::Error();
+        }
+        //if a file inside my uri
+        if(isExtension(uri))
+        {
+            // I dont do the download for now i dont know how to do it
+            // if i have a file i serve it
+            filePath = data->path + uri;
+        }
+        // if an index inside my server
+        else if (!data->index.empty())
+        {
+            filePath = data->path + uri + data->index;
+        }
+        //if i have an autoindex 
+        else if(!data->autoIndex.empty() && data->autoIndex == "on")
+        {
+            filePath = data->path + uri;
+            autoindex = true;
+            std::cout << "i have an autoindex" << std::endl;
+        }
+        else
+        {
+            forbidden(data);
+            throw Response::Error();
+        }
+    }
+    std::cout << "the path is: " << filePath << " uri : " << uri << std::endl;
+    std::string code;
+
+    //check acces of filePath
+	//check acces of filePath
+    checkAccessFile(code, filePath);
+
+    //read the file content 
+    std::string content = readFile(filePath);
+    // get the type of the request file
+    std::string response = httpGetResponse(code, contentType, content);
+
+    //send response
+    if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
+    {
+        std::cout << strerror(errno) << std::endl;
+        throw Response::ErrorSendingResponse(); 
+    }
+}
+
+//-------
+void getRequest2amandine(std::string &uri, t_serverData *data)
+{
 	std::string				curDir	=	"./";
 	
 	std::string				defaultPath	=	uri.find("www") == std::string::npos ? uri: "./" + uri;		// Root of server
@@ -216,7 +285,9 @@ void getRequest(std::string &uri, t_serverData *data)
 	}
 }
 
-bool redirHeader(std::map<std::string, std::string>::iterator redir, int fd)
+
+
+void redirRequest(std::map<std::string, std::string>::iterator redir, int fd)
 {
 	std::string response = "HTTP/1.1 302 Found \r\n"
 							"Location: " + redir->second + "\r\n"
@@ -224,12 +295,10 @@ bool redirHeader(std::map<std::string, std::string>::iterator redir, int fd)
 							"Content-Length: 0 \r\n"
 							"Connection: keep-alive\r\n\r\n";
 
-	std::cout << "the response:\n" << response << std::endl;
-	if(send(fd, response.c_str(), response.size(), 0) < 0)
-	{
-		std::cout << strerror(errno) << std::endl;
-		std::cout << "Error redirection: " << strerror(errno) << std::endl;
-		return (false);
-	}
-	return(true);
+    std::cout << "the response:\n" << response << std::endl;
+    if(send(fd, response.c_str(), response.size(), 0) < 0)
+    {
+        std::cout << strerror(errno) << std::endl;
+        std::cout << "Error redirection: " << strerror(errno) << std::endl;
+    }
 }

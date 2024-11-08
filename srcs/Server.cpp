@@ -19,9 +19,9 @@ struct epoll_event fillEpoolDataIterator(int sockfd, std::vector<Server>::iterat
 	data->redir = itbeg->getRedir();
 	data->location = itbeg->getLocation();
 
-	event.events = EPOLLIN; // Monitor for input events
-	//I stock the info server on the event ptr data
-	event.data.ptr = static_cast<void*>(data);
+    event.events = EPOLLIN | EPOLLOUT; // Monitor for input events
+    //I stock the info server on the event ptr data
+    event.data.ptr = static_cast<void*>(data);
 
 	return (event);
 }
@@ -44,8 +44,8 @@ struct epoll_event fillEpoolDataInfo(int &client_fd, t_serverData *info)
 
 	struct epoll_event client_event;
 
-	client_event.events = EPOLLIN;
-	client_event.data.ptr = static_cast<void*>(data);
+    client_event.events = EPOLLIN | EPOLLOUT;
+    client_event.data.ptr = static_cast<void*>(data);
 
 	return(client_event);
 }
@@ -150,45 +150,37 @@ bool redirectRequest(std::string buffer, t_serverData *data)
 	std::string firstLine = buffer.substr(0, buffer.find("\n"));
 	std::string typeRequest =  firstLine.substr(0, buffer.find(" "));
 
-	if(typeRequest == "GET")
-	{
-		//if i have a redirection 
-		if(data->redir.size())
-		{
-			std::cout << "GET REDIRECTION " << data->port << " " << data->server_name << std::endl;
-			return(redirHeader(data->redir.begin(), data->sockfd));
-		}
-		// else I respond 
-		else
-		{
-			std::cout << "GET RESPONSE" << std::endl;
-			//get the url of the request
-		
-			std::string path = buffer.substr(buffer.find('/') + 1, buffer.size() - buffer.find('/'));
-			path = path.substr(0, path.find(' '));
-			
-			// return the data to the client
-			getRequest(path, data);
-		}
-	}
-	else if(typeRequest == "POST")
-	{
-		std::cout << "\nPOST REQUEST\n" << std::endl;
-		//search the body in the header
-		size_t pos = buffer.find("\r\n\r\n");
-		// if i have a body in the pose request
-		if(pos != std::string::npos)
-		{
-			std::string body = buffer.substr(pos + 4, buffer.size());
-			// std::cout << "-" << body << "-" << std::endl;
-			parsePostBody(body);
-		}
-	}
-	else if(typeRequest == "DELETE")
-	{}
-	else
-		std::cout << "404 not found" << std::endl; 
-	return(false);
+    if(typeRequest == "GET")
+    {
+        //if i have a redirection 
+        if(data->redir.size())
+        {
+            std::cout << "GET REDIRECTION " << data->port << " " << data->server_name << std::endl;
+            redirRequest(data->redir.begin(), data->sockfd);
+        }
+        // else I respond 
+        else
+        {
+            std::cout << "GET RESPONSE" << std::endl;
+
+            //get the url of the request
+            std::string path = buffer.substr(buffer.find('/') + 1, buffer.size() - buffer.find('/'));
+            path = path.substr(0, path.find(' '));
+            
+            // return the data to the client
+            getRequest(path, data);
+        }
+    }
+    else if(typeRequest == "POST")
+    {
+        postRequest(buffer, data);
+    }
+    else if(typeRequest == "DELETE")
+    {}
+    //if its not get, post or delete request
+    else
+        std::cout << "404 not found" << std::endl;
+    return(false);
 }
 
 // Fill from ServerAddr
@@ -220,41 +212,46 @@ void Server::createListenAddr(ConfigParser &config)
 			t_serverData *info = static_cast<t_serverData*>(events[i].data.ptr);
 			int fd = info->sockfd;
 
-			// check if my fd is equal to a socket for handcheck
-			if(this->socketfd.find(fd) != this->socketfd.end())
-			{
-				// listen to add new fd to my epoll structure
-				struct sockaddr_in client_addr;
-				//new fd_client for communication
-				int client_fd = acceptConnection(fd, epoll_fd, client_addr);
-				// add new fd to my epoll instance
-				struct epoll_event client_event = fillEpoolDataInfo(client_fd, info);
-				// add the new fd to be control by my epoll instance
-				if(epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &client_event) == -1)
-					errorCloseEpollFd(epoll_fd, 4);
-				std::cout << "\n-----New connection established-----\n";
-			}
-			
-			//Connection already etablish 
-			else
-			{
-				// check for modification inside the socket
-				if(events[i].events & EPOLLIN)
-				{
-					std::cout << "\nReading data...\n";
-					//read data
-					std::string path = readingData(fd);
-					if (path.empty())
-						continue;
-					std::cout << path << std::endl;
-					//response request
-					if(redirectRequest(path, info))
-						continue;
-					close(fd);
-				}
-			}
-		}
-	}
+            // check if my fd is equal to a socket for handcheck
+            if(this->socketfd.find(fd) != this->socketfd.end())
+            {
+                // listen to add new fd to my epoll structure
+                struct sockaddr_in client_addr;
+                //new fd_client for communication
+                int client_fd = acceptConnection(fd, epoll_fd, client_addr);
+                // add new fd to my epoll instance
+                struct epoll_event client_event = fillEpoolDataInfo(client_fd, info);
+                // add the new fd to be control by my epoll instance
+                if(epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &client_event) == -1)
+                    errorCloseEpollFd(epoll_fd, 4);
+                std::cout << "\n-----New connection established-----\n";
+            }
+            //Connection already etablish 
+            else
+            {
+                // check for modification inside the socket
+                if(events[i].events & (EPOLLIN | EPOLLOUT))
+                {
+                    std::cout << "\nReading data...\n";
+                    //read data
+                    try
+                    {
+                        //readin data
+                        std::string path = readingData(fd);
+                        if (path.empty())
+                            continue;
+                        // std::cout << path << std::endl;
+                        //response request
+                        if(redirectRequest(path, info))
+                            continue;
+                    }
+                    catch(const std::exception& e)
+                    {
+                        std::cerr << e.what() << '\n';
+                    }                    
+                    close(fd);
+                }
+            }
+        }
+    }
 }
-
-
