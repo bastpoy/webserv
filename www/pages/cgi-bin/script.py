@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 print("<!DOCTYPE html>")
 print()
 print("<html lang=\"fr\">")

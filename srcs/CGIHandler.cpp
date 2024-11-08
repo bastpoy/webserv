@@ -4,11 +4,7 @@ std::string	CGIHandler::execute(std::string uri, std::string &code) {
 	pid_t pid;
 	int pipefd[2];
 	std::string	realpath;
-	
-	char cwd[1024];
-	getcwd(cwd, sizeof(cwd));
-	// realpath = cwd + uri;
-	realpath = uri;
+
 	if (pipe(pipefd) == -1) {
 		perror("pipe");
 		return NULL;
@@ -26,7 +22,7 @@ std::string	CGIHandler::execute(std::string uri, std::string &code) {
 		setenv("REQUEST_METHOD", "GET", 1);
 		setenv("SCRIPT_NAME", uri.c_str(), 1);
 
-		execl("/usr/bin/python3", "python3", realpath.c_str(), NULL);
+		execl("/usr/bin/python3", "python3", uri.c_str(), NULL);
 		perror("execl");
 		exit(1);
 	} else {

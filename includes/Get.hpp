@@ -3,7 +3,7 @@
 
 #include "Header.hpp"
 
-void	getRequest(std::string uri, t_serverData *data);
+void	getRequest(std::string &uri, t_serverData *data);
 void	redirRequest(std::map<std::string, std::string>::iterator redir, int fd);
 
 #endif

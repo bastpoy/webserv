@@ -153,7 +153,7 @@ void checkAccessFile(std::string &code, std::string &filePath)
 // 	}
 // }
 
-void getRequest(std::string uri, t_serverData *data)
+void getRequest(std::string &uri, t_serverData *data)
 {
 	// bool autoindex = true;
 	std::vector<Location>location = data->location;
@@ -179,23 +179,24 @@ void getRequest(std::string uri, t_serverData *data)
 			// I dont do the download for now i dont know how to do it
 			// if i have a file i serve it
 			filePath = data->path + uri;
-
-			std::cout << "The data->path\t:\t" YELLOW << data->path << RESET "" << std::endl; 
-			std::cout << "The uri\t:\t\t" YELLOW << uri << RESET "" << std::endl; 
-			std::cout << "The filePath\t:\t" YELLOW << filePath << RESET "" << std::endl; 
-
+			std::cout << "The data->path\t:\t" YELLOW << data->path << RESET "" << std::endl;
+			std::cout << "The uri\t:\t\t" YELLOW << uri << RESET "" << std::endl;
+			std::cout << "The filePath\t:\t" YELLOW << filePath << RESET "" << std::endl;
 
 			if (filePath.find(".py") != std::string::npos)
 			{
 				std::cout << BLUE "It's a CGI" RESET << std::endl; // Debug
 				checkAccessFile(code, filePath);
-				content = CGIHandler::execute(uri.c_str(), code);
+				content = CGIHandler::execute(filePath.c_str(), code);
 			}
+			else
+				content = readFile(filePath);
 		}
 		// if an index inside my server
 		else if (!data->index.empty())
 		{
 			filePath = data->path + uri + data->index;
+			content = readFile(filePath);
 		}
 		//if i have an autoindex 
 		else if(!data->autoindex.empty() && data->autoindex == "on")
@@ -214,12 +215,7 @@ void getRequest(std::string uri, t_serverData *data)
 	std::cout << "the filePath is: " << filePath << " uri : " << uri << std::endl;
 
 	//check acces of filePath
-	//check acces of filePath
 	checkAccessFile(code, filePath);
-
-	//read the file content 
-	if((data->autoindex.empty() || data->autoindex == "off") && filePath.find(".py") == std::string::npos)
-		content = readFile(filePath);
 	// get the type of the request file
 	std::string response = httpGetResponse(code, contentType, content);
 
