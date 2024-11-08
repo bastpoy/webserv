@@ -24,22 +24,23 @@ std::vector<std::string> listDirectory(const std::string& directory)
 
 std::string generateAutoIndexPage(const std::string& directory, const std::vector<std::string>& files)
 {
-	std::string html = "<html><head><title>Index of " + directory + "</title></head><body>";
-	html += "<h1>Index of " + directory + "</h1><ul>";
+	std::string html;
+	
+	
+	html = "\n<html>\n<head>\n\t<title>Index of " + directory + "</title>\n</head>\n<body>\n";
+	html += "<h1>Index of " + directory + "</h1><ul>\n";
 
-	std::string dirName = directory;
-	size_t pos = directory.find("./www");
-	if (pos != std::string::npos) {
-		dirName = directory.substr(pos + 5);
-	}
-	std::cout << MAGENTA "dirName" << dirName << RESET << std::endl;
+	std::cout << MAGENTA "directory: " << directory << RESET << std::endl;
+
 	for (std::vector<std::string>::const_iterator it = files.begin(); it != files.end(); ++it)
 	{
-		// Ignore les répertoires "." et ".."
-		if (*it != "." && *it != "..")
-		{
-			html += "<li><a href=\"" + directory + *it + "\">" + *it + "</a></li>";
-		}
+		if (*it == ".")
+			html += "\t<li><a href=\"\">./</a></li>\n";
+		else if (*it == "..")
+			html += "\t<li><a href=\"../\">../</a></li>\n";
+		else
+			html += "\t<li><a href=\"" + directory + *it + "\">" + *it + (isDirectory(directory + *it) ? "/" : "") + "</a></li>\n";
+		std::cout << MAGENTA "it: " << *it << RESET << std::endl;
 	}
 
 	html += "</ul></body></html>";

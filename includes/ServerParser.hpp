@@ -39,15 +39,15 @@ class Server
 {
 	private:
 
-		// Server (config)
-		std::string 						_port;
-		std::string							_server_name;
-		std::string							_path;
-		std::string							_maxBody;
-		std::string							_index;
-		std::string							_autoindex;
-		std::map<int, std::string>			_errorPage;
-		std::map<std::string, std::string>	_redir;
+		// Server (config)									// Some example
+		std::string 						_port;			// 8080
+		std::string							_server_name;	// 127.0.0.3
+		std::string							_path;			// ? root ?
+		std::string							_maxBody;		// 36M
+		std::string							_index;			// index.html
+		std::string							_autoindex;		// on/off
+		std::map<int, std::string>			_errorPage;		// 404: /var/www/error/error404.html
+		std::map<std::string, std::string>	_redir;			// 302: http://127.0.0.3:8080
 		std::vector<Location>				_location;
 		// Server file descriptor
 		std::set<int>						socketfd;
