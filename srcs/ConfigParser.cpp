@@ -46,8 +46,8 @@ void	ConfigParser::parseConfig( )
 
 	// ConfigParser *config;
 	std::string line;
-	std::ifstream file("./conf/Bastien.conf");
-	// std::ifstream file(this->_path);
+	// std::ifstream file("./conf/Bastien.conf");
+	std::ifstream file(this->_path.c_str());
 
 	if (!file.is_open())
 	{
@@ -113,8 +113,8 @@ void ConfigParser::printConfig()
 	std::vector<Server>::iterator	itbeg = this->_servers.begin();
 	std::vector<Server>::iterator	itend = this->_servers.end();
 	int								i = 1;
-	std::cout << "---------PRINTING CONF-----------\n\n";
 
+	std::cout << "---------PRINTING CONF-----------\n\n";
 	while(itbeg != itend)
 	{
 		//print server config who call location config
@@ -122,4 +122,5 @@ void ConfigParser::printConfig()
 		(itbeg)->printConfig();
 		itbeg++;
 	}
+	std::cout << "---------------------------------\n\n";
 }

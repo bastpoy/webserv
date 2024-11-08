@@ -6,26 +6,32 @@
 
 void Server::setPort(std::string port)
 {
+	port.erase(std::remove(port.begin(), port.end(), ' '), port.end());
 	this->_port = port;
 }
 
 void Server::setServerName(std::string server_name)
 {
+	server_name.erase(std::remove(server_name.begin(), server_name.end(), ' '), server_name.end());
 	this->_server_name = server_name;
 }
 
 void Server::setPath(std::string path)
 {
+	path.erase(std::remove(path.begin(), path.end(), ' '), path.end());
 	this->_path = path;
 }
 
+
 void Server::setMaxBody(std::string maxBody)
 {
+	maxBody.erase(std::remove(maxBody.begin(), maxBody.end(), ' '), maxBody.end());
 	this->_maxBody = maxBody;
 }
 
 void Server::setIndex(std::string index)
 {
+	index.erase(std::remove(index.begin(), index.end(), ' '), index.end());
 	this->_index = index;
 }
 
@@ -36,17 +42,21 @@ void Server::setAutoIndex(std::string autoindex)
 
 void Server::setLocation(Location &location)
 {
+	// location.erase(std::remove(location.begin(), location.end(), ' '), location.end());
 	this->_location.push_back(location);
 }
 
-
 void Server::setRedir(std::string code, std::string domain)
 {
+	// code.erase(std::remove(code.begin(), code.end(), ' '), code.end());
+	domain.erase(std::remove(domain.begin(), domain.end(), ' '), domain.end());
+	code.erase(std::remove(code.begin(), code.end(), ' '), code.end());
 	this->_redir.insert(std::make_pair(code, domain));
 }
 
 void Server::setErrorPage(int code, std::string errorFile)
 {
+	errorFile.erase(std::remove(errorFile.begin(), errorFile.end(), ' '), errorFile.end());
 	this->_errorPage.insert(std::make_pair(code, errorFile));
 }
 
@@ -104,31 +114,30 @@ std::vector<Location>	&Server::getLocation()
 	return (this->_location);
 }
 
-
 /* ================ */
 /*		FILL		*/
 /* ================ */
 
 void	Server::fillPort(std::string line)
 {
-	size_t pos = line.find("listen ");
+	size_t pos = line.find("listen");
 	//get the port and convert to int
-	this->setPort(line.substr(pos + strlen("listen "), line.length()).c_str());
-	std::cout << "the port is: " << this->getPort() << std::endl;
+	this->setPort(line.substr(pos + strlen("listen"), line.length()).c_str());
+	// std::cout << "the port is: " << this->getPort() << std::endl;
 }
 
 void	Server::fillServerName(std::string line)
 {
-	size_t pos = line.find("server_name ");
-	this->setServerName(line.substr(pos + strlen("server_name "), line.length() - (pos + strlen("server_name "))));
+	size_t pos = line.find("server_name");
+	this->setServerName(line.substr(pos + strlen("server_name"), line.length() - (pos + strlen("server_name"))));
 	//print
-	std::cout << "the server is: " << this->getServerName() << std::endl;
+	// std::cout << "the server is: " << this->getServerName() << std::endl;
 }
 
 void	Server::fillPath(std::string line)
 {
-	size_t pos = line.find("root ");
-	this->setPath(line.substr(pos + strlen("root "), line.length() - (pos + strlen("root "))));
+	size_t pos = line.find("root");
+	this->setPath(line.substr(pos + strlen("root"), line.length() - (pos + strlen("root"))));
 	//if no "/" at the end add it
 	if(this->getPath().at(this->getPath().size() - 1) != '/')
 		this->setPath(this->getPath() + "/");
@@ -136,125 +145,130 @@ void	Server::fillPath(std::string line)
 	if(this->getPath().at(0) != '.')
 		this->setPath("." + this->getPath());
 	//print
-	std::cout << "the path is: " << this->getPath() << std::endl;
+	// std::cout << "the path is: " << this->getPath() << std::endl;
 }
 
 void	Server::fillMaxBody(std::string line)
 {
-	size_t pos = line.find("client_max_body_size ");
-	this->setMaxBody(line.substr(pos + strlen("client_max_body_size "), line.length() - (pos + strlen("client_max_body_size "))));
+	size_t pos = line.find("client_max_body_size");
+	this->setMaxBody(line.substr(pos + strlen("client_max_body_size"), line.length() - (pos + strlen("client_max_body_size"))));
 	//print
-	std::cout << "the maxBody is: " << this->getMaxBody() << std::endl;
+	// std::cout << "the maxBody is: " << this->getMaxBody() << std::endl;
 }
 
 void	Server::fillIndex(std::string line)
 {
-	size_t pos = line.find("index ");
-	this->setIndex(line.substr(pos + strlen("index "), line.length() - (pos + strlen("index "))));
+	size_t pos = line.find("index");
+	this->setIndex(line.substr(pos + strlen("index"), line.length() - (pos + strlen("index"))));
 	//print
-	std::cout << "the index is: " << this->getIndex() << std::endl;
+	// std::cout << "the index is: " << this->getIndex() << std::endl;
 }
 
+//TODO - Delete spaces
 void	Server::fillAutoIndex(std::string line)
 {
 	std::cout << RED "\nJe passe laaaaa" RESET << std::endl;
-	size_t pos = line.find("autoindex ");
+	size_t pos = line.find("autoindex "); 
 	this->setAutoIndex(line.substr(pos + strlen("autoindex "), line.length() - (pos + strlen("autoindex "))));
 	//print
-	std::cout << "The autoindex is: " << this->getAutoIndex() << std::endl;
+	// std::cout << "The autoindex is: " << this->getAutoIndex() << std::endl;
 }
 
 void	Server::fillErrorPage(std::string line)
 {
-	size_t pos = line.find("error_page ");
-	int code = atoi(line.substr(pos + strlen("error_page "), 3).c_str());
-	std::string domain = line.substr(pos + strlen("error_page ") + 3, line.length());
+	size_t pos = line.find("error_page");
+	int code = atoi(line.substr(pos + strlen("error_page"), 3).c_str());
+	std::string domain = line.substr(pos + strlen("error_page") + 3, line.length());
 	this->setErrorPage(code, domain);
 
 	//print
-	std::map<int, std::string>::iterator it = this->getErrorPage().begin();
-	std::cout << "the errorCode is: " << it->first << "\t the file is: " << it->second <<  std::endl;
+	// std::map<int, std::string>::iterator it = this->getErrorPage().begin();
+	// std::cout << "the errorCode is: " << it->first << "\t the file is: " << it->second <<  std::endl;
 }
 
 void	Server::fillRedir(std::string line)
 {
-	size_t pos = line.find("return ");
-	std::string code = line.substr(pos + strlen("return "), 3).c_str();
-	std::string domain = line.substr(pos + strlen("return ") + 3, line.length() - (pos + strlen("return ")));
+	size_t pos = line.find("return");
+	std::string code = line.substr(pos + strlen("return"), 4);
+	std::string domain = line.substr(pos + strlen("return") + 4, line.length() - (pos + strlen("return")));
 	this->setRedir(code, domain);
 
 	//print
-	std::map<std::string, std::string>::iterator it = this->getRedir().begin();
-	std::cout << "the code is: " << it->first << "\t the domain is: " << it->second <<  std::endl;
+	// std::map<std::string, std::string>::iterator it = this->getRedir().begin();
+	// std::cout << "the code is: " << it->first << "\t the domain is: " << it->second <<  std::endl;
 }
 
+/**
+ * @brief	Gonna Fill all Location data info detected in a location instance
+ * 			It will get the path of the location first, and then get all the information.
+ * 			In last add my Location to my Server.
+ * @note	It will erase spaces between key and value.
+ * @author	Ozan, if you need to ask something...
+*/
 void	Server::fillLocation(std::ifstream &file, std::string line)
 {
+	// std::cout << GREEN "\nNew Location detected" RESET << std::endl;
 	Location location;
-	std::cout << "\nNew location" << std::endl;
 
-	//get the path of the location
 	location.fillPath(line);
-	//get all the information
 	while(getline(file, line))
 	{
-		//fill the autoindex of the file to serve
-		if (line.find("autoindex ") != std::string::npos)
+		if (line.find("{") != std::string::npos)
+			continue ;
+		else if (line.find("autoindex") != std::string::npos)
 			location.fillAutoIndex(line);
-		//fill the maxbody size
-		else if (line.find("client_max_body_size ") != std::string::npos)
+		else if (line.find("client_max_body_size") != std::string::npos)
 			location.fillMaxBody(line);
-		//fill the rootpath
-		else if (line.find("root ") != std::string::npos)
+		else if (line.find("root") != std::string::npos)
 			location.fillRoot(line);
-		//fill the index
-		else if (line.find("index ") != std::string::npos)
+		else if (line.find("index") != std::string::npos)
 			location.fillIndex(line);
-		//fill a redirection 
-		else if (line.find("return ") != std::string::npos)
+		else if (line.find("return") != std::string::npos)
 			location.fillRedir(line, this);
-		//fill an error code
-		else if (line.find("error_page ") != std::string::npos)
+		else if (line.find("error_page") != std::string::npos)
 			location.fillErrorPage(line, this);
-		//get the end of location section
 		else if (line.find("}") != std::string::npos)
 		{
 			this->setLocation(location);
 			return;
 		}
-		//if there is not all the above things return an error
 		else
 			throw Response::ConfigurationFileLocation();
 	}
 	//add my location to my server
 }
 
-// Debug
+/* ================ */
+/*		DEBUG		*/
+/* ================ */
+
 void	Server::printConfig()
 {
 	std::vector<Location>::iterator	itbeg = this->_location.begin();
 	std::vector<Location>::iterator	itend = this->_location.end();
+	int								i = 1;
 	
 	//print all server attributs
 	if(!this->getPort().empty())
-		std::cout << "listen " << this->getPort() << std::endl;
+		std::cout << "listen\t\t" YELLOW << this->getPort() << RESET << std::endl;
 	if(!this->getServerName().empty())
-		std::cout << "server_name " << this->getServerName() << std::endl;
+		std::cout << "server_name\t" YELLOW << this->getServerName() << RESET << std::endl;
 	if(!this->getPath().empty())
-		std::cout << "root " <<this->getPath() << std::endl;
+		std::cout << "root\t\t" YELLOW <<this->getPath() << RESET << std::endl;
 	if(!this->getMaxBody().empty())
-		std::cout << "client_max_body_size " << this->getMaxBody() << std::endl;
+		std::cout << "maxBody\t\t" YELLOW << this->getMaxBody() << RESET << std::endl;
 	if(!this->getIndex().empty())
-		std::cout << "index " << this->getIndex() << std::endl;
+		std::cout << "index\t\t" YELLOW << this->getIndex() << RESET << std::endl;
 	if(this->getErrorPage().begin()->first) 
-		std::cout << "error_page " << this->getErrorPage().begin()->first << " " << this->getErrorPage().begin()->second << std::endl;
+		std::cout << "error_page\t" YELLOW << this->getErrorPage().begin()->first << " " << this->getErrorPage().begin()->second << RESET << std::endl;
 	if(this->getRedir().size()) 
-		std::cout << "return " << this->getRedir().begin()->first << " " << this->getRedir().begin()->second << std::endl;
+		std::cout << "return\t\t" YELLOW << this->getRedir().begin()->first << " " << this->getRedir().begin()->second << RESET << std::endl;
 	std::cout << std::endl;
 
 	//print every location of my current server
 	while(itbeg != itend)
 	{
+		std::cout << BWHITE "\tLocation "  << i++ << RESET << std::endl;
 		(itbeg)->printConfig();
 		itbeg++;
 	}
