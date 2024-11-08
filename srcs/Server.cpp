@@ -18,7 +18,7 @@ struct epoll_event fillEpoolDataIterator(int sockfd, std::vector<Server>::iterat
     data->redir = itbeg->getRedir();
     data->location = itbeg->getLocation();
 
-    event.events = EPOLLIN; // Monitor for input events
+    event.events = EPOLLIN | EPOLLOUT; // Monitor for input events
     //I stock the info server on the event ptr data
     event.data.ptr = static_cast<void*>(data);
 
@@ -42,7 +42,7 @@ struct epoll_event fillEpoolDataInfo(int &client_fd, t_serverData *info)
 
     struct epoll_event client_event;
 
-    client_event.events = EPOLLIN;
+    client_event.events = EPOLLIN | EPOLLOUT;
     client_event.data.ptr = static_cast<void*>(data);
 
     return(client_event);
@@ -229,7 +229,7 @@ void Server::createListenAddr(ConfigParser &config)
             else
             {
                 // check for modification inside the socket
-                if(events[i].events & EPOLLIN)
+                if(events[i].events & (EPOLLIN | EPOLLOUT))
                 {
                     std::cout << "\nReading data...\n";
                     //read data
