@@ -120,10 +120,12 @@ void getRequest(std::string uri, t_serverData *data)
 	std::vector<Location>location = data->location;
 	//get the contentType
 	std::string contentType = getContentType(uri);
-	std::string filePath = check_location(uri, data->location, data);
+	// std::string filePath = check_location(uri, data->location, data);
+    std::string filePath;
 	std::string	content;
 	std::string code;
 
+    // std::cout << "uri " << uri << std::endl;
 	//check first if i have a location
 	if(filePath.empty())
 	{
@@ -145,18 +147,20 @@ void getRequest(std::string uri, t_serverData *data)
 			// std::cout << "The uri\t:\t\t" YELLOW << uri << RESET "" << std::endl; 
 			// std::cout << "The filePath\t:\t" YELLOW << filePath << RESET "" << std::endl; 
 
-
 			if (filePath.find(".py") != std::string::npos)
 			{
 				std::cout << BLUE "It's a CGI" RESET << std::endl; // Debug
 				checkAccessFile(code, filePath);
 				content = CGIHandler::execute(uri.c_str(), code);
 			}
+            else
+                content = readFile(filePath);
 		}
 		// if an index inside my server
 		else if (!data->index.empty())
 		{
 			filePath = data->path + uri + data->index;
+            content = readFile(filePath);
 		}
 		//if i have an autoindex 
 		else if(!data->autoindex.empty() && data->autoindex == "on")
@@ -177,12 +181,6 @@ void getRequest(std::string uri, t_serverData *data)
 	//check acces of filePath
 	checkAccessFile(code, filePath);
 
-	//read the file content 
-	if(!(data->autoindex.empty() && data->autoindex == "on") && !(filePath.find(".py") != std::string::npos))
-	{
-        std::cout << "in the readfile" << std::endl;
-    	content = readFile(filePath);
-    }
 	// get the type of the request file
 	std::string response = httpGetResponse(code, contentType, content);
 

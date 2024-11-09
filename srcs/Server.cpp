@@ -166,7 +166,9 @@ bool redirectRequest(std::string buffer, t_serverData *data)
 			//get the url of the request
 			std::string path = buffer.substr(buffer.find('/') + 1, buffer.size() - buffer.find('/'));
 			path = path.substr(0, path.find(' '));
-			
+            std::cout << path << std::endl;
+            if(path.find("favicon.ico") != std::string::npos)
+                return (false);
 			// return the data to the client
 			getRequest(path, data);
 		}
@@ -232,7 +234,7 @@ void Server::createListenAddr(ConfigParser &config)
 				// check for modification inside the socket
 				if(events[i].events & (EPOLLIN | EPOLLOUT))
 				{
-					std::cout << "\nReading data...\n";
+					// std::cout << "\nReading data...\n";
 					//read data
 					try
 					{
@@ -249,7 +251,7 @@ void Server::createListenAddr(ConfigParser &config)
 					{
 						std::cerr << e.what() << '\n';
 					}                    
-					close(fd);
+					// close(fd);
 				}
 			}
 		}
