@@ -93,25 +93,29 @@ std::string httpGetResponse(std::string code, std::string contentType, std::stri
 			"\r\n" + content);
 }
 
-void checkAccessFile(std::string &code, std::string &filePath)
+void checkAccessFile(std::string &code, std::string &filePath, t_serverData *data)
 {
 	// check if i can access the current ressource request 
 	if(access(filePath.c_str(), F_OK) != 0)
-	{
-		std::cout << filePath << ": " RED "Fichier introuvable\n" RESET << access(filePath.c_str(), F_OK) << std::endl;
-		code = "404 Not Found";
-		filePath = "./www/error/error404.html";
-	}
+		errorPage("404", data);
 	else if (access(filePath.c_str(), R_OK) != 0)
-	{
-		std::cout << filePath <<YELLOW ": Accès refusé (pas de droits de lecture)\n" RESET;
-		code = "403 Forbidden";
-		filePath = "./www/error/error403.html";
-	}
+		errorPage("403", data);
 	else
-	{
 		code = "200 OK";
-	}
+}
+
+void checkAccessDir(std::string &code, std::string &dirPath, t_serverData *data)
+{
+	// check if i can access the current ressource request
+	struct stat	pathStat;
+	if(stat(dirPath.c_str(), &pathStat) != 0)
+		errorPage("404", data);
+	else if (!S_ISDIR(pathStat.st_mode))
+		errorPage("404", data);
+	else if (access(dirPath.c_str(), R_OK) != 0)
+		errorPage("403", data);
+	else
+		code = "200 OK";
 }
 
 // void getRequest(std::string &uri, t_serverData *data)
@@ -155,50 +159,37 @@ void checkAccessFile(std::string &code, std::string &filePath)
 
 void getRequest(std::string &uri, t_serverData *data)
 {
-	// bool autoindex = true;
 	std::vector<Location>location = data->location;
-	//get the contentType
 	std::string contentType = getContentType(uri);
 	std::string filePath = check_location(uri, data->location, data);
 	std::string	content;
 	std::string code;
 
-	//check first if i have a location
 	if(filePath.empty())
 	{
 		std::cout << "no location match" << std::endl;
-		// if no root inside my server
 		if(data->path.empty())
 		{
-			forbidden(data);
+			errorPage("403", data);
 			throw Response::Error();
 		}
-		//if a file inside my uri
 		if(isExtension(uri))
 		{
-			// I dont do the download for now i dont know how to do it
-			// if i have a file i serve it
 			filePath = data->path + uri;
 			std::cout << "The data->path\t:\t" YELLOW << data->path << RESET "" << std::endl;
 			std::cout << "The uri\t:\t\t" YELLOW << uri << RESET "" << std::endl;
 			std::cout << "The filePath\t:\t" YELLOW << filePath << RESET "" << std::endl;
-
+			checkAccessFile(code, filePath, data);
 			if (filePath.find(".py") != std::string::npos)
-			{
-				std::cout << BLUE "It's a CGI" RESET << std::endl; // Debug
-				checkAccessFile(code, filePath);
 				content = CGIHandler::execute(filePath.c_str(), code);
-			}
 			else
 				content = readFile(filePath);
 		}
-		// if an index inside my server
 		else if (!data->index.empty())
 		{
 			filePath = data->path + uri + data->index;
 			content = readFile(filePath);
 		}
-		//if i have an autoindex 
 		else if(!data->autoindex.empty() && data->autoindex == "on")
 		{
 			filePath = data->path + uri;
@@ -207,19 +198,15 @@ void getRequest(std::string &uri, t_serverData *data)
 			content = generateAutoIndexPage(uri, files);
 		}
 		else
-		{
-			forbidden(data);
-			throw Response::Error();
-		}
+			errorPage("403", data);
 	}
 	std::cout << "the filePath is: " << filePath << " uri : " << uri << std::endl;
 
-	//check acces of filePath
-	checkAccessFile(code, filePath);
-	// get the type of the request file
+	if (isDirectory(filePath))
+		checkAccessDir(code, filePath, data);
+	checkAccessFile(code, filePath, data);
 	std::string response = httpGetResponse(code, contentType, content);
 
-	//send response
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 	{
 		std::cout << strerror(errno) << std::endl;
@@ -269,13 +256,13 @@ void getRequest2amandine(std::string &uri, t_serverData *data)
 	else if (filePath.find(".py") != std::string::npos)
 	{
 		std::cout << BLUE "It's a CGI" RESET << std::endl; // Debug
-		checkAccessFile(code, filePath);
+		checkAccessFile(code, filePath, data);
 		content = CGIHandler::execute(filePath.c_str(), code);
 	}
 	else
 	{
 		std::cout << BLUE "It's a file" RESET << std::endl; // Debug
-		checkAccessFile(code, filePath);
+		checkAccessFile(code, filePath, data);
 		//read the file content
 		content = readFile(filePath);
 		// get the type of the request file

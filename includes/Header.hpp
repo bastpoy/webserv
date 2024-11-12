@@ -40,9 +40,6 @@
 #include "RequestHandler.hpp"	// Gestion des requêtes
 #include "Response.hpp"			// Classe pour les réponses
 #include "Utils.hpp"
-#include "Error.hpp"
-#include "Post.hpp"				// Handle POST request
-#include "Get.hpp"				// Handle GET request
 
 /* ------------- COLORS ------------- */
 // Reset
@@ -91,10 +88,28 @@ class Server;
 // class Socket;
 // class VirtualHost;
 
-// Auto Index Functions
+// autoindex.cpp Functions
 bool						isDirectory(const std::string& path);
 std::vector<std::string>	listDirectory(const std::string& directory);
 std::string					generateAutoIndexPage(const std::string directory, const std::vector<std::string>& files);
 std::string					handleAutoIndex(const std::string& path);
 
+// get.cpp Functions
+void						getRequest(std::string &uri, t_serverData *data);
+void						redirRequest(std::map<std::string, std::string>::iterator redir, int fd);
+
+// post.cpp Functions
+void		sendPostData(std::string code , std::string contentType, std::string content, t_serverData *data);
+int 		getContentLength(std::string header, t_serverData *data);
+std::string	getFileName(std::string body);
+void		postRequest(std::string buffer, t_serverData *data);
+
+// error.cpp Functions
+void	errorCloseEpollFd(int &epoll_fd, int errCode);
+void	contentTooLarge(std::string size, t_serverData *data);
+// void	badRequest(t_serverData *data);
+// void	internalError(t_serverData *data);
+// void	forbidden(t_serverData *data);
+// void	notFound(t_serverData *data);
+void	errorPage(std::string error, t_serverData *data);
 #endif /* HEADER_HPP */

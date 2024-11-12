@@ -32,9 +32,9 @@ SRCS		=	srcs/autoIndex.cpp \
 				srcs/Server.cpp \
 				srcs/CGIHandler.cpp \
 				srcs/ServerParser.cpp \
-				srcs/Error.cpp \
-				srcs/Post.cpp \
-				srcs/Get.cpp
+				srcs/error.cpp \
+				srcs/post.cpp \
+				srcs/get.cpp
 # srcs/Client.cpp
 # srcs/socket.cpp
 

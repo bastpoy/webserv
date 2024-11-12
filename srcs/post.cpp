@@ -24,7 +24,7 @@ void insertValue(std::string temp, std::map<std::string, std::string> &values, t
 	}
 	else
 	{
-		badRequest(data);
+		errorPage("400", data);
 		throw Response::ErrorBodyPostRequest();
 	}
 }
@@ -84,7 +84,7 @@ void translateJson(t_serverData *data)
 	std::ifstream inFile("./www/keyvalue.txt");
 	if(!inFile.is_open())
 	{
-		badRequest(data);
+		errorPage("400", data);
 		std::cout << "error opening the file for data " << strerror(errno) << std::endl;
 		throw Response::Error();
 	}
@@ -93,7 +93,7 @@ void translateJson(t_serverData *data)
 	if(jsonFile < 0)
 	{
 		inFile.close();
-		badRequest(data);
+		errorPage("400", data);
 		std::cout << strerror(errno) << std::endl;
 		throw Response::Error();
 	}
@@ -165,7 +165,7 @@ int getContentLength(std::string header, t_serverData *data)
 
 	if(pos == std::string::npos)
 	{
-		badRequest(data);
+		errorPage("400", data);
 		throw Response::ErrorBodyPostRequest();
 	}
 	//get the maxbody
@@ -192,7 +192,7 @@ std::string getFileName(std::string body, t_serverData *data)
 	size_t pos = body.find(file);
 	if(pos == std::string::npos)
 	{
-		badRequest(data);
+		errorPage("400", data);
 		throw Response::ErrorBodyPostRequest();
 	}
 	std::string fileName = body.substr(pos + file.size(), body.size());
@@ -216,7 +216,7 @@ bool read_full_body(t_serverData *data, std::string &body, int content_length) {
 		
 		if (bytes_read < 0) 
 		{
-			badRequest(data);
+			errorPage("400", data);
 			std::cout << "Error reading from socket: " << strerror(errno) << std::endl;
 			throw Response::Error();
 		} 
@@ -261,7 +261,7 @@ void postRequest(std::string buffer, t_serverData *data)
 			std::ofstream output(fileName.c_str());
 			if(!output.is_open())
 			{
-				internalError(data);
+				errorPage("500", data);
 				throw Response::ErrorOpeningFile();
 			}
 			//put the download data inside a file

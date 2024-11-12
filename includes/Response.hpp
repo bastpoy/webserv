@@ -16,7 +16,7 @@ Gérer les codes de statut HTTP (200, 404, etc.), les en-têtes et le corps de l
 class Response
 {
 	public:
-		static std::string	sendResponse(std::string statusCode, std::string contentType);
+		static std::string	sendResponse(std::string statusCode, std::string contentType, std::string content, t_serverData *data);
 
 		class ErrorOpeningFile : public std::exception{
 			public:
