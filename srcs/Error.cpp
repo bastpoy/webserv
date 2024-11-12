@@ -46,7 +46,7 @@ void contentTooLarge(std::string size, t_serverData *data)
 
 void badRequest(t_serverData *data)
 {
-	std::string contentFile = readFile("./www/error/error400.html");
+	std::string contentFile = readFile("./www/error/error400.html", data);
 
 	std::string response = "HTTP/1.1 400 Bad Request\r\n"
 							"Content-Type: text/html\r\n"
@@ -62,7 +62,7 @@ void badRequest(t_serverData *data)
 
 void internalError(t_serverData *data)
 {
-	std::string contentFile = readFile("./www/error/error500.html");
+	std::string contentFile = readFile("./www/error/error500.html", data);
 
 	std::string response = "HTTP/1.1 500 Internal Server Error\r\n"
 							"Content-Type: text/html\r\n"
@@ -78,7 +78,7 @@ void internalError(t_serverData *data)
 
 void forbidden(t_serverData *data)
 {
-	std::string contentFile = readFile("./www/error/error403.html");
+	std::string contentFile = readFile("./www/error/error403.html", data);
 
 	std::string response = "HTTP/1.1 403 Forbiden\r\n"
 							"Content-Type: text/html\r\n"
@@ -94,7 +94,7 @@ void forbidden(t_serverData *data)
 
 void notFound(t_serverData *data)
 {
-	std::string contentFile = readFile("./www/error/error404.html");
+	std::string contentFile = readFile("./www/error/error404.html", data);
 
 	std::string response = "HTTP/1.1 404 Not Found\r\n"
 							"Content-Type: text/html\r\n"

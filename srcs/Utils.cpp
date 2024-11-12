@@ -15,13 +15,14 @@ bool isExtension(std::string path)
 	return (true);
 }
 
-std::string readFile(std::string path)
+std::string readFile(std::string path, t_serverData *data)
 {
 	std::ifstream file(path.c_str(), std::ios::binary);
 	if(!file.is_open())
 	{
 		std::cout << path << ": ";
-		throw Response::ErrorOpeningFile();
+        notFound(data);
+        throw Response::ErrorOpeningFile();
 	}
 	return std::string(
 		std::istreambuf_iterator<char>(file),

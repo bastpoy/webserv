@@ -267,7 +267,7 @@ void postRequest(std::string buffer, t_serverData *data)
 			//put the download data inside a file
 			output << body;
 			output.close();
-			sendPostData("201 Created", "text/html", readFile(file), data);
+			sendPostData("201 Created", "text/html", readFile(file, data), data);
 		}
 		// If i have a form
 		else
@@ -278,7 +278,7 @@ void postRequest(std::string buffer, t_serverData *data)
 			//put all the data from the body inside a file
 			translateJson(data);
 			//send response POST
-			sendPostData("201 Created", "application/json", readFile(file), data);
+			sendPostData("201 Created", "application/json", readFile(file, data), data);
 		}
 	}
 	// error post body
