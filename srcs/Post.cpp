@@ -86,7 +86,6 @@ void translateJson(t_serverData *data)
 	{
 		badRequest(data);
 		std::cout << "error opening the file for data " << strerror(errno) << std::endl;
-		throw Response::Error();
 	}
 	// open the json file where I will translate the value
 	int jsonFile = open("./www/keyvalue.json", O_WRONLY | O_CREAT, 0644);
@@ -94,8 +93,6 @@ void translateJson(t_serverData *data)
 	{
 		inFile.close();
 		badRequest(data);
-		std::cout << strerror(errno) << std::endl;
-		throw Response::Error();
 	}
 	//parse my keyvalue file into keyvalue.json file
 	while(std::getline(inFile, line))
@@ -166,7 +163,6 @@ int getContentLength(std::string header, t_serverData *data)
 	if(pos == std::string::npos)
 	{
 		badRequest(data);
-		throw Response::ErrorBodyPostRequest();
 	}
 	//get the maxbody
 	std::string size = header.substr(pos + content.size(), header.size());
@@ -193,7 +189,6 @@ std::string getFileName(std::string body, t_serverData *data)
 	if(pos == std::string::npos)
 	{
 		badRequest(data);
-		throw Response::ErrorBodyPostRequest();
 	}
 	std::string fileName = body.substr(pos + file.size(), body.size());
 	pos = fileName.find("\"");
@@ -216,9 +211,8 @@ bool read_full_body(t_serverData *data, std::string &body, int content_length) {
 		
 		if (bytes_read < 0) 
 		{
-			badRequest(data);
 			std::cout << "Error reading from socket: " << strerror(errno) << std::endl;
-			throw Response::Error();
+			badRequest(data);
 		} 
 		else if (bytes_read == 0) 
 		{
@@ -262,7 +256,6 @@ void postRequest(std::string buffer, t_serverData *data)
 			if(!output.is_open())
 			{
 				internalError(data);
-				throw Response::ErrorOpeningFile();
 			}
 			//put the download data inside a file
 			output << body;

@@ -39,7 +39,7 @@ std::string pathLocation(std::string &content, std::string &uri, std::vector<Loc
     else
     {
         notFound(data);
-        throw Response::Error();        
+        throw Response::Error();
     }
 }
 
@@ -83,7 +83,6 @@ std::string check_location(std::string &uri, std::string &content, std::vector<L
                 else
                 {
                     notFound(data);
-                    throw Response::Error();
                 }
             }
             // if no file in URI
@@ -104,7 +103,6 @@ std::string check_location(std::string &uri, std::string &content, std::vector<L
                     else
                     {
                         forbidden(data);
-                        throw Response::Error();
                     }
                 }
             }
@@ -124,6 +122,14 @@ std::string getContentType(std::string &path)
 	contentTypes.insert(std::pair<std::string, std::string>(".png", "image/png"));
 	contentTypes.insert(std::pair<std::string, std::string>(".jpg", "image/jpeg"));
 	contentTypes.insert(std::pair<std::string, std::string>(".gif", "image/gif"));
+	contentTypes.insert(std::pair<std::string, std::string>(".svg", "image/svg+xml"));
+	contentTypes.insert(std::pair<std::string, std::string>(".webp", "image/webp"));
+	contentTypes.insert(std::pair<std::string, std::string>(".ico", "image/x-icon"));
+    contentTypes.insert(std::pair<std::string, std::string>(".pdf", "application/pdf"));
+    contentTypes.insert(std::pair<std::string, std::string>(".mp3", "video/mpeg"));
+    contentTypes.insert(std::pair<std::string, std::string>(".mp4", "video/mp4"));
+    contentTypes.insert(std::pair<std::string, std::string>(".webm", "video/webm"));
+    contentTypes.insert(std::pair<std::string, std::string>(".ogg", "video/ogg"));
 
 	size_t dotPos = path.find_last_of(".");
 	if (dotPos != std::string::npos) {
@@ -138,7 +144,6 @@ std::string getContentType(std::string &path)
 		//if size of path = 0 or no '/' at the end
 		if(path.size() == 0 || path.at(path.size() - 1) != '/')
 			path += "/";
-		
 	}
 	return "text/html"; // Default content type
 }
@@ -149,6 +154,17 @@ std::string httpGetResponse(std::string code, std::string contentType, std::stri
 	return ("HTTP/1.1 " + code + " \r\n"
 			"Content-Type: " + contentType + "\r\n"
 			"Content-Length: " + to_string(content.size()) + "\r\n"
+			"Connection: close\r\n"
+			"\r\n" + content);
+}
+
+std::string httpGetResponseDownload(std::string code, std::string contentType, std::string content, std::string file)
+{
+	//make the header response
+	return ("HTTP/1.1 " + code + " \r\n"
+			"Content-Type: " + contentType + "\r\n"
+			"Content-Length: " + to_string(content.size()) + "\r\n"
+            "Content-Disposition: attachment; filename=\"" + file + "\"\r\n"
 			"Connection: close\r\n"
 			"\r\n" + content);
 }
@@ -192,7 +208,6 @@ void getRequest(std::string uri, t_serverData *data)
 		if(data->path.empty())
 		{
 			forbidden(data);
-			throw Response::Error();
 		}
 		//if a file inside my uri
 		if(isExtension(uri))
@@ -214,6 +229,7 @@ void getRequest(std::string uri, t_serverData *data)
             else
                 content = readFile(filePath, data);
 		}
+        // else if(uri.find())
 		// if an index inside my server
 		else if (!data->index.empty())
 		{
@@ -231,7 +247,6 @@ void getRequest(std::string uri, t_serverData *data)
 		else
 		{
 			forbidden(data);
-			throw Response::Error();
 		}
 	}
 	std::cout << "the filePath is: " << filePath << " uri : " << uri << std::endl;

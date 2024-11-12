@@ -10,7 +10,8 @@ bool isExtension(std::string path)
 		path.find(".jpg") == std::string::npos &&
 		path.find(".gif") == std::string::npos &&
 		path.find(".ico") == std::string::npos &&
-		path.find(".py") == std::string::npos)
+		path.find(".py") == std::string::npos &&
+        path.find(".pdf") == std::string::npos)
 		return (false);
 	return (true);
 }
@@ -22,7 +23,6 @@ std::string readFile(std::string path, t_serverData *data)
 	{
 		std::cout << path << ": ";
         notFound(data);
-        throw Response::ErrorOpeningFile();
 	}
 	return std::string(
 		std::istreambuf_iterator<char>(file),
