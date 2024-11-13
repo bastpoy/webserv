@@ -78,6 +78,7 @@ void setupSocket(int &sockfd, struct sockaddr_in &addr, std::vector<Server>::ite
 // Configuration network
 void Server::configuringNetwork(std::vector<Server>::iterator &itbeg, ConfigParser &config, int &epoll_fd)
 {
+    std::cout << "The socket server fd are:" << std::endl;
 	while(itbeg != config.getServers().end())
 	{
 		//creation addrinfo struc to stock my addrinfo informations
@@ -87,13 +88,17 @@ void Server::configuringNetwork(std::vector<Server>::iterator &itbeg, ConfigPars
 		int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 		if (sockfd == -1)
 			errorCloseEpollFd(epoll_fd, 2);
+        
+        // int flag = fcntl(sockfd, F_GETFL, 0);
+        // fcntl(sockfd, F_SETFL, flag | O_NONBLOCK);
 
+        std::cout << sockfd << " and ";
 		//add properties to allow the socket to be reusable even if it is in time wait
 		int opt = 1;
 		if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1)
 			errorCloseEpollFd(epoll_fd, 3);
 		
-		std::cout << itbeg->getPort() << "-" << itbeg->getServerName() << "-" << std::endl;
+		// std::cout << itbeg->getPort() << "-" << itbeg->getServerName() << "-" << std::endl;
 
 		//fill my sockaddr_in addr with the result of getaddrinfo
 		addr.sin_family = AF_INET;
@@ -111,7 +116,8 @@ void Server::configuringNetwork(std::vector<Server>::iterator &itbeg, ConfigPars
 		//add every socket to my set container
 		this->setSocketFd(sockfd);
 		itbeg++;
-	}    
+	}
+    std::cout << std::endl;
 }
 
 int acceptConnection(int &fd, int &epoll_fd, struct sockaddr_in &client_addr)
@@ -125,24 +131,32 @@ int acceptConnection(int &fd, int &epoll_fd, struct sockaddr_in &client_addr)
 }
 
 //reading the request http data
-std::string readingData(int &fd)
+std::string readingData(int &fd, int &epoll_fd, struct epoll_event *client_event)
 {
 	char buffer[1024];
 	ssize_t bytes_read = recv(fd, buffer, sizeof(buffer) - 1, 0);
 	//Error reading data
-	if (bytes_read == -1)
-		errorCloseEpollFd(fd, 5);
+	if (bytes_read > 0)
+    {
+        buffer[bytes_read] = '\0';
+	    return(buffer);
+    }
 	else if (bytes_read == 0) 
 	{
 		// Connection closed by the client
-		std::cout << "Client disconnected: " << fd << std::endl;      
+		std::cout << "Client disconnected: " << fd << std::endl;
+        if(epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, client_event) == -1)
+            errorCloseEpollFd(epoll_fd, 4);
 		close(fd);
 		return ("");
 	}
-
-	// Null-terminate the buffer to make it a valid C-string
-	buffer[bytes_read] = '\0';
-	return(buffer);
+    else if(bytes_read == -1 && (errno == EAGAIN || errno == EWOULDBLOCK))
+    {
+        std::cout << "Data not receive totally\n"; 
+    }
+    else
+		errorCloseEpollFd(fd, 5);
+    return(buffer);
 }
 
 bool redirectRequest(std::string buffer, t_serverData *data) 
@@ -166,7 +180,10 @@ bool redirectRequest(std::string buffer, t_serverData *data)
 			std::string path = buffer.substr(buffer.find('/') + 1, buffer.size() - buffer.find('/'));
 			path = path.substr(0, path.find(' '));
             if(path.find("favicon.ico") != std::string::npos)
+            {
+                close(data->sockfd);
                 return (false);
+            }
             //if i have a ? inside my url which represent filtering
             else if(path.find("?") != std::string::npos)
                 notImplemented(data);
@@ -192,7 +209,7 @@ void Server::createListenAddr(ConfigParser &config)
 	std::vector<Server>::iterator itbeg = config.getServers().begin();
 
 	//creating the poll
-	int epoll_fd = epoll_create(10);
+	int epoll_fd = epoll_create(50);
 	if (epoll_fd == -1)
 		errorCloseEpollFd(epoll_fd, 7);
 
@@ -206,6 +223,7 @@ void Server::createListenAddr(ConfigParser &config)
 
 	while (true) {
 		//epollwait return a number corresponding to all the files descriptor
+        std::cout << "waiting...\n";
 		int num_fds = epoll_wait(epoll_fd, events, MAX_EVENTS, -1);
 		if (num_fds == -1) 
 			errorCloseEpollFd(epoll_fd, 1);
@@ -222,9 +240,6 @@ void Server::createListenAddr(ConfigParser &config)
 				struct sockaddr_in client_addr;
 				//new fd_client for communication
 				int client_fd = acceptConnection(fd, epoll_fd, client_addr);
-                
-                // int flags = fcntl(client_fd, F_GETFL, 0);
-                // fcntl(client_fd, F_SETFL, flags | O_NONBLOCK);
 				
                 // add new fd to my epoll instance
 				struct epoll_event client_event = fillEpoolDataInfo(client_fd, info);
@@ -239,27 +254,22 @@ void Server::createListenAddr(ConfigParser &config)
 				// check for modification inside the socket
 				if(events[i].events & (EPOLLIN | EPOLLOUT))
 				{
-					// std::cout << "\nReading data...\n";
-					//read data
 					try
 					{
 						//reading data
-						std::string path = readingData(fd);
+						std::string path = readingData(fd, epoll_fd, events);
 						if (path.empty())
 							continue;
-                        std::cout << "the fd is " << fd << std::endl; 
-						// std::cout << path << std::endl;
-						//response request
+						// response request
 						if(redirectRequest(path, info))
 							continue;
 					}
 					catch(const std::exception& e)
 					{
 						std::cerr << e.what() << '\n';
-					}                    
+					}                  
 				}
 			}
-            std::cout <<"\n\n";
 		}
 	}
 }

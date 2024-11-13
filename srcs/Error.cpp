@@ -42,6 +42,7 @@ void contentTooLarge(std::string size, t_serverData *data)
 		std::cout << strerror(errno) << std::endl;
 		throw Response::ErrorSendingResponse(); 
 	}
+    close(data->sockfd);
 }
 
 void badRequest(t_serverData *data)
@@ -58,6 +59,7 @@ void badRequest(t_serverData *data)
 		std::cout << strerror(errno) << std::endl;
 		throw Response::ErrorSendingResponse(); 
 	}
+    close(data->sockfd);
     throw Response::Error();
 }
 
@@ -75,6 +77,7 @@ void internalError(t_serverData *data)
 		std::cout << strerror(errno) << std::endl;
 		throw Response::ErrorSendingResponse(); 
 	}
+    close(data->sockfd);
     throw Response::Error();
 }
 
@@ -92,6 +95,7 @@ void forbidden(t_serverData *data)
 		std::cout << strerror(errno) << std::endl;
 		throw Response::ErrorSendingResponse(); 
 	}
+    close(data->sockfd);
     throw Response::Error();
 }
 
@@ -109,6 +113,7 @@ void notFound(t_serverData *data)
 		std::cout << strerror(errno) << std::endl;
 		throw Response::ErrorSendingResponse(); 
 	}
+    close(data->sockfd);
     throw Response::Error();
 }
 
@@ -126,5 +131,6 @@ void notImplemented(t_serverData *data)
 		std::cout << strerror(errno) << std::endl;
 		throw Response::ErrorSendingResponse(); 
 	}
+    close(data->sockfd);
     throw Response::Error();
 }

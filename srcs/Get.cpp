@@ -269,6 +269,8 @@ void getRequest(std::string uri, t_serverData *data)
 		std::cout << strerror(errno) << std::endl;
 		throw Response::ErrorSendingResponse(); 
 	}
+    std::cout << "response send\n";
+    close(data->sockfd);
 }
 
 void redirRequest(std::map<std::string, std::string>::iterator redir, int fd)
