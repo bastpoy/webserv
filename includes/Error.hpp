@@ -9,5 +9,6 @@ void	badRequest(t_serverData *data);
 void	internalError(t_serverData *data);
 void	forbidden(t_serverData *data);
 void	notFound(t_serverData *data);
+void notImplemented(t_serverData *data);
 
 #endif

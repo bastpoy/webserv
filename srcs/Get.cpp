@@ -49,13 +49,6 @@ std::string check_location(std::string &uri, std::string &content, std::vector<L
 	if(it == location.end())
 		return("");
 
-	// it->getPath => pathLocation
-	// it->getIndex => indexLocation
-	// it->getRoot => rootLocation
-	// rootServer => rootServer
-	// indexServer => indexServer
-	// uri => path to the current uri
-
 	//modify locationPath to remove the first '/' 
 	it->setPath(it->getPath().substr(1, it->getPath().size() - 1));
 	//iterate throught my different server location
@@ -81,29 +74,21 @@ std::string check_location(std::string &uri, std::string &content, std::vector<L
                 }
                 //if no root in my server block
                 else
-                {
                     notFound(data);
-                }
             }
             // if no file in URI
             else
             {
                 // if i have a root in the location
                 if(!it->getRoot().empty())
-                {
                     return pathLocation(content, uri, it, data, it->getRoot());
-                }
                 else
                 {
                     //if i have a root in my server
                     if(!data->path.empty())
-                    {
                         return pathLocation(content, uri, it, data, data->path);
-                    }
                     else
-                    {
                         forbidden(data);
-                    }
                 }
             }
 		}
@@ -130,6 +115,22 @@ std::string getContentType(std::string &path)
     contentTypes.insert(std::pair<std::string, std::string>(".mp4", "video/mp4"));
     contentTypes.insert(std::pair<std::string, std::string>(".webm", "video/webm"));
     contentTypes.insert(std::pair<std::string, std::string>(".ogg", "video/ogg"));
+    contentTypes.insert(std::pair<std::string, std::string>(".doc", "application/msword"));
+    contentTypes.insert(std::pair<std::string, std::string>(".docx", "application/msword"));
+    contentTypes.insert(std::pair<std::string, std::string>(".xls", "application/vnd.ms-excel"));
+    contentTypes.insert(std::pair<std::string, std::string>(".xlsx", "application/vnd.ms-excel"));
+    contentTypes.insert(std::pair<std::string, std::string>(".ppt", "application/vnd.ms-powerpoint"));
+    contentTypes.insert(std::pair<std::string, std::string>(".pptx", "application/vnd.ms-powerpoint"));
+    contentTypes.insert(std::pair<std::string, std::string>(".ppt", "application/vnd.ms-powerpoint"));
+    contentTypes.insert(std::pair<std::string, std::string>(".zip", "application/zip"));
+    contentTypes.insert(std::pair<std::string, std::string>(".rar", "application/vnd.rar"));
+    contentTypes.insert(std::pair<std::string, std::string>(".tar", "application/x-tar"));
+    contentTypes.insert(std::pair<std::string, std::string>(".gz", "application/gzip"));
+    contentTypes.insert(std::pair<std::string, std::string>(".7z", "application/x-7z-compressed"));
+    contentTypes.insert(std::pair<std::string, std::string>(".txt", "text/plain"));
+    contentTypes.insert(std::pair<std::string, std::string>(".xml", "application/xml"));
+    contentTypes.insert(std::pair<std::string, std::string>(".json", "application/json"));
+    contentTypes.insert(std::pair<std::string, std::string>(".csv", "text/csv"));
 
 	size_t dotPos = path.find_last_of(".");
 	if (dotPos != std::string::npos) {
@@ -158,13 +159,14 @@ std::string httpGetResponse(std::string code, std::string contentType, std::stri
 			"\r\n" + content);
 }
 
-std::string httpGetResponseDownload(std::string code, std::string contentType, std::string content, std::string file)
+std::string httpGetResponseDownload(std::string code, std::string contentType, std::string content)
 {
 	//make the header response
 	return ("HTTP/1.1 " + code + " \r\n"
 			"Content-Type: " + contentType + "\r\n"
 			"Content-Length: " + to_string(content.size()) + "\r\n"
-            "Content-Disposition: attachment; filename=\"" + file + "\"\r\n"
+            "Content-Disposition: attachment\r\n"
+            // ; filename=\"" + file + "\"
 			"Connection: close\r\n"
 			"\r\n" + content);
 }
@@ -194,16 +196,17 @@ void getRequest(std::string uri, t_serverData *data)
 {
 	// bool autoindex = true;
 	std::vector<Location>location = data->location;
+    std::string response;
 	std::string	content;
 	std::string code;
 	std::string contentType = getContentType(uri);
     //check if I have a location block that match the query
 	std::string filePath = check_location(uri, content, data->location, data);
+    bool download = false;
 
 	//check if i dont have a location
 	if(filePath.empty())
 	{
-		std::cout << "no location match" << std::endl;
 		// if no root inside my server
 		if(data->path.empty())
 		{
@@ -212,13 +215,7 @@ void getRequest(std::string uri, t_serverData *data)
 		//if a file inside my uri
 		if(isExtension(uri))
 		{
-			// I dont do the download for now i dont know how to do it
-			// if i have a file i serve it
 			filePath = data->path + uri;
-
-			// std::cout << "The data->path\t:\t" YELLOW << data->path << RESET "" << std::endl; 
-			// std::cout << "The uri\t:\t\t" YELLOW << uri << RESET "" << std::endl; 
-			// std::cout << "The filePath\t:\t" YELLOW << filePath << RESET "" << std::endl; 
 
 			if (filePath.find(".py") != std::string::npos)
 			{
@@ -229,7 +226,13 @@ void getRequest(std::string uri, t_serverData *data)
             else
                 content = readFile(filePath, data);
 		}
-        // else if(uri.find())
+        // if i have a file to download
+        else if(isExtensionDownload(uri))
+        {
+            filePath= data->path + uri;
+            download = true;
+            content = readFile(filePath, data);
+        }
 		// if an index inside my server
 		else if (!data->index.empty())
 		{
@@ -255,8 +258,11 @@ void getRequest(std::string uri, t_serverData *data)
 	checkAccessFile(code, filePath);
 
 	// get the type of the request file
-	std::string response = httpGetResponse(code, contentType, content);
-
+    if(!download)
+	    response = httpGetResponse(code, contentType, content);
+    // if its a download file not the same request
+    else
+	    response = httpGetResponseDownload(code, contentType, content);
 	//send response
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 	{
@@ -273,7 +279,6 @@ void redirRequest(std::map<std::string, std::string>::iterator redir, int fd)
 							"Content-Length: 0 \r\n"
 							"Connection: keep-alive\r\n\r\n";
 
-	std::cout << "the response:\n" << response << std::endl;
 	if(send(fd, response.c_str(), response.size(), 0) < 0)
 	{
 		std::cout << strerror(errno) << std::endl;

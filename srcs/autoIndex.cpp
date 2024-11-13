@@ -49,14 +49,3 @@ std::string generateAutoIndexPage(const std::string directory, const std::vector
 	html += "</ul></body></html>";
 	return html;
 }
-
-// std::string handleAutoIndex(const std::string &path)
-// {
-// 	if (isDirectory(path))
-// 	{
-// 		std::vector<std::string> files = listDirectory(path);
-// 		return generateAutoIndexPage(path, files);  // Contenu de la page HTML de l'autoindex
-// 	}
-// 	// Sinon, gérer la demande normalement (serveur de fichier, etc.)
-// 	return "";
-// }

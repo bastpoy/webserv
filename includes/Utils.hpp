@@ -5,6 +5,7 @@
 
 std::string readFile(std::string path, t_serverData *data);
 bool isExtension(std::string path);
+bool isExtensionDownload(std::string path);
 
 template <typename T>
 std::string to_string(T value) {

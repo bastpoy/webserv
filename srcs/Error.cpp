@@ -111,3 +111,20 @@ void notFound(t_serverData *data)
 	}
     throw Response::Error();
 }
+
+void notImplemented(t_serverData *data)
+{
+	std::string contentFile = readFile("./www/error/error501.html", data);
+
+	std::string response = "HTTP/1.1 501 Not Implemented\r\n"
+							"Content-Type: text/html\r\n"
+							"Content-Length: " + to_string(contentFile.size()) + "\r\n"
+							"\r\n" + contentFile;
+	//send response
+	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
+	{
+		std::cout << strerror(errno) << std::endl;
+		throw Response::ErrorSendingResponse(); 
+	}
+    throw Response::Error();
+}

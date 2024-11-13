@@ -7,6 +7,11 @@ void replaceSpecialCharacter(std::string &value)
 		size_t pos = value.find("%40");
 		value.replace(pos, 3, "@");
 	}
+    while(value.find("+") != std::string::npos)
+    {
+        size_t pos = value.find("+");
+        value.replace(pos, 1, " ");
+    }
 }
 
 void insertValue(std::string temp, std::map<std::string, std::string> &values, t_serverData *data)
@@ -266,6 +271,7 @@ void postRequest(std::string buffer, t_serverData *data)
 		else
 		{
 			std::string file = "./www/keyvalue.json";
+			std::cout << "POSTING DATA" << std::endl;
 			//parse the actual body of the post request
 			parsePostBody(body, data);
 			//put all the data from the body inside a file
@@ -276,5 +282,5 @@ void postRequest(std::string buffer, t_serverData *data)
 	}
 	// error post body
 	else
-		throw Response::ErrorBodyPostRequest();
+        internalError(data);
 }

@@ -135,7 +135,7 @@ std::string readingData(int &fd)
 	else if (bytes_read == 0) 
 	{
 		// Connection closed by the client
-		std::cout << "Client disconnected: " << fd << std::endl;
+		std::cout << "Client disconnected: " << fd << std::endl;      
 		close(fd);
 		return ("");
 	}
@@ -155,7 +155,6 @@ bool redirectRequest(std::string buffer, t_serverData *data)
 		//if i have a redirection 
 		if(data->redir.size())
 		{
-			std::cout << "GET REDIRECTION " << data->port << " " << data->server_name << std::endl;
 			redirRequest(data->redir.begin(), data->sockfd);
 		}
 		// else I respond 
@@ -166,9 +165,11 @@ bool redirectRequest(std::string buffer, t_serverData *data)
 			//get the url of the request
 			std::string path = buffer.substr(buffer.find('/') + 1, buffer.size() - buffer.find('/'));
 			path = path.substr(0, path.find(' '));
-            std::cout << path << std::endl;
             if(path.find("favicon.ico") != std::string::npos)
                 return (false);
+            //if i have a ? inside my url which represent filtering
+            else if(path.find("?") != std::string::npos)
+                notImplemented(data);
 			// return the data to the client
 			getRequest(path, data);
 		}
@@ -221,12 +222,16 @@ void Server::createListenAddr(ConfigParser &config)
 				struct sockaddr_in client_addr;
 				//new fd_client for communication
 				int client_fd = acceptConnection(fd, epoll_fd, client_addr);
-				// add new fd to my epoll instance
+                
+                // int flags = fcntl(client_fd, F_GETFL, 0);
+                // fcntl(client_fd, F_SETFL, flags | O_NONBLOCK);
+				
+                // add new fd to my epoll instance
 				struct epoll_event client_event = fillEpoolDataInfo(client_fd, info);
 				// add the new fd to be control by my epoll instance
 				if(epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &client_event) == -1)
 					errorCloseEpollFd(epoll_fd, 4);
-				std::cout << "\n-----New connection established-----\n";
+				std::cout << "New connection established with new fd: " << client_fd << std::endl;
 			}
 			//Connection already etablish 
 			else
@@ -238,10 +243,11 @@ void Server::createListenAddr(ConfigParser &config)
 					//read data
 					try
 					{
-						//readin data
+						//reading data
 						std::string path = readingData(fd);
 						if (path.empty())
 							continue;
+                        std::cout << "the fd is " << fd << std::endl; 
 						// std::cout << path << std::endl;
 						//response request
 						if(redirectRequest(path, info))
@@ -251,9 +257,9 @@ void Server::createListenAddr(ConfigParser &config)
 					{
 						std::cerr << e.what() << '\n';
 					}                    
-					// close(fd);
 				}
 			}
+            std::cout <<"\n\n";
 		}
 	}
 }
