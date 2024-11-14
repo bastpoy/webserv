@@ -7,6 +7,11 @@ void replaceSpecialCharacter(std::string &value)
 		size_t pos = value.find("%40");
 		value.replace(pos, 3, "@");
 	}
+    while(value.find("+") != std::string::npos)
+    {
+        size_t pos = value.find("+");
+        value.replace(pos, 1, " ");
+    }
 }
 
 void insertValue(std::string temp, std::map<std::string, std::string> &values, t_serverData *data)
@@ -86,7 +91,6 @@ void translateJson(t_serverData *data)
 	{
 		errorPage("400", data);
 		std::cout << "error opening the file for data " << strerror(errno) << std::endl;
-		throw Response::Error();
 	}
 	// open the json file where I will translate the value
 	int jsonFile = open("./www/keyvalue.json", O_WRONLY | O_CREAT, 0644);
@@ -218,7 +222,7 @@ bool read_full_body(t_serverData *data, std::string &body, int content_length) {
 		{
 			errorPage("400", data);
 			std::cout << "Error reading from socket: " << strerror(errno) << std::endl;
-			throw Response::Error();
+			badRequest(data);
 		} 
 		else if (bytes_read == 0) 
 		{
@@ -267,21 +271,22 @@ void postRequest(std::string buffer, t_serverData *data)
 			//put the download data inside a file
 			output << body;
 			output.close();
-			sendPostData("201 Created", "text/html", readFile(file), data);
+			sendPostData("201 Created", "text/html", readFile(file, data), data);
 		}
 		// If i have a form
 		else
 		{
 			std::string file = "./www/keyvalue.json";
+			std::cout << "POSTING DATA" << std::endl;
 			//parse the actual body of the post request
 			parsePostBody(body, data);
 			//put all the data from the body inside a file
 			translateJson(data);
 			//send response POST
-			sendPostData("201 Created", "application/json", readFile(file), data);
+			sendPostData("201 Created", "application/json", readFile(file, data), data);
 		}
 	}
 	// error post body
 	else
-		throw Response::ErrorBodyPostRequest();
+        internalError(data);
 }

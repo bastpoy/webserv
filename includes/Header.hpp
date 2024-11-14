@@ -40,6 +40,7 @@
 #include "RequestHandler.hpp"	// Gestion des requêtes
 #include "Response.hpp"			// Classe pour les réponses
 #include "Utils.hpp"
+#include "delete.hpp"
 
 /* ------------- COLORS ------------- */
 // Reset
