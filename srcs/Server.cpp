@@ -186,7 +186,7 @@ bool redirectRequest(std::string buffer, t_serverData *data)
             }
             //if i have a ? inside my url which represent filtering
             else if(path.find("?") != std::string::npos)
-                notImplemented(data);
+                errorPage("501", data);
 			// return the data to the client
 			getRequest(path, data);
 		}
@@ -209,7 +209,7 @@ bool redirectRequest(std::string buffer, t_serverData *data)
         }
         //if i have a ? inside my url which represent filtering
         else if(path.find("?") != std::string::npos)
-            notImplemented(data);
+            errorPage("501", data);
         // return the data to the client
         deleteRequest(path, data);
         close(data->sockfd);

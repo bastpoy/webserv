@@ -38,7 +38,7 @@ std::string pathLocation(std::string &content, std::string &uri, std::vector<Loc
     //if none of that return a 404 not found
     else
     {
-        notFound(data);
+        errorPage("404", data);
         throw Response::Error();
     }
 }
@@ -74,7 +74,7 @@ std::string check_location(std::string &uri, std::string &content, std::vector<L
                 }
                 //if no root in my server block
                 else
-                    notFound(data);
+                    errorPage("404", data);
             }
             // if no file in URI
             else
@@ -88,7 +88,7 @@ std::string check_location(std::string &uri, std::string &content, std::vector<L
                     if(!data->path.empty())
                         return pathLocation(content, uri, it, data, data->path);
                     else
-                        forbidden(data);
+                        errorPage("404", data);
                 }
             }
 		}
@@ -171,7 +171,7 @@ std::string httpGetResponseDownload(std::string code, std::string contentType, s
 			"\r\n" + content);
 }
 
-bool checkAccessFile(std::string &code, std::string &filePath)
+void checkAccessFile(std::string &code, std::string &filePath, t_serverData *data)
 {
 	// check if i can access the current ressource request 
 	if(access(filePath.c_str(), F_OK) != 0)
@@ -238,7 +238,6 @@ void checkAccessDir(std::string &code, std::string &dirPath, t_serverData *data)
 void getRequest(std::string &uri, t_serverData *data)
 {
 	std::vector<Location>location = data->location;
-    std::string response;
 	std::string	content;
 	std::string code;
 	std::string contentType = getContentType(uri);
@@ -251,8 +250,7 @@ void getRequest(std::string &uri, t_serverData *data)
 	{
 		// if no root inside my server
 		if(data->path.empty())
-		{
-			forbidden(data);
+        {
 			errorPage("403", data);
 			throw Response::Error();
 		}
@@ -263,7 +261,7 @@ void getRequest(std::string &uri, t_serverData *data)
 			if (filePath.find(".py") != std::string::npos)
 			{
 				std::cout << BLUE "It's a CGI" RESET << std::endl; // Debug
-				checkAccessFile(code, filePath);
+				checkAccessFile(code, filePath, data);
 				content = CGIHandler::execute(uri.c_str(), code);
 			}
             else
@@ -306,82 +304,12 @@ void getRequest(std::string &uri, t_serverData *data)
 	}
 }
 
-//-------
-void getRequest2amandine(std::string &uri, t_serverData *data)
-{
-	std::string				curDir	=	"./";
-	
-	std::string				defaultPath	=	uri.find("www") == std::string::npos ? uri: "./" + uri;		// Root of server
-	std::string				filePath;								// Change this to your file path
-	std::string				locationPath;
-	std::string				code;
-	std::string				content;								// Html Content
-	std::string				response;								// Header + Html Content
-
-	//if there is a index specify in the server and not extension in the path
-	if(!data->index.empty() && !isExtension(uri) && data->autoindex == "off")
-		filePath = defaultPath + data->index;
-	else
-		filePath = defaultPath;
-
-	// check if there is a location path
-	locationPath = check_location(uri, data->location, data);
-	if(!locationPath.empty())
-		filePath = locationPath;
-
-	// Debug
-	std::cout << "The data->path\t:\t" YELLOW << data->path << RESET "" << std::endl; 
-	std::cout << "The filePath\t:\t" YELLOW << filePath << RESET "" << std::endl; 
-	std::cout << "The defaultPath\t:\t" YELLOW << defaultPath << RESET  ""<< std::endl; 
-	std::cout << "The uri\t:\t\t" YELLOW << uri << RESET "" << std::endl; 
-	std::cout << "The autoindex\t:\t" YELLOW << (data->autoindex == "on" ? "true" : "off") << RESET << std::endl;
-	std::cout << "The isDirectory\t:\t" YELLOW << isDirectory(("./" + uri + "/")) << RESET << std::endl;
-
-	if (isDirectory(("./" + uri)) && data->autoindex == "on")// Auto Index
-	{
-		std::cout << BLUE "It's a directory" RESET << std::endl; // Debug
-		std::vector<std::string> files = listDirectory(("./" + uri));
-		std::string directory = "./" + std::string(uri[0] != '\0' ? uri + "/" : "");
-		content = generateAutoIndexPage(directory, files);  // Contenu de la page HTML de l'autoindex
-		std::cout << "The content\t:\t" YELLOW << content << RESET << std::endl;
-	}
-	else if (filePath.find(".py") != std::string::npos)
-	{
-		std::cout << BLUE "It's a CGI" RESET << std::endl; // Debug
-		checkAccessFile(code, filePath, data);
-		content = CGIHandler::execute(filePath.c_str(), code);
-	}
-	else
-	{
-		std::cout << BLUE "It's a file" RESET << std::endl; // Debug
-		checkAccessFile(code, filePath, data);
-		//read the file content
-		content = readFile(filePath);
-		// get the type of the request file
-	}
-
-	response = httpGetResponse(code, getContentType(uri), content);
-	// Debug
-	std::cout << "\nThe filePath :\t" YELLOW << filePath << RESET "\nDefault path :\t" YELLOW << defaultPath << RESET "\nUri :\t\t" YELLOW << uri << RESET "" << std::endl; 
-	std::cout << "\nThe content type: " << getContentType(uri) << RESET << std::endl;
-	//check acces of filePath
-	checkAccessFile(code, filePath);
-
-	// get the type of the request file
-    if(!download)
-	    response = httpGetResponse(code, contentType, content);
-    // if its a download file not the same request
-    else
-	    response = httpGetResponseDownload(code, contentType, content);
-	//send response
-	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
-	{
-		std::cout << strerror(errno) << std::endl;
-		throw Response::ErrorSendingResponse(); 
-	}
-    std::cout << "response send\n";
-    close(data->sockfd);
-}
+	// // get the type of the request file
+    // if(!download)
+	//     response = httpGetResponse(code, contentType, content);
+    // // if its a download file not the same request
+    // else
+	//     response = httpGetResponseDownload(code, contentType, content);
 
 void redirRequest(std::map<std::string, std::string>::iterator redir, int fd)
 {

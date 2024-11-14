@@ -220,9 +220,8 @@ bool read_full_body(t_serverData *data, std::string &body, int content_length) {
 		
 		if (bytes_read < 0) 
 		{
-			errorPage("400", data);
 			std::cout << "Error reading from socket: " << strerror(errno) << std::endl;
-			badRequest(data);
+			errorPage("400", data);
 		} 
 		else if (bytes_read == 0) 
 		{
@@ -288,5 +287,5 @@ void postRequest(std::string buffer, t_serverData *data)
 	}
 	// error post body
 	else
-        internalError(data);
+        errorPage("500" , data);
 }
