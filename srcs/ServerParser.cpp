@@ -37,6 +37,7 @@ void Server::setIndex(std::string index)
 
 void Server::setAutoIndex(std::string autoindex)
 {
+	autoindex.erase(std::remove(autoindex.begin(), autoindex.end(), ' '), autoindex.end());
 	this->_autoindex = autoindex;
 }
 
@@ -177,8 +178,8 @@ void	Server::fillIndex(std::string line)
 //TODO - Delete spaces
 void	Server::fillAutoIndex(std::string line)
 {
-	size_t pos = line.find("autoindex "); 
-	this->setAutoIndex(line.substr(pos + strlen("autoindex "), line.length() - (pos + strlen("autoindex "))));
+	size_t pos = line.find("autoindex"); 
+	this->setAutoIndex(line.substr(pos + strlen("autoindex"), line.length() - (pos + strlen("autoindex"))));
 	//print
 	// std::cout << "the autoindex is: " << this->getAutoIndex() << std::endl;
 }
@@ -269,7 +270,7 @@ void	Server::printConfig()
 	if(!this->getIndex().empty())
 		std::cout << "index " << this->getIndex() << std::endl;
 	if(!this->getAutoIndex().empty())
-		std::cout << "autoindex " << this->getAutoIndex() << std::endl;
+		std::cout << "autoindex\t" YELLOW << this->getAutoIndex() << RESET << std::endl;
 	if(this->getErrorPage().begin()->first) 
 		std::cout << "error_page\t" YELLOW << this->getErrorPage().begin()->first << " " << this->getErrorPage().begin()->second << RESET << std::endl;
 	if(this->getRedir().size()) 
