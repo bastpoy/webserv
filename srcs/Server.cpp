@@ -196,7 +196,24 @@ bool redirectRequest(std::string buffer, t_serverData *data)
 		postRequest(buffer, data);
 	}
 	else if(typeRequest == "DELETE")
-	{}
+	{
+        std::cout << "DELETE RESPONSE" << std::endl;
+
+        //get the url of the request
+        std::string path = buffer.substr(buffer.find('/') + 1, buffer.size() - buffer.find('/'));
+        path = path.substr(0, path.find(' '));
+        if(path.find("favicon.ico") != std::string::npos)
+        {
+            close(data->sockfd);
+            return (false);
+        }
+        //if i have a ? inside my url which represent filtering
+        else if(path.find("?") != std::string::npos)
+            notImplemented(data);
+        // return the data to the client
+        deleteRequest(path, data);
+        close(data->sockfd);
+    }
 	//if its not get, post or delete request
 	else
 		std::cout << "404 not found" << std::endl;
@@ -260,6 +277,7 @@ void Server::createListenAddr(ConfigParser &config)
 						std::string path = readingData(fd, epoll_fd, events);
 						if (path.empty())
 							continue;
+                        // std::cout << path << std::endl;
 						// response request
 						if(redirectRequest(path, info))
 							continue;

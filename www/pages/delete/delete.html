@@ -1,51 +1,41 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Simple website</title>
-	<link rel="icon" type="image/x-icon" href="../../assets/images/favicon.ico">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload</title>
+    <link rel="stylesheet" type="text/css" href="../css/style.css">
 </head>
-<body style="text-align: center;">
-	<nav style="padding:15px;">
-		<a href="../../index.html" style="font-size: 20px;margin:1rem;width:150px;padding:5px;">Home</a>
-		<a href="https://github.com/bastpoy/webserv" target="_blank" style="font-size: 20px;margin:1rem;width:150px;padding:5px;">GitHub</a>
-		<a href="https://github.com/users/bastpoy/projects/1" target="_blank" style="font-size: 20px;margin:1rem;width:150px;padding:5px;">Tasks</a>
-		<a href="https://discord.com/channels/@me" target="_blank" style="font-size: 20px;margin:1rem;width:150px;padding:5px;">Discord</a>
-		<a href="https://dear-snowdrop-c6b.notion.site/WebServ-1288dbf5f160806ea3afea00cf7fb312?pvs=4" target="_blank" style="font-size: 20px;margin:1rem;width:150px;padding:5px;">Notion</a>
-		<a href="https://excalidraw.com/#json=o-XAOjTgJ4YdtBfRTEY67,l55wlch1aX7IasHuHfS6Iw" target="_blank" style="font-size: 20px;margin:1rem;width:150px;padding:5px;">Excalidraw</a>
-	</nav>
-	<h1>DELETE</h1>
-	<div>
-		<form id="deleteForm" onsubmit="deleteResource(event)">
-			<h3>Delete a resource</h3>
-			<p>Suppression of this file: <strong style="color: red;">/webserv/www/assets/files/file_to_delete</strong></p>
-			<button type="submit">Delete</button>
-		</form>
-	</div>
-	<script>
-		function deleteResource(event) {
-			event.preventDefault(); // Empêche le formulaire de se soumettre normalement
+<body>
 
-			// Confirmation avant suppression
-			if (confirm('Are you sure to delete this file ?')) {
-				fetch('/www/assets/files/file_to_delete', {
-					method: 'DELETE',
-				})
-				.then(response => {
-					if (response.ok) {
-						alert('File deleted !');
-						window.location.href = '../../index.html';
-					} else {
-						alert('Error deleting file');
-					}
-				})
-				.catch(error => {
-					console.error('Erreur:', error);
-					alert('Error deleting file');
-				});
-			}
-		}
-	</script>
+    <h1>Delete File</h1>
+        <label for="fileName">Enter the file name to delete:</label>
+        <input type="text" id="fileName" placeholder="your_file_to_delete.txt">
+        <button class="minimal-button" id="deleteButton">Delete File</button>
+    <h1></h1>
+<script>
+    document.getElementById('deleteButton').addEventListener('click', function() {
+      const fileName = document.getElementById('fileName').value;
+      // Send a DELETE request to delete the specified file
+      fetch(`../../upload/${fileName}`, {
+        method: 'DELETE'
+      })
+      .then(response => {
+        if (response.status === 200) {
+          alert(`File '${fileName}' deleted successfully.`);
+        } else {
+          alert(`Failed to delete the file '${fileName}'.`);
+        }
+      })
+      .catch(error => {
+        console.error('An error occurred:', error);
+      });
+    });
+</script>
+
+<button class="minimal-button" id="refreshButton">Refresh</button>
+
+<h3>List of uploaded files :</h3>
+
 </body>
 </html>

@@ -171,7 +171,7 @@ std::string httpGetResponseDownload(std::string code, std::string contentType, s
 			"\r\n" + content);
 }
 
-void checkAccessFile(std::string &code, std::string &filePath)
+bool checkAccessFile(std::string &code, std::string &filePath)
 {
 	// check if i can access the current ressource request 
 	if(access(filePath.c_str(), F_OK) != 0)
@@ -179,16 +179,19 @@ void checkAccessFile(std::string &code, std::string &filePath)
 		std::cout << filePath << ": " RED "Fichier introuvable\n" RESET << access(filePath.c_str(), F_OK) << std::endl;
 		code = "404 Not Found";
 		filePath = "./www/error/error404.html";
+        return (false);
 	}
 	else if (access(filePath.c_str(), R_OK) != 0)
 	{
 		std::cout << filePath <<YELLOW ": Accès refusé (pas de droits de lecture)\n" RESET;
 		code = "403 Forbidden";
 		filePath = "./www/error/error403.html";
+        return (false);
 	}
 	else
 	{
 		code = "200 OK";
+        return (true);
 	}
 }
 

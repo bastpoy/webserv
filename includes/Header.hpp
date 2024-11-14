@@ -43,6 +43,7 @@
 #include "Error.hpp"
 #include "Post.hpp"				// Handle POST request
 #include "Get.hpp"				// Handle GET request
+#include "delete.hpp"
 
 /* ------------- COLORS ------------- */
 // Reset
