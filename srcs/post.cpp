@@ -179,7 +179,6 @@ int getContentLength(std::string header, t_serverData *data)
 
 	int max_body = atoi(data->maxBody.c_str());
 	int intSize = atoi(size.c_str());
-	std::cout << max_body << " header size " << intSize << std::endl;
 	//if the request size is superior to the max_body return an error
 	if(intSize > max_body)
 	{
@@ -232,7 +231,6 @@ bool read_full_body(t_serverData *data, std::string &body, int content_length) {
 		// Append the read data to the body string
 		body.append(buffer, bytes_read);
 		total_read += bytes_read;
-		// std::cout << "Read " << bytes_read << " bytes, total read: " << total_read << "/" << content_length << std::endl;
 	}
 
 	// Check if we read the expected content length

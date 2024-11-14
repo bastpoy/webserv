@@ -57,6 +57,15 @@ std::string check_location(std::string &uri, std::string &content, std::vector<L
 		// if the path matchs the location path
 		if(!it->getPath().empty() && uri.find(it->getPath()) != std::string::npos)
 		{
+            // if i have a redirection
+            if(it->getRedir().size())
+            {
+                //i redirec
+                std::cout << "inside location redirection" << std::endl;
+                redirRequest(it->getRedir().begin(), data->sockfd);
+                //and leave
+                throw Response::Error();
+            }
 			//if file in my request
             if(isExtension(uri))
             {
@@ -95,58 +104,6 @@ std::string check_location(std::string &uri, std::string &content, std::vector<L
 		it++;
 	}
 	return ("");
-}
-
-std::string getContentType(std::string &path) 
-{
-	std::map<std::string, std::string> contentTypes;
-
-	contentTypes.insert(std::pair<std::string, std::string>(".html", "text/html"));
-	contentTypes.insert(std::pair<std::string, std::string>(".css", "text/css"));
-	contentTypes.insert(std::pair<std::string, std::string>(".js", "application/javascript"));
-	contentTypes.insert(std::pair<std::string, std::string>(".png", "image/png"));
-	contentTypes.insert(std::pair<std::string, std::string>(".jpg", "image/jpeg"));
-	contentTypes.insert(std::pair<std::string, std::string>(".gif", "image/gif"));
-	contentTypes.insert(std::pair<std::string, std::string>(".svg", "image/svg+xml"));
-	contentTypes.insert(std::pair<std::string, std::string>(".webp", "image/webp"));
-	contentTypes.insert(std::pair<std::string, std::string>(".ico", "image/x-icon"));
-    contentTypes.insert(std::pair<std::string, std::string>(".pdf", "application/pdf"));
-    contentTypes.insert(std::pair<std::string, std::string>(".mp3", "video/mpeg"));
-    contentTypes.insert(std::pair<std::string, std::string>(".mp4", "video/mp4"));
-    contentTypes.insert(std::pair<std::string, std::string>(".webm", "video/webm"));
-    contentTypes.insert(std::pair<std::string, std::string>(".ogg", "video/ogg"));
-    contentTypes.insert(std::pair<std::string, std::string>(".doc", "application/msword"));
-    contentTypes.insert(std::pair<std::string, std::string>(".docx", "application/msword"));
-    contentTypes.insert(std::pair<std::string, std::string>(".xls", "application/vnd.ms-excel"));
-    contentTypes.insert(std::pair<std::string, std::string>(".xlsx", "application/vnd.ms-excel"));
-    contentTypes.insert(std::pair<std::string, std::string>(".ppt", "application/vnd.ms-powerpoint"));
-    contentTypes.insert(std::pair<std::string, std::string>(".pptx", "application/vnd.ms-powerpoint"));
-    contentTypes.insert(std::pair<std::string, std::string>(".ppt", "application/vnd.ms-powerpoint"));
-    contentTypes.insert(std::pair<std::string, std::string>(".zip", "application/zip"));
-    contentTypes.insert(std::pair<std::string, std::string>(".rar", "application/vnd.rar"));
-    contentTypes.insert(std::pair<std::string, std::string>(".tar", "application/x-tar"));
-    contentTypes.insert(std::pair<std::string, std::string>(".gz", "application/gzip"));
-    contentTypes.insert(std::pair<std::string, std::string>(".7z", "application/x-7z-compressed"));
-    contentTypes.insert(std::pair<std::string, std::string>(".txt", "text/plain"));
-    contentTypes.insert(std::pair<std::string, std::string>(".xml", "application/xml"));
-    contentTypes.insert(std::pair<std::string, std::string>(".json", "application/json"));
-    contentTypes.insert(std::pair<std::string, std::string>(".csv", "text/csv"));
-
-	size_t dotPos = path.find_last_of(".");
-	if (dotPos != std::string::npos) {
-		std::string extension = path.substr(dotPos);
-		if (contentTypes.find(extension) != contentTypes.end()) {
-			return contentTypes[extension];
-		}
-	}
-	//if i dont have exetension i add backslash
-	else
-	{
-		//if size of path = 0 or no '/' at the end
-		if(path.size() == 0 || path.at(path.size() - 1) != '/')
-			path += "/";
-	}
-	return "text/html"; // Default content type
 }
 
 std::string httpGetResponse(std::string code, std::string contentType, std::string content)
@@ -196,45 +153,6 @@ void checkAccessDir(std::string &code, std::string &dirPath, t_serverData *data)
 		code = "200 OK";
 }
 
-// void getRequest(std::string &uri, t_serverData *data)
-// {
-// 	std::vector<Location>location = data->location;
-// 	//get the contentType
-// 	std::string contentType = getContentType(uri);
-// 	//root de server
-// 	std::string defaultPath = data->path + uri;
-// 	std::string filePath; // Change this to your file path
-// 	std::string locationPath;
-// 	std::string code;
-
-// 	//if there is a index specify in the server and not extension in the path
-// 	if(!data->index.empty() && !isExtension(uri))
-// 		filePath = defaultPath + data->index;
-// 	else
-// 		filePath = defaultPath;
-// 	// check if there is a location path
-// 	locationPath = check_location(uri, data->location, data);
-// 	if(!locationPath.empty())
-// 		filePath = locationPath;
-// 	if (filePath.find(".py") != std::string::npos)
-// 		return (CGIHandler::execute(("/www/" + uri).c_str(), data->sockfd));
-// 	//check acces of filePath
-// 	checkAccessFile(code, filePath);
-// 	std::cout << "the path is: " << filePath <<  " default path: " << defaultPath << " uri: " << uri << std::endl;
-// 	std::cout << "the content type: " << contentType << std::endl;
-// 	//read the file content 
-// 	std::string content = readFile(filePath);
-// 	// get the type of the request file
-// 	std::string response = httpHeaderResponse(code, contentType, content);
-
-// 	//send response
-// 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
-// 	{
-// 		std::cout << strerror(errno) << std::endl;
-// 		throw Response::ErrorSendingResponse(); 
-// 	}
-// }
-
 void getRequest(std::string &uri, t_serverData *data)
 {
 	std::vector<Location>location = data->location;
@@ -254,13 +172,14 @@ void getRequest(std::string &uri, t_serverData *data)
 			errorPage("403", data);
 			throw Response::Error();
 		}
+        //if i have an extension
 		if(isExtension(uri))
 		{
 			filePath = data->path + uri;
-
+            //if its a python file
 			if (filePath.find(".py") != std::string::npos)
 			{
-				std::cout << BLUE "It's a CGI" RESET << std::endl; // Debug
+				std::cout << BLUE "It's a CGI " RESET << filePath <<std::endl; // Debug
 				checkAccessFile(code, filePath, data);
 				content = CGIHandler::execute(uri.c_str(), code);
 			}
@@ -280,6 +199,7 @@ void getRequest(std::string &uri, t_serverData *data)
 			filePath = data->path + uri + data->index;
             content = readFile(filePath, data);
 		}
+        //if i have an autoindex
 		else if(!data->autoindex.empty() && data->autoindex == "on")
 		{
 			filePath = data->path + uri;
@@ -304,12 +224,30 @@ void getRequest(std::string &uri, t_serverData *data)
 	}
 }
 
-	// // get the type of the request file
-    // if(!download)
-	//     response = httpGetResponse(code, contentType, content);
-    // // if its a download file not the same request
-    // else
-	//     response = httpGetResponseDownload(code, contentType, content);
+//parse the get request header and return the response with getrequest
+void parseAndGetRequest(std::string buffer, t_serverData *data)
+{
+    //get the url of the request
+    std::string path = buffer.substr(buffer.find('/') + 1, buffer.size() - buffer.find('/'));
+    path = path.substr(0, path.find(' '));
+
+    std::cout << "GET RESPONSE " << path <<  std::endl;
+
+    if(path.find("favicon.ico") != std::string::npos)
+    {
+        notFoundFavicon(data);
+        return;
+    }
+    //if i have a ? inside my url which represent filtering
+    else if(path.find("?") != std::string::npos)
+        errorPage("501", data);
+    //if i have a redirection to delete page i modify it in the displaydeletepage
+    else if(path == "pages/delete/delete.html")
+        displayDeletePage(path, data);
+    // return the data to the client
+    else
+        getRequest(path, data);
+}
 
 void redirRequest(std::map<std::string, std::string>::iterator redir, int fd)
 {
@@ -324,4 +262,5 @@ void redirRequest(std::map<std::string, std::string>::iterator redir, int fd)
 		std::cout << strerror(errno) << std::endl;
 		std::cout << "Error redirection: " << strerror(errno) << std::endl;
 	}
+    close(fd);
 }

@@ -1,5 +1,58 @@
 #include "Header.hpp"
 
+std::string getContentType(std::string &path) 
+{
+	std::map<std::string, std::string> contentTypes;
+
+	contentTypes.insert(std::pair<std::string, std::string>(".html", "text/html"));
+	contentTypes.insert(std::pair<std::string, std::string>(".css", "text/css"));
+	contentTypes.insert(std::pair<std::string, std::string>(".js", "application/javascript"));
+	contentTypes.insert(std::pair<std::string, std::string>(".png", "image/png"));
+	contentTypes.insert(std::pair<std::string, std::string>(".jpg", "image/jpeg"));
+	contentTypes.insert(std::pair<std::string, std::string>(".gif", "image/gif"));
+	contentTypes.insert(std::pair<std::string, std::string>(".svg", "image/svg+xml"));
+	contentTypes.insert(std::pair<std::string, std::string>(".webp", "image/webp"));
+	contentTypes.insert(std::pair<std::string, std::string>(".ico", "image/x-icon"));
+    contentTypes.insert(std::pair<std::string, std::string>(".pdf", "application/pdf"));
+    contentTypes.insert(std::pair<std::string, std::string>(".mp3", "video/mpeg"));
+    contentTypes.insert(std::pair<std::string, std::string>(".mp4", "video/mp4"));
+    contentTypes.insert(std::pair<std::string, std::string>(".webm", "video/webm"));
+    contentTypes.insert(std::pair<std::string, std::string>(".ogg", "video/ogg"));
+    contentTypes.insert(std::pair<std::string, std::string>(".doc", "application/msword"));
+    contentTypes.insert(std::pair<std::string, std::string>(".docx", "application/msword"));
+    contentTypes.insert(std::pair<std::string, std::string>(".xls", "application/vnd.ms-excel"));
+    contentTypes.insert(std::pair<std::string, std::string>(".xlsx", "application/vnd.ms-excel"));
+    contentTypes.insert(std::pair<std::string, std::string>(".ppt", "application/vnd.ms-powerpoint"));
+    contentTypes.insert(std::pair<std::string, std::string>(".pptx", "application/vnd.ms-powerpoint"));
+    contentTypes.insert(std::pair<std::string, std::string>(".ppt", "application/vnd.ms-powerpoint"));
+    contentTypes.insert(std::pair<std::string, std::string>(".zip", "application/zip"));
+    contentTypes.insert(std::pair<std::string, std::string>(".rar", "application/vnd.rar"));
+    contentTypes.insert(std::pair<std::string, std::string>(".tar", "application/x-tar"));
+    contentTypes.insert(std::pair<std::string, std::string>(".gz", "application/gzip"));
+    contentTypes.insert(std::pair<std::string, std::string>(".7z", "application/x-7z-compressed"));
+    contentTypes.insert(std::pair<std::string, std::string>(".txt", "text/plain"));
+    contentTypes.insert(std::pair<std::string, std::string>(".xml", "application/xml"));
+    contentTypes.insert(std::pair<std::string, std::string>(".json", "application/json"));
+    contentTypes.insert(std::pair<std::string, std::string>(".csv", "text/csv"));
+    contentTypes.insert(std::pair<std::string, std::string>(".py", "text/html"));
+
+	size_t dotPos = path.find_last_of(".");
+	if (dotPos != std::string::npos) {
+		std::string extension = path.substr(dotPos);
+		if (contentTypes.find(extension) != contentTypes.end()) {
+			return contentTypes[extension];
+		}
+	}
+	//if i dont have exetension i add backslash
+	else
+	{
+		//if size of path = 0 or no '/' at the end
+		if(path.size() == 0 || path.at(path.size() - 1) != '/')
+			path += "/";
+	}
+	return "text/html"; // Default content type
+}
+
 bool isExtension(std::string path)
 {
 	//return false if there is not extension

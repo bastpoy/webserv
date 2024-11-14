@@ -1,7 +1,5 @@
 #include "Header.hpp"
 
-//------SERVER FUNCTIONS-------
-
 //Fill data epoll with server iterator
 struct epoll_event fillEpoolDataIterator(int sockfd, std::vector<Server>::iterator itbeg)
 {
@@ -159,60 +157,34 @@ std::string readingData(int &fd, int &epoll_fd, struct epoll_event *client_event
     return(buffer);
 }
 
-bool redirectRequest(std::string buffer, t_serverData *data) 
+bool handleRequest(std::string buffer, t_serverData *data) 
 {
 	std::string firstLine = buffer.substr(0, buffer.find("\n"));
 	std::string typeRequest =  firstLine.substr(0, buffer.find(" "));
 
 	if(typeRequest == "GET")
 	{
-		//if i have a redirection 
+		//if i have a redirection on the server or the location
 		if(data->redir.size())
 		{
+            std::cout << "REDIRECTION GET" << std::endl;
 			redirRequest(data->redir.begin(), data->sockfd);
 		}
 		// else I respond 
 		else
 		{
-			std::cout << "GET RESPONSE" << std::endl;
-
-			//get the url of the request
-			std::string path = buffer.substr(buffer.find('/') + 1, buffer.size() - buffer.find('/'));
-			path = path.substr(0, path.find(' '));
-            if(path.find("favicon.ico") != std::string::npos)
-            {
-                close(data->sockfd);
-                return (false);
-            }
-            //if i have a ? inside my url which represent filtering
-            else if(path.find("?") != std::string::npos)
-                errorPage("501", data);
-			// return the data to the client
-			getRequest(path, data);
+            parseAndGetRequest(buffer, data);
 		}
 	}
+    //if it is a post request
 	else if(typeRequest == "POST")
 	{
 		postRequest(buffer, data);
 	}
+    //if its a delete request
 	else if(typeRequest == "DELETE")
 	{
-        std::cout << "DELETE RESPONSE" << std::endl;
-
-        //get the url of the request
-        std::string path = buffer.substr(buffer.find('/') + 1, buffer.size() - buffer.find('/'));
-        path = path.substr(0, path.find(' '));
-        if(path.find("favicon.ico") != std::string::npos)
-        {
-            close(data->sockfd);
-            return (false);
-        }
-        //if i have a ? inside my url which represent filtering
-        else if(path.find("?") != std::string::npos)
-            errorPage("501", data);
-        // return the data to the client
-        deleteRequest(path, data);
-        close(data->sockfd);
+        parseAndDeleteRequest(buffer, data);
     }
 	//if its not get, post or delete request
 	else
@@ -279,7 +251,7 @@ void Server::createListenAddr(ConfigParser &config)
 							continue;
                         // std::cout << path << std::endl;
 						// response request
-						if(redirectRequest(path, info))
+						if(handleRequest(path, info))
 							continue;
 					}
 					catch(const std::exception& e)

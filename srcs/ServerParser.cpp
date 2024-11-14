@@ -51,6 +51,13 @@ void Server::setRedir(std::string code, std::string domain)
 	// code.erase(std::remove(code.begin(), code.end(), ' '), code.end());
 	domain.erase(std::remove(domain.begin(), domain.end(), ' '), domain.end());
 	code.erase(std::remove(code.begin(), code.end(), ' '), code.end());
+    
+    // If i have already a redirection i delete it and replace it
+    if(this->getRedir().size())
+    {
+        this->_redir.erase(this->_redir.begin());
+    }
+    //add the new redirection
 	this->_redir.insert(std::make_pair(code, domain));
 }
 

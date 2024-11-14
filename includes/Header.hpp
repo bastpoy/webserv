@@ -96,11 +96,12 @@ std::string					generateAutoIndexPage(const std::string directory, const std::ve
 std::string					handleAutoIndex(const std::string& path);
 
 // get.cpp Functions
-void						getRequest(std::string &uri, t_serverData *data);
 void						redirRequest(std::map<std::string, std::string>::iterator redir, int fd);
 std::string                 check_location(std::string &uri, std::string &content, std::vector<Location> &location, t_serverData *data);
 std::string                 getContentType(std::string &path);
 void                        checkAccessFile(std::string &code, std::string &filePath, t_serverData *data);
+std::string                 httpGetResponse(std::string code, std::string contentType, std::string content);
+void                        parseAndGetRequest(std::string buffer, t_serverData *data);
 
 // post.cpp Functions
 void		sendPostData(std::string code , std::string contentType, std::string content, t_serverData *data);
@@ -116,5 +117,7 @@ void	contentTooLarge(std::string size, t_serverData *data);
 // void	forbidden(t_serverData *data);
 void	notFound(t_serverData *data);
 void	errorPage(std::string error, t_serverData *data);
+void    notFoundFavicon(t_serverData *data);
+
 
 #endif /* HEADER_HPP */
