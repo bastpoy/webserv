@@ -4,49 +4,49 @@
 /*		SETTER		*/
 /* ================ */
 
-void Server::setPort(std::string port)
+void	Server::setPort(std::string port)
 {
 	port.erase(std::remove(port.begin(), port.end(), ' '), port.end());
 	this->_port = port;
 }
 
-void Server::setServerName(std::string server_name)
+void	Server::setServerName(std::string server_name)
 {
 	server_name.erase(std::remove(server_name.begin(), server_name.end(), ' '), server_name.end());
 	this->_server_name = server_name;
 }
 
-void Server::setPath(std::string path)
+void	Server::setPath(std::string path)
 {
 	path.erase(std::remove(path.begin(), path.end(), ' '), path.end());
 	this->_path = path;
 }
 
 
-void Server::setMaxBody(std::string maxBody)
+void	Server::setMaxBody(std::string maxBody)
 {
 	maxBody.erase(std::remove(maxBody.begin(), maxBody.end(), ' '), maxBody.end());
 	this->_maxBody = maxBody;
 }
 
-void Server::setIndex(std::string index)
+void	Server::setIndex(std::string index)
 {
 	index.erase(std::remove(index.begin(), index.end(), ' '), index.end());
 	this->_index = index;
 }
 
-void Server::setAutoIndex(std::string autoindex)
+void	Server::setAutoIndex(std::string autoindex)
 {
 	this->_autoindex = autoindex;
 }
 
-void Server::setLocation(Location &location)
+void	Server::setLocation(Location &location)
 {
 	// location.erase(std::remove(location.begin(), location.end(), ' '), location.end());
 	this->_location.push_back(location);
 }
 
-void Server::setRedir(std::string code, std::string domain)
+void	Server::setRedir(std::string code, std::string domain)
 {
 	// code.erase(std::remove(code.begin(), code.end(), ' '), code.end());
 	domain.erase(std::remove(domain.begin(), domain.end(), ' '), domain.end());
@@ -54,13 +54,13 @@ void Server::setRedir(std::string code, std::string domain)
 	this->_redir.insert(std::make_pair(code, domain));
 }
 
-void Server::setErrorPage(int code, std::string errorFile)
+void	Server::setErrorPage(int code, std::string errorFile)
 {
 	errorFile.erase(std::remove(errorFile.begin(), errorFile.end(), ' '), errorFile.end());
 	this->_errorPage.insert(std::make_pair(code, errorFile));
 }
 
-void Server::setSocketFd(int sockfd)
+void	Server::setSocketFd(int sockfd)
 {
 	this->socketfd.insert(sockfd);
 }
@@ -285,7 +285,7 @@ void	Server::printConfig()
 	}
 }
 
-void    maxBodyParsing(std::string caracter, std::string &size)
+void	maxBodyParsing(std::string caracter, std::string &size)
 {
 	size_t pos;
 	

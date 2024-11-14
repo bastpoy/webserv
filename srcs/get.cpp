@@ -2,45 +2,45 @@
 
 std::string pathLocation(std::string &content, std::string &uri, std::vector<Location>::iterator it, t_serverData *data, std::string root)
 {
-    std::string filePath;
-    //if index in location
-    if(!it->getIndex().empty())
-    {
-        std::cout << "Index in my location" << std::endl;
-        filePath = root + uri + it->getIndex();
-        content = readFile(filePath, data);
-        return filePath;
-    }
-    //if I have an autoindex in my location
-    else if(!it->getAutoIndex().empty() && it->getAutoIndex() == "on")
-    {
-        filePath = root + uri;
-        std::cout << "filepath: " << filePath << std::endl;
-        std::vector<std::string> files = listDirectory(filePath);
-        content = generateAutoIndexPage(uri, files);
-        return root + uri;
-    }
-    //if index in my server
-    else if(!data->index.empty())
-    {
-        filePath = root + uri + data->index;
-        content = readFile(filePath, data);
-        return filePath;
-    }
-    // if autoindex in my server
-    else if(!data->autoindex.empty() && data->autoindex == "on")
-    {
-        filePath = root + uri;
-        std::vector<std::string> files = listDirectory(filePath);
-        content = generateAutoIndexPage(uri, files);
-        return (filePath);
-    }
-    //if none of that return a 404 not found
-    else
-    {
-        errorPage("404", data);
-        throw Response::Error();
-    }
+	std::string filePath;
+	//if index in location
+	if(!it->getIndex().empty())
+	{
+		std::cout << "Index in my location" << std::endl;
+		filePath = root + uri + it->getIndex();
+		content = readFile(filePath, data);
+		return filePath;
+	}
+	//if I have an autoindex in my location
+	else if(!it->getAutoIndex().empty() && it->getAutoIndex() == "on")
+	{
+		filePath = root + uri;
+		std::cout << "filepath: " << filePath << std::endl;
+		std::vector<std::string> files = listDirectory(filePath);
+		content = generateAutoIndexPage(uri, files);
+		return root + uri;
+	}
+	//if index in my server
+	else if(!data->index.empty())
+	{
+		filePath = root + uri + data->index;
+		content = readFile(filePath, data);
+		return filePath;
+	}
+	// if autoindex in my server
+	else if(!data->autoindex.empty() && data->autoindex == "on")
+	{
+		filePath = root + uri;
+		std::vector<std::string> files = listDirectory(filePath);
+		content = generateAutoIndexPage(uri, files);
+		return (filePath);
+	}
+	//if none of that return a 404 not found
+	else
+	{
+		errorPage("404", data);
+		throw Response::Error();
+	}
 }
 
 std::string check_location(std::string &uri, std::string &content, std::vector<Location> &location, t_serverData *data)
@@ -58,39 +58,39 @@ std::string check_location(std::string &uri, std::string &content, std::vector<L
 		if(!it->getPath().empty() && uri.find(it->getPath()) != std::string::npos)
 		{
 			//if file in my request
-            if(isExtension(uri))
-            {
-                // if i have a root in my location
-                if(!it->getRoot().empty())
-                {
-                    content = readFile(it->getRoot() + uri, data);
-                    return it->getRoot() + uri;
-                }
-                // if i have a root inside my server block
-                else if(!data->path.empty())
-                {
-                    content = readFile(data->path + uri, data);
-                    return data->path + uri;
-                }
-                //if no root in my server block
-                else
-                    errorPage("404", data);
-            }
-            // if no file in URI
-            else
-            {
-                // if i have a root in the location
-                if(!it->getRoot().empty())
-                    return pathLocation(content, uri, it, data, it->getRoot());
-                else
-                {
-                    //if i have a root in my server
-                    if(!data->path.empty())
-                        return pathLocation(content, uri, it, data, data->path);
-                    else
-                        errorPage("404", data);
-                }
-            }
+			if(isExtension(uri))
+			{
+				// if i have a root in my location
+				if(!it->getRoot().empty())
+				{
+					content = readFile(it->getRoot() + uri, data);
+					return it->getRoot() + uri;
+				}
+				// if i have a root inside my server block
+				else if(!data->path.empty())
+				{
+					content = readFile(data->path + uri, data);
+					return data->path + uri;
+				}
+				//if no root in my server block
+				else
+					errorPage("404", data);
+			}
+			// if no file in URI
+			else
+			{
+				// if i have a root in the location
+				if(!it->getRoot().empty())
+					return pathLocation(content, uri, it, data, it->getRoot());
+				else
+				{
+					//if i have a root in my server
+					if(!data->path.empty())
+						return pathLocation(content, uri, it, data, data->path);
+					else
+						errorPage("404", data);
+				}
+			}
 		}
 		it++;
 	}
@@ -110,27 +110,27 @@ std::string getContentType(std::string &path)
 	contentTypes.insert(std::pair<std::string, std::string>(".svg", "image/svg+xml"));
 	contentTypes.insert(std::pair<std::string, std::string>(".webp", "image/webp"));
 	contentTypes.insert(std::pair<std::string, std::string>(".ico", "image/x-icon"));
-    contentTypes.insert(std::pair<std::string, std::string>(".pdf", "application/pdf"));
-    contentTypes.insert(std::pair<std::string, std::string>(".mp3", "video/mpeg"));
-    contentTypes.insert(std::pair<std::string, std::string>(".mp4", "video/mp4"));
-    contentTypes.insert(std::pair<std::string, std::string>(".webm", "video/webm"));
-    contentTypes.insert(std::pair<std::string, std::string>(".ogg", "video/ogg"));
-    contentTypes.insert(std::pair<std::string, std::string>(".doc", "application/msword"));
-    contentTypes.insert(std::pair<std::string, std::string>(".docx", "application/msword"));
-    contentTypes.insert(std::pair<std::string, std::string>(".xls", "application/vnd.ms-excel"));
-    contentTypes.insert(std::pair<std::string, std::string>(".xlsx", "application/vnd.ms-excel"));
-    contentTypes.insert(std::pair<std::string, std::string>(".ppt", "application/vnd.ms-powerpoint"));
-    contentTypes.insert(std::pair<std::string, std::string>(".pptx", "application/vnd.ms-powerpoint"));
-    contentTypes.insert(std::pair<std::string, std::string>(".ppt", "application/vnd.ms-powerpoint"));
-    contentTypes.insert(std::pair<std::string, std::string>(".zip", "application/zip"));
-    contentTypes.insert(std::pair<std::string, std::string>(".rar", "application/vnd.rar"));
-    contentTypes.insert(std::pair<std::string, std::string>(".tar", "application/x-tar"));
-    contentTypes.insert(std::pair<std::string, std::string>(".gz", "application/gzip"));
-    contentTypes.insert(std::pair<std::string, std::string>(".7z", "application/x-7z-compressed"));
-    contentTypes.insert(std::pair<std::string, std::string>(".txt", "text/plain"));
-    contentTypes.insert(std::pair<std::string, std::string>(".xml", "application/xml"));
-    contentTypes.insert(std::pair<std::string, std::string>(".json", "application/json"));
-    contentTypes.insert(std::pair<std::string, std::string>(".csv", "text/csv"));
+	contentTypes.insert(std::pair<std::string, std::string>(".pdf", "application/pdf"));
+	contentTypes.insert(std::pair<std::string, std::string>(".mp3", "video/mpeg"));
+	contentTypes.insert(std::pair<std::string, std::string>(".mp4", "video/mp4"));
+	contentTypes.insert(std::pair<std::string, std::string>(".webm", "video/webm"));
+	contentTypes.insert(std::pair<std::string, std::string>(".ogg", "video/ogg"));
+	contentTypes.insert(std::pair<std::string, std::string>(".doc", "application/msword"));
+	contentTypes.insert(std::pair<std::string, std::string>(".docx", "application/msword"));
+	contentTypes.insert(std::pair<std::string, std::string>(".xls", "application/vnd.ms-excel"));
+	contentTypes.insert(std::pair<std::string, std::string>(".xlsx", "application/vnd.ms-excel"));
+	contentTypes.insert(std::pair<std::string, std::string>(".ppt", "application/vnd.ms-powerpoint"));
+	contentTypes.insert(std::pair<std::string, std::string>(".pptx", "application/vnd.ms-powerpoint"));
+	contentTypes.insert(std::pair<std::string, std::string>(".ppt", "application/vnd.ms-powerpoint"));
+	contentTypes.insert(std::pair<std::string, std::string>(".zip", "application/zip"));
+	contentTypes.insert(std::pair<std::string, std::string>(".rar", "application/vnd.rar"));
+	contentTypes.insert(std::pair<std::string, std::string>(".tar", "application/x-tar"));
+	contentTypes.insert(std::pair<std::string, std::string>(".gz", "application/gzip"));
+	contentTypes.insert(std::pair<std::string, std::string>(".7z", "application/x-7z-compressed"));
+	contentTypes.insert(std::pair<std::string, std::string>(".txt", "text/plain"));
+	contentTypes.insert(std::pair<std::string, std::string>(".xml", "application/xml"));
+	contentTypes.insert(std::pair<std::string, std::string>(".json", "application/json"));
+	contentTypes.insert(std::pair<std::string, std::string>(".csv", "text/csv"));
 
 	size_t dotPos = path.find_last_of(".");
 	if (dotPos != std::string::npos) {
@@ -165,8 +165,8 @@ std::string httpGetResponseDownload(std::string code, std::string contentType, s
 	return ("HTTP/1.1 " + code + " \r\n"
 			"Content-Type: " + contentType + "\r\n"
 			"Content-Length: " + to_string(content.size()) + "\r\n"
-            "Content-Disposition: attachment\r\n"
-            // ; filename=\"" + file + "\"
+			"Content-Disposition: attachment\r\n"
+			// ; filename=\"" + file + "\"
 			"Connection: close\r\n"
 			"\r\n" + content);
 }
@@ -196,64 +196,22 @@ void checkAccessDir(std::string &code, std::string &dirPath, t_serverData *data)
 		code = "200 OK";
 }
 
-// void getRequest(std::string &uri, t_serverData *data)
-// {
-// 	std::vector<Location>location = data->location;
-// 	//get the contentType
-// 	std::string contentType = getContentType(uri);
-// 	//root de server
-// 	std::string defaultPath = data->path + uri;
-// 	std::string filePath; // Change this to your file path
-// 	std::string locationPath;
-// 	std::string code;
-
-// 	//if there is a index specify in the server and not extension in the path
-// 	if(!data->index.empty() && !isExtension(uri))
-// 		filePath = defaultPath + data->index;
-// 	else
-// 		filePath = defaultPath;
-// 	// check if there is a location path
-// 	locationPath = check_location(uri, data->location, data);
-// 	if(!locationPath.empty())
-// 		filePath = locationPath;
-// 	if (filePath.find(".py") != std::string::npos)
-// 		return (CGIHandler::execute(("/www/" + uri).c_str(), data->sockfd));
-// 	//check acces of filePath
-// 	checkAccessFile(code, filePath);
-// 	std::cout << "the path is: " << filePath <<  " default path: " << defaultPath << " uri: " << uri << std::endl;
-// 	std::cout << "the content type: " << contentType << std::endl;
-// 	//read the file content 
-// 	std::string content = readFile(filePath);
-// 	// get the type of the request file
-// 	std::string response = httpHeaderResponse(code, contentType, content);
-
-// 	//send response
-// 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
-// 	{
-// 		std::cout << strerror(errno) << std::endl;
-// 		throw Response::ErrorSendingResponse(); 
-// 	}
-// }
-
 void getRequest(std::string &uri, t_serverData *data)
 {
 	std::vector<Location>location = data->location;
 	std::string	content;
 	std::string code;
 	std::string contentType = getContentType(uri);
-    //check if I have a location block that match the query
+	//check if I have a location block that match the query
 	std::string filePath = check_location(uri, content, data->location, data);
-    bool download = false;
+	bool download = false;
 
 	//check if i dont have a location
 	if(filePath.empty())
 	{
 		// if no root inside my server
 		if(data->path.empty())
-        {
 			errorPage("403", data);
-			throw Response::Error();
-		}
 		if(isExtension(uri))
 		{
 			filePath = data->path + uri;
@@ -262,23 +220,23 @@ void getRequest(std::string &uri, t_serverData *data)
 			{
 				std::cout << BLUE "It's a CGI" RESET << std::endl; // Debug
 				checkAccessFile(code, filePath, data);
-				content = CGIHandler::execute(uri.c_str(), code);
+				content = CGIHandler::execute(filePath.c_str(), code);
 			}
-            else
-                content = readFile(filePath, data);
+			else
+				content = readFile(filePath, data);
 		}
-        // if i have a file to download
-        else if(isExtensionDownload(uri))
-        {
-            filePath= data->path + uri;
-            download = true;
-            content = readFile(filePath, data);
-        }
+		// if i have a file to download
+		else if(isExtensionDownload(uri))
+		{
+			filePath= data->path + uri;
+			download = true;
+			content = readFile(filePath, data);
+		}
 		// if an index inside my server
 		else if (!data->index.empty())
 		{
 			filePath = data->path + uri + data->index;
-            content = readFile(filePath, data);
+			content = readFile(filePath, data);
 		}
 		else if(!data->autoindex.empty() && data->autoindex == "on")
 		{
@@ -305,11 +263,11 @@ void getRequest(std::string &uri, t_serverData *data)
 }
 
 	// // get the type of the request file
-    // if(!download)
-	//     response = httpGetResponse(code, contentType, content);
-    // // if its a download file not the same request
-    // else
-	//     response = httpGetResponseDownload(code, contentType, content);
+	// if(!download)
+	// 	response = httpGetResponse(code, contentType, content);
+	// // if its a download file not the same request
+	// else
+	// 	response = httpGetResponseDownload(code, contentType, content);
 
 void redirRequest(std::map<std::string, std::string>::iterator redir, int fd)
 {

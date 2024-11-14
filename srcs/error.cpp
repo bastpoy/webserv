@@ -59,8 +59,8 @@ void badRequest(t_serverData *data)
 		std::cout << strerror(errno) << std::endl;
 		throw Response::ErrorSendingResponse(); 
 	}
-    close(data->sockfd);
-    throw Response::Error();
+	close(data->sockfd);
+	throw Response::Error();
 }
 
 void internalError(t_serverData *data)
@@ -77,8 +77,8 @@ void internalError(t_serverData *data)
 		std::cout << strerror(errno) << std::endl;
 		throw Response::ErrorSendingResponse(); 
 	}
-    close(data->sockfd);
-    throw Response::Error();
+	close(data->sockfd);
+	throw Response::Error();
 }
 
 void forbidden(t_serverData *data)
@@ -95,8 +95,8 @@ void forbidden(t_serverData *data)
 		std::cout << strerror(errno) << std::endl;
 		throw Response::ErrorSendingResponse(); 
 	}
-    close(data->sockfd);
-    throw Response::Error();
+	close(data->sockfd);
+	throw Response::Error();
 }
 
 void notFound(t_serverData *data)
@@ -113,8 +113,8 @@ void notFound(t_serverData *data)
 		std::cout << strerror(errno) << std::endl;
 		throw Response::ErrorSendingResponse(); 
 	}
-    close(data->sockfd);
-    throw Response::Error();
+	close(data->sockfd);
+	throw Response::Error();
 }
 
 void notImplemented(t_serverData *data)
@@ -131,8 +131,8 @@ void notImplemented(t_serverData *data)
 		std::cout << strerror(errno) << std::endl;
 		throw Response::ErrorSendingResponse(); 
 	}
-    close(data->sockfd);
-    throw Response::Error();
+	close(data->sockfd);
+	throw Response::Error();
 }
 
 void errorPage(std::string error, t_serverData *data)

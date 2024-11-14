@@ -78,7 +78,7 @@ void setupSocket(int &sockfd, struct sockaddr_in &addr, std::vector<Server>::ite
 // Configuration network
 void Server::configuringNetwork(std::vector<Server>::iterator &itbeg, ConfigParser &config, int &epoll_fd)
 {
-    std::cout << "The socket server fd are:" << std::endl;
+	std::cout << "The socket server fd are:" << std::endl;
 	while(itbeg != config.getServers().end())
 	{
 		//creation addrinfo struc to stock my addrinfo informations
@@ -88,11 +88,11 @@ void Server::configuringNetwork(std::vector<Server>::iterator &itbeg, ConfigPars
 		int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 		if (sockfd == -1)
 			errorCloseEpollFd(epoll_fd, 2);
-        
-        // int flag = fcntl(sockfd, F_GETFL, 0);
-        // fcntl(sockfd, F_SETFL, flag | O_NONBLOCK);
+		
+		// int flag = fcntl(sockfd, F_GETFL, 0);
+		// fcntl(sockfd, F_SETFL, flag | O_NONBLOCK);
 
-        std::cout << sockfd << " and ";
+		std::cout << sockfd << " and ";
 		//add properties to allow the socket to be reusable even if it is in time wait
 		int opt = 1;
 		if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1)
@@ -117,7 +117,7 @@ void Server::configuringNetwork(std::vector<Server>::iterator &itbeg, ConfigPars
 		this->setSocketFd(sockfd);
 		itbeg++;
 	}
-    std::cout << std::endl;
+	std::cout << std::endl;
 }
 
 int acceptConnection(int &fd, int &epoll_fd, struct sockaddr_in &client_addr)
@@ -137,26 +137,26 @@ std::string readingData(int &fd, int &epoll_fd, struct epoll_event *client_event
 	ssize_t bytes_read = recv(fd, buffer, sizeof(buffer) - 1, 0);
 	//Error reading data
 	if (bytes_read > 0)
-    {
-        buffer[bytes_read] = '\0';
-	    return(buffer);
-    }
+	{
+		buffer[bytes_read] = '\0';
+		return(buffer);
+	}
 	else if (bytes_read == 0) 
 	{
 		// Connection closed by the client
 		std::cout << "Client disconnected: " << fd << std::endl;
-        if(epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, client_event) == -1)
-            errorCloseEpollFd(epoll_fd, 4);
+		if(epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, client_event) == -1)
+			errorCloseEpollFd(epoll_fd, 4);
 		close(fd);
 		return ("");
 	}
-    else if(bytes_read == -1 && (errno == EAGAIN || errno == EWOULDBLOCK))
-    {
-        std::cout << "Data not receive totally\n"; 
-    }
-    else
+	else if(bytes_read == -1 && (errno == EAGAIN || errno == EWOULDBLOCK))
+	{
+		std::cout << "Data not receive totally\n"; 
+	}
+	else
 		errorCloseEpollFd(fd, 5);
-    return(buffer);
+	return(buffer);
 }
 
 bool redirectRequest(std::string buffer, t_serverData *data) 
@@ -179,14 +179,14 @@ bool redirectRequest(std::string buffer, t_serverData *data)
 			//get the url of the request
 			std::string path = buffer.substr(buffer.find('/') + 1, buffer.size() - buffer.find('/'));
 			path = path.substr(0, path.find(' '));
-            if(path.find("favicon.ico") != std::string::npos)
-            {
-                close(data->sockfd);
-                return (false);
-            }
-            //if i have a ? inside my url which represent filtering
-            else if(path.find("?") != std::string::npos)
-                errorPage("501", data);
+			if(path.find("favicon.ico") != std::string::npos)
+			{
+				close(data->sockfd);
+				return (false);
+			}
+			//if i have a ? inside my url which represent filtering
+			else if(path.find("?") != std::string::npos)
+				errorPage("501", data);
 			// return the data to the client
 			getRequest(path, data);
 		}
@@ -197,23 +197,23 @@ bool redirectRequest(std::string buffer, t_serverData *data)
 	}
 	else if(typeRequest == "DELETE")
 	{
-        std::cout << "DELETE RESPONSE" << std::endl;
+		std::cout << "DELETE RESPONSE" << std::endl;
 
-        //get the url of the request
-        std::string path = buffer.substr(buffer.find('/') + 1, buffer.size() - buffer.find('/'));
-        path = path.substr(0, path.find(' '));
-        if(path.find("favicon.ico") != std::string::npos)
-        {
-            close(data->sockfd);
-            return (false);
-        }
-        //if i have a ? inside my url which represent filtering
-        else if(path.find("?") != std::string::npos)
-            errorPage("501", data);
-        // return the data to the client
-        deleteRequest(path, data);
-        close(data->sockfd);
-    }
+		//get the url of the request
+		std::string path = buffer.substr(buffer.find('/') + 1, buffer.size() - buffer.find('/'));
+		path = path.substr(0, path.find(' '));
+		if(path.find("favicon.ico") != std::string::npos)
+		{
+			close(data->sockfd);
+			return (false);
+		}
+		//if i have a ? inside my url which represent filtering
+		else if(path.find("?") != std::string::npos)
+			errorPage("501", data);
+		// return the data to the client
+		deleteRequest(path, data);
+		close(data->sockfd);
+	}
 	//if its not get, post or delete request
 	else
 		std::cout << "404 not found" << std::endl;
@@ -240,7 +240,7 @@ void Server::createListenAddr(ConfigParser &config)
 
 	while (true) {
 		//epollwait return a number corresponding to all the files descriptor
-        std::cout << "waiting...\n";
+		std::cout << "waiting...\n";
 		int num_fds = epoll_wait(epoll_fd, events, MAX_EVENTS, -1);
 		if (num_fds == -1) 
 			errorCloseEpollFd(epoll_fd, 1);
@@ -258,7 +258,7 @@ void Server::createListenAddr(ConfigParser &config)
 				//new fd_client for communication
 				int client_fd = acceptConnection(fd, epoll_fd, client_addr);
 				
-                // add new fd to my epoll instance
+				// add new fd to my epoll instance
 				struct epoll_event client_event = fillEpoolDataInfo(client_fd, info);
 				// add the new fd to be control by my epoll instance
 				if(epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &client_event) == -1)
@@ -277,7 +277,7 @@ void Server::createListenAddr(ConfigParser &config)
 						std::string path = readingData(fd, epoll_fd, events);
 						if (path.empty())
 							continue;
-                        // std::cout << path << std::endl;
+						// std::cout << path << std::endl;
 						// response request
 						if(redirectRequest(path, info))
 							continue;

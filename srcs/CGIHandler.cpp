@@ -3,7 +3,6 @@
 std::string	CGIHandler::execute(std::string uri, std::string &code) {
 	pid_t pid;
 	int pipefd[2];
-	std::string	realpath;
 
 	if (pipe(pipefd) == -1) {
 		perror("pipe");

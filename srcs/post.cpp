@@ -7,11 +7,11 @@ void replaceSpecialCharacter(std::string &value)
 		size_t pos = value.find("%40");
 		value.replace(pos, 3, "@");
 	}
-    while(value.find("+") != std::string::npos)
-    {
-        size_t pos = value.find("+");
-        value.replace(pos, 1, " ");
-    }
+	while(value.find("+") != std::string::npos)
+	{
+		size_t pos = value.find("+");
+		value.replace(pos, 1, " ");
+	}
 }
 
 void insertValue(std::string temp, std::map<std::string, std::string> &values, t_serverData *data)
@@ -287,5 +287,5 @@ void postRequest(std::string buffer, t_serverData *data)
 	}
 	// error post body
 	else
-        errorPage("500" , data);
+		errorPage("500" , data);
 }
