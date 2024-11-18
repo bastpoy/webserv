@@ -1,5 +1,27 @@
 #include "Header.hpp"
 
+int	ft_stoi(std::string str)
+{
+	int			i;
+	long long	atoi;
+	int			sign;
+
+	i = 0;
+	atoi = 0;
+	sign = 1;
+	while (str[i] == 32 || (str[i] >= 9 && str[i] <= 13))
+		i++;
+	if (str[i] == '+' || str[i] == '-')
+	{
+		if (str[i] == '-')
+			sign *= -1;
+		i++;
+	}
+	while (str[i] >= '0' && str[i] <= '9')
+		atoi = atoi * 10 + (str[i++] - '0');
+	return ((int)atoi * sign);
+}
+
 bool isExtension(std::string path)
 {
 	//return false if there is not extension
@@ -50,7 +72,7 @@ std::string readFile(std::string path, t_serverData *data)
 	if(!file.is_open())
 	{
 		std::cout << path << ": ";
-		notFound(data);
+		errorPage("404", data);
 	}
 	return std::string(
 		std::istreambuf_iterator<char>(file),

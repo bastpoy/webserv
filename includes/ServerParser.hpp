@@ -33,7 +33,7 @@ typedef struct s_serverData
 	std::map<int, std::string>			errorPage;
 	std::map<std::string, std::string>	redir;
 	std::vector<Location>				location;
-}t_serverData;
+}	t_serverData;
 
 class Server
 {

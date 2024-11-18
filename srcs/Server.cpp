@@ -7,7 +7,9 @@ struct epoll_event fillEpoolDataIterator(int sockfd, std::vector<Server>::iterat
 {
 	t_serverData *data = new t_serverData;
 	struct epoll_event event;
-	
+
+	singleton_data(data);
+
 	data->sockfd = sockfd;
 	data->port = itbeg->getPort();
 	data->server_name = itbeg->getServerName();
@@ -31,6 +33,7 @@ struct epoll_event fillEpoolDataInfo(int &client_fd, t_serverData *info)
 {
 	t_serverData *data = new t_serverData;
 
+	std::cout << RED "data: " << data << RESET << std::endl;
 	data->sockfd = client_fd;
 	data->port = info->port;
 	data->server_name = info->server_name;
@@ -285,7 +288,7 @@ void Server::createListenAddr(ConfigParser &config)
 					catch(const std::exception& e)
 					{
 						std::cerr << e.what() << '\n';
-					}                  
+					}
 				}
 			}
 		}

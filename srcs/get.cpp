@@ -220,7 +220,7 @@ void getRequest(std::string &uri, t_serverData *data)
 			{
 				std::cout << BLUE "It's a CGI" RESET << std::endl; // Debug
 				checkAccessFile(code, filePath, data);
-				content = CGIHandler::execute(filePath.c_str(), code);
+				content = execute(filePath.c_str(), code, data);
 			}
 			else
 				content = readFile(filePath, data);

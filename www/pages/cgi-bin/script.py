@@ -1,9 +1,9 @@
-#!/usr/bin/env python3
+# !/usr/bin/env python3
+import time
+
 print("<!DOCTYPE html>")
 print()
-print("<html lang=\"fr\">")
 print("<head><title>CGI Test</title></head>")
-print("<link rel=\"icon\" type=\"image/x-icon\ href=\"../../assets/images/favicon.ico\">")
 print("<body style=\"text-align:center\">")
 print("<nav style=\"padding:15px;\">")
 print("<a href=\"../../index.html\" style=\"font-size: 20px;margin:1rem;width:150px;padding:5px;\">Home</a>")

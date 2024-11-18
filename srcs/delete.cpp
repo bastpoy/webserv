@@ -24,22 +24,12 @@ void deleteRequest(std::string &uri, t_serverData *data)
 	std::string response;
 	std::string contentType = getContentType(uri);
 	//if i have a location
-	if(!filePath.empty())
-	{
-		//if I have an access file
-		checkAccessFile(code, filePath, data);
-
-		content = readFile(filePath, data);
-		deleteFile(filePath);
-	}
-	else
-	{
+	if(filePath.empty())
 		filePath = data->path + uri;
-		checkAccessFile(code, filePath, data);
-		content = readFile(filePath, data);
-		deleteFile(filePath);
-		
-	}
+		//if I have an access file
+	checkAccessFile(code, filePath, data);
+	content = readFile(filePath, data);
+	deleteFile(filePath);
 
 	std::cout << "the filePath is: " << filePath << " uri : " << uri << "and the code "<< code << std::endl;
 	

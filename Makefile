@@ -35,7 +35,8 @@ SRCS		=	srcs/autoIndex.cpp \
 				srcs/error.cpp \
 				srcs/post.cpp \
 				srcs/get.cpp \
-				srcs/delete.cpp
+				srcs/delete.cpp \
+				srcs/signals.cpp
 # srcs/Client.cpp
 # srcs/socket.cpp
 

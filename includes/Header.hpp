@@ -23,6 +23,7 @@
 #include <sys/wait.h>
 #include <netinet/in.h>			// Pour sockaddr_in
 #include <cstdlib>				// Pour exit() et EXIT_FAILURE
+#include <csignal>				// Pour exit() et EXIT_FAILURE
 #include <errno.h>				// Pour errno
 #include <string.h>				// Pour strerror
 #include <unistd.h>				// Pour close
@@ -31,7 +32,6 @@
 #include <fcntl.h>
 
 // Fichiers d'en-tête spécifiques au projet
-#include "CGIHandler.hpp"		// Classe pour gerer les CGI
 #include "ServerParser.hpp"		// Classe pour le serveur
 #include "Server.hpp"			// Classe pour le serveur
 #include "ConfigParser.hpp"		// Classe pour parser la configuration
@@ -44,38 +44,37 @@
 
 /* ------------- COLORS ------------- */
 // Reset
-#define RESET   "\e[0m"
+#define RESET		"\e[0m"
 
 // Regular Colors
-#define BLACK   "\e[0;30m"
-#define RED     "\e[0;31m"
-#define GREEN   "\e[0;32m"
-#define YELLOW  "\e[0;33m"
-#define BLUE    "\e[0;34m"
-#define MAGENTA "\e[0;35m"
-#define CYAN    "\e[0;36m"
-#define WHITE   "\e[0;37m"
+#define BLACK		"\e[0;30m"
+#define RED			"\e[0;31m"
+#define GREEN		"\e[0;32m"
+#define YELLOW		"\e[0;33m"
+#define BLUE		"\e[0;34m"
+#define MAGENTA		"\e[0;35m"
+#define CYAN		"\e[0;36m"
+#define WHITE		"\e[0;37m"
 
 // Bold Colors
-#define BBLACK   "\e[1;30m"
-#define BRED     "\e[1;31m"
-#define BGREEN   "\e[1;32m"
-#define BYELLOW  "\e[1;33m"
-#define BBLUE    "\e[1;34m"
-#define BMAGENTA "\e[1;35m"
-#define BCYAN    "\e[1;36m"
-#define BWHITE   "\e[1;37m"
+#define BBLACK		"\e[1;30m"
+#define BRED		"\e[1;31m"
+#define BGREEN		"\e[1;32m"
+#define BYELLOW		"\e[1;33m"
+#define BBLUE		"\e[1;34m"
+#define BMAGENTA	"\e[1;35m"
+#define BCYAN		"\e[1;36m"
+#define BWHITE		"\e[1;37m"
 
 // Background Colors
-#define ON_BLACK   "\e[40m"
-#define ON_RED     "\e[41m"
-#define ON_GREEN   "\e[42m"
-#define ON_YELLOW  "\e[43m"
-#define ON_BLUE    "\e[44m"
-#define ON_MAGENTA "\e[45m"
-#define ON_CYAN    "\e[46m"
-#define ON_WHITE   "\e[47m"
-
+#define ON_BLACK	"\e[40m"
+#define ON_RED		"\e[41m"
+#define ON_GREEN	"\e[42m"
+#define ON_YELLOW	"\e[43m"
+#define ON_BLUE		"\e[44m"
+#define ON_MAGENTA	"\e[45m"
+#define ON_CYAN		"\e[46m"
+#define ON_WHITE	"\e[47m"
 
 // Class Prototypes
 class Client;
@@ -89,18 +88,25 @@ class Server;
 // class Socket;
 // class VirtualHost;
 
+
+// main.cpp Functions
+int							main(int ac, char **av);
+t_serverData				*singleton_data(t_serverData *data);
+
 // autoindex.cpp Functions
 bool						isDirectory(const std::string& path);
 std::vector<std::string>	listDirectory(const std::string& directory);
 std::string					generateAutoIndexPage(const std::string directory, const std::vector<std::string>& files);
-std::string					handleAutoIndex(const std::string& path);
+
+// CGIHandler.cpp Functions
+std::string					execute(std::string uri, std::string &code, t_serverData *data);
 
 // get.cpp Functions
 void						getRequest(std::string &uri, t_serverData *data);
 void						redirRequest(std::map<std::string, std::string>::iterator redir, int fd);
-std::string                 check_location(std::string &uri, std::string &content, std::vector<Location> &location, t_serverData *data);
-std::string                 getContentType(std::string &path);
-void                        checkAccessFile(std::string &code, std::string &filePath, t_serverData *data);
+std::string					check_location(std::string &uri, std::string &content, std::vector<Location> &location, t_serverData *data);
+std::string					getContentType(std::string &path);
+void						checkAccessFile(std::string &code, std::string &filePath, t_serverData *data);
 
 // post.cpp Functions
 void		sendPostData(std::string code , std::string contentType, std::string content, t_serverData *data);
@@ -114,7 +120,10 @@ void	contentTooLarge(std::string size, t_serverData *data);
 // void	badRequest(t_serverData *data);
 // void	internalError(t_serverData *data);
 // void	forbidden(t_serverData *data);
-void	notFound(t_serverData *data);
+// void	notFound(t_serverData *data);
 void	errorPage(std::string error, t_serverData *data);
+
+// error.cpp Functions
+void	configureSignals();
 
 #endif /* HEADER_HPP */

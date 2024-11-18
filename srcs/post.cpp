@@ -183,7 +183,7 @@ int getContentLength(std::string header, t_serverData *data)
 	//if the request size is superior to the max_body return an error
 	if(intSize > max_body)
 	{
-		contentTooLarge(data->maxBody, data);
+		errorPage("413", data);
 		throw Response::Error();
 	}
 	return(intSize);
