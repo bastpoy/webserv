@@ -86,8 +86,8 @@ class Request;
 class RequestHandler;
 class Response;
 class Server;
-// class Socket;
-// class VirtualHost;
+
+extern int session_id;
 
 // autoindex.cpp Functions
 bool						isDirectory(const std::string& path);
@@ -96,7 +96,7 @@ std::string					generateAutoIndexPage(const std::string directory, const std::ve
 std::string					handleAutoIndex(const std::string& path);
 
 // get.cpp Functions
-void						redirRequest(std::map<std::string, std::string>::iterator redir, int fd);
+void						redirRequest(std::string location, int fd);
 std::string                 check_location(std::string &uri, std::string &content, std::vector<Location> &location, t_serverData *data);
 std::string                 getContentType(std::string &path);
 void                        checkAccessFile(std::string &code, std::string &filePath, t_serverData *data);
@@ -106,15 +106,24 @@ void                        parseAndGetRequest(std::string buffer, t_serverData 
 // post.cpp Functions
 void		sendPostData(std::string code , std::string contentType, std::string content, t_serverData *data);
 int 		getContentLength(std::string header, t_serverData *data);
+int         getContentLength(std::string header, t_serverData *data);
 std::string	getFileName(std::string body);
 void		postRequest(std::string buffer, t_serverData *data);
+
+//Cookies
+void            putDataSession(std::map<std::string, std::string> values, t_serverData *data);
+void            newSessionCookie(std::map<std::string, std::string> values, t_serverData *data);
+std::string     manageDate(time_t current_time);
+bool check_cookie_validity(t_serverData *data);
+
+//Response
+std::string     httpGetResponseDownload(std::string code, std::string contentType, std::string content);
+std::string     httpGetResponse(std::string code, std::string contentType, std::string content);
+void            httpPostResponse(std::string code , std::string contentType, std::string content, t_serverData *data);
 
 // error.cpp Functions
 void	errorCloseEpollFd(int &epoll_fd, int errCode);
 void	contentTooLarge(std::string size, t_serverData *data);
-// void	badRequest(t_serverData *data);
-// void	internalError(t_serverData *data);
-// void	forbidden(t_serverData *data);
 void	notFound(t_serverData *data);
 void	errorPage(std::string error, t_serverData *data);
 void    notFoundFavicon(t_serverData *data);

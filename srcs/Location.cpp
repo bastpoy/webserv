@@ -158,7 +158,7 @@ void	Location::fillRedir(std::string line, Server *server)
 	size_t pos = line.find("return ");
     if(pos == std::string::npos)
     {
-        throw Response::Error();
+        throw Response::ConfigurationFileLocation();
     }
 	std::string code = line.substr(pos + strlen("return "), 3);
 	std::string domain = line.substr(pos + strlen("return ") + 4, line.length() - (pos + strlen("return")));

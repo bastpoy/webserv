@@ -35,7 +35,8 @@ SRCS		=	srcs/autoIndex.cpp \
 				srcs/error.cpp \
 				srcs/post.cpp \
 				srcs/get.cpp \
-				srcs/delete.cpp
+				srcs/delete.cpp \
+				srcs/cookie.cpp
 # srcs/Client.cpp
 # srcs/socket.cpp
 
@@ -52,7 +53,7 @@ DEPS_DIR	:=	.deps
 DEPS		:=	$(patsubst $(OBJS_DIR)/%.o, $(DEPS_DIR)/%.d, $(OBJS))
 
 # Compiler and flags
-CXXFLAGS	:=	-Werror -Wall -Wextra -std=c++98 -march=native
+CXXFLAGS	:=	-Werror -Wall -Wextra -std=c++98 -g -march=native
 CXX			:=	c++ $(CXXFLAGS)
 DEPFLAGS	:=	-MMD -MP -MF
 INCFLAGS	:=	-Iincludes

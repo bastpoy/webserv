@@ -53,6 +53,33 @@ std::string getContentType(std::string &path)
 	return "text/html"; // Default content type
 }
 
+int getContentLength(std::string header, t_serverData *data)
+{
+	//function to retrieve the content-length
+	std::string content = "Content-Length: ";
+	size_t pos = header.find(content);
+
+	if(pos == std::string::npos)
+	{
+		errorPage("400", data);
+		throw Response::ErrorBodyPostRequest();
+	}
+	//get the maxbody
+	std::string size = header.substr(pos + content.size(), header.size());
+	pos = size.find("\n");
+	size = size.substr(0, pos);
+
+	int max_body = atoi(data->maxBody.c_str());
+	int intSize = atoi(size.c_str());
+	//if the request size is superior to the max_body return an error
+	if(intSize > max_body)
+	{
+		contentTooLarge(data->maxBody, data);
+		throw Response::Error();
+	}
+	return(intSize);
+}
+
 bool isExtension(std::string path)
 {
 	//return false if there is not extension

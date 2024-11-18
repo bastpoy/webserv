@@ -21,6 +21,13 @@ Accepter les connexions des clients et les rediriger vers un gestionnaire de req
  * @details	Responsible for server configuration and management of virtual hosts.
 */
 
+typedef struct s_session {
+    time_t expireDate;
+    std::string id;
+    int is_valid;
+    std::map<std::string, std::string>  credentials;
+} t_session;
+
 typedef struct s_serverData
 {
 	int									sockfd;
@@ -33,6 +40,7 @@ typedef struct s_serverData
 	std::map<int, std::string>			errorPage;
 	std::map<std::string, std::string>	redir;
 	std::vector<Location>				location;
+    t_session                           *session;
 }t_serverData;
 
 class Server

@@ -6,7 +6,6 @@ bool isDirectory(const std::string& path)
     std::string full = "./www/" + path;
 	if (stat(full.c_str(), &statbuf) != 0)
     {
-        std::cout << "return false " << path << std::endl;
         return false;
     }
     std::cout << "true " << path << " and full " << full << std::endl;

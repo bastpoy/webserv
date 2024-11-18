@@ -16,6 +16,7 @@ struct epoll_event fillEpoolDataIterator(int sockfd, std::vector<Server>::iterat
 	data->errorPage = itbeg->getErrorPage();
 	data->redir = itbeg->getRedir();
 	data->location = itbeg->getLocation();
+    data->session = NULL;
 
 	event.events = EPOLLIN | EPOLLOUT; // Monitor for input events
 	//I stock the info server on the event ptr data
@@ -39,6 +40,7 @@ struct epoll_event fillEpoolDataInfo(int &client_fd, t_serverData *info)
 	data->errorPage = info->errorPage;
 	data->redir = info->redir;
 	data->location = info->location;
+    data->session = NULL;
 
 	struct epoll_event client_event;
 
@@ -168,7 +170,7 @@ bool handleRequest(std::string buffer, t_serverData *data)
 		if(data->redir.size())
 		{
             std::cout << "REDIRECTION GET" << std::endl;
-			redirRequest(data->redir.begin(), data->sockfd);
+			redirRequest(data->redir.begin()->second, data->sockfd);
 		}
 		// else I respond 
 		else
@@ -257,7 +259,8 @@ void Server::createListenAddr(ConfigParser &config)
 					catch(const std::exception& e)
 					{
 						std::cerr << e.what() << '\n';
-					}                  
+					}
+                    std::cout << "\n\n";
 				}
 			}
 		}

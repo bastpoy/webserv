@@ -62,7 +62,7 @@ std::string check_location(std::string &uri, std::string &content, std::vector<L
             {
                 //i redirec
                 std::cout << "inside location redirection" << std::endl;
-                redirRequest(it->getRedir().begin(), data->sockfd);
+                redirRequest(it->getRedir().begin()->second, data->sockfd);
                 //and leave
                 throw Response::Error();
             }
@@ -104,28 +104,6 @@ std::string check_location(std::string &uri, std::string &content, std::vector<L
 		it++;
 	}
 	return ("");
-}
-
-std::string httpGetResponse(std::string code, std::string contentType, std::string content)
-{
-	//make the header response
-	return ("HTTP/1.1 " + code + " \r\n"
-			"Content-Type: " + contentType + "\r\n"
-			"Content-Length: " + to_string(content.size()) + "\r\n"
-			"Connection: close\r\n"
-			"\r\n" + content);
-}
-
-std::string httpGetResponseDownload(std::string code, std::string contentType, std::string content)
-{
-	//make the header response
-	return ("HTTP/1.1 " + code + " \r\n"
-			"Content-Type: " + contentType + "\r\n"
-			"Content-Length: " + to_string(content.size()) + "\r\n"
-            "Content-Disposition: attachment\r\n"
-            // ; filename=\"" + file + "\"
-			"Connection: close\r\n"
-			"\r\n" + content);
 }
 
 void checkAccessFile(std::string &code, std::string &filePath, t_serverData *data)
@@ -183,6 +161,12 @@ void getRequest(std::string &uri, t_serverData *data)
 				checkAccessFile(code, filePath, data);
 				content = CGIHandler::execute(uri.c_str(), code);
 			}
+            //if i am at a certain page and if i have cookies
+            else if(filePath  == "./www/pages/cookie/connexion.html" && check_cookie_validity(data))
+            {
+                std::cout << "no nead to reconnect cause user already exist\n";
+                redirRequest("/", data->sockfd);
+            }
             else
                 content = readFile(filePath, data);
 		}
@@ -212,8 +196,10 @@ void getRequest(std::string &uri, t_serverData *data)
 	}
 	std::cout << "the filePath is: " << filePath << " uri : " << uri << std::endl;
 
+    //check if i am a directory and if i can enter inside
 	if (isDirectory(filePath))
 		checkAccessDir(code, filePath, data);
+    //idem for the file
 	checkAccessFile(code, filePath, data);
 	std::string response = httpGetResponse(code, contentType, content);
 
@@ -232,7 +218,11 @@ void parseAndGetRequest(std::string buffer, t_serverData *data)
     path = path.substr(0, path.find(' '));
 
     std::cout << "GET RESPONSE " << path <<  std::endl;
-
+    if(buffer.find("Cookie: ") != std::string::npos)
+    {
+        size_t pos = buffer.find("Cookie: ");
+        std::cout << buffer.substr(pos, 20) << std::endl;
+    }
     if(path.find("favicon.ico") != std::string::npos)
     {
         notFoundFavicon(data);
@@ -249,10 +239,10 @@ void parseAndGetRequest(std::string buffer, t_serverData *data)
         getRequest(path, data);
 }
 
-void redirRequest(std::map<std::string, std::string>::iterator redir, int fd)
+void redirRequest(std::string location, int fd)
 {
 	std::string response = "HTTP/1.1 302 Found \r\n"
-							"Location: " + redir->second + "\r\n"
+							"Location: " + location + "\r\n"
 							"Content-Type: text/html\r\n"
 							"Content-Length: 0 \r\n"
 							"Connection: keep-alive\r\n\r\n";
