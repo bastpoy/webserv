@@ -16,7 +16,6 @@ struct epoll_event fillEpoolDataIterator(int sockfd, std::vector<Server>::iterat
 	data->errorPage = itbeg->getErrorPage();
 	data->redir = itbeg->getRedir();
 	data->location = itbeg->getLocation();
-    data->session = NULL;
 
 	event.events = EPOLLIN | EPOLLOUT; // Monitor for input events
 	//I stock the info server on the event ptr data
@@ -40,7 +39,6 @@ struct epoll_event fillEpoolDataInfo(int &client_fd, t_serverData *info)
 	data->errorPage = info->errorPage;
 	data->redir = info->redir;
 	data->location = info->location;
-    data->session = NULL;
 
 	struct epoll_event client_event;
 
@@ -159,7 +157,7 @@ std::string readingData(int &fd, int &epoll_fd, struct epoll_event *client_event
     return(buffer);
 }
 
-bool handleRequest(std::string buffer, t_serverData *data) 
+bool handleRequest(std::string buffer, t_serverData *data, Cookie &cookie) 
 {
 	std::string firstLine = buffer.substr(0, buffer.find("\n"));
 	std::string typeRequest =  firstLine.substr(0, buffer.find(" "));
@@ -175,13 +173,13 @@ bool handleRequest(std::string buffer, t_serverData *data)
 		// else I respond 
 		else
 		{
-            parseAndGetRequest(buffer, data);
+            parseAndGetRequest(buffer, data, cookie);
 		}
 	}
     //if it is a post request
 	else if(typeRequest == "POST")
 	{
-		postRequest(buffer, data);
+		postRequest(buffer, data, cookie);
 	}
     //if its a delete request
 	else if(typeRequest == "DELETE")
@@ -204,6 +202,7 @@ void Server::createListenAddr(ConfigParser &config)
 	if (epoll_fd == -1)
 		errorCloseEpollFd(epoll_fd, 7);
 
+    Cookie cookie;
 	//iterate through every server and retrieve information
 	this->configuringNetwork(itbeg, config, epoll_fd);
 
@@ -253,7 +252,7 @@ void Server::createListenAddr(ConfigParser &config)
 							continue;
                         // std::cout << path << std::endl;
 						// response request
-						if(handleRequest(path, info))
+						if(handleRequest(path, info, cookie))
 							continue;
 					}
 					catch(const std::exception& e)

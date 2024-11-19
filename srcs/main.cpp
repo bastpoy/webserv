@@ -1,6 +1,5 @@
 #include "Header.hpp"
 
-int session_id = 1;
 
 int main(int ac, char **av)
 {

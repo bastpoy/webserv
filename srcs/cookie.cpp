@@ -1,14 +1,70 @@
 #include "Header.hpp"
 
-bool check_cookie_validity(t_serverData *data)
+
+//=================
+//getter and setter
+//=================
+
+std::map<std::string, t_session> Cookie::get_session()
+{
+    return (this->session);
+}
+
+std::pair<std::string, t_session> Cookie::get_session_id(std::string id)
+{
+    std::map<std::string, t_session>::iterator it = this->session.find(id);
+
+    std::pair<std::string, t_session> m;
+
+    if(it != this->session.end())
+        return(*it);
+    return m;
+}
+
+bool Cookie::remove_session_id(std::string id)
+{
+    std::map<std::string, t_session>::iterator it = this->session.find(id);
+    if (it != this->session.end())
+    {
+        this->session.erase (it);
+        std::cout << "DECONNEXION SUCCESSFULL" << std::endl;
+        return (true);
+    }
+    return(false);
+}
+
+void Cookie::add_session(std::pair<std::string, t_session> session)
+{
+    this->session.insert(session);
+}
+
+
+//=================
+// other functions
+//=================
+
+
+std::string get_cookie_id(std::string buffer)
+{
+    size_t pos = buffer.find("Cookie: id=");
+    
+    if (pos != std::string::npos)
+    {
+        //retrieve the id
+        std::string id = buffer.substr(pos + 11, 8);
+        return (id);
+    }
+    return("");
+}
+
+bool check_cookie_validity(Cookie &cookie, std::string id)
 {
     //i am checking if my cookie date session is still superior to my actual date
     time_t actualTime = time(NULL);
 
-    if(data->session)
+    if(!cookie.get_session().empty())
     {
-        std::cout << "actual time: " << actualTime << " and cookies time: " << data->session->expireDate << std::endl;
-        if(data->session->expireDate < actualTime)
+        if(cookie.get_session_id(id).second.expireDate < actualTime)
             return (false);
     }
     else
@@ -21,14 +77,13 @@ std::string gen_random(const int len) {
         "0123456789"
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         "abcdefghijklmnopqrstuvwxyz";
-    std::string tmp_s;
-    tmp_s.reserve(len);
+    std::string temp;
+    temp.reserve(len);
 
     for (int i = 0; i < len; ++i) {
-        tmp_s += alphanum[rand() % (sizeof(alphanum) - 1)];
+        temp += alphanum[rand() % (sizeof(alphanum) - 1)];
     }
-    
-    return tmp_s;
+    return temp;
 }
 
 std::string manageDate(time_t current_time)
@@ -41,52 +96,31 @@ std::string manageDate(time_t current_time)
     return (buffer);
 }
 
-void newSessionCookie(std::map<std::string, std::string> values, t_serverData *data)
+std::string newSessionCookie(std::map<std::string, std::string> values, Cookie &cookie, t_serverData *data)
 {
-    // creating a cookie session and save client credentials
-    t_session *session = new t_session();
-    data->session = session;
-
+    // creating a cookie session and save client info and credentials
+    std::pair<std::string, t_session> newSession;
     //add all atributes to my session
-    session->id = gen_random(8);
-    session_id++;
-    session->expireDate = time(NULL) + 360;
-    std::cout << session->expireDate << std::endl;
-    manageDate(session->expireDate);
-    session->is_valid = 0;
+    newSession.first = gen_random(8);
+    // cookie during 6 min
+    newSession.second.expireDate = time(NULL) + 15;
+    std::cout << newSession.second.expireDate << std::endl;
+
+    //set the validity to valid
+    newSession.second.is_valid = 1;
+
     //adding email and password to the client session
     std::map<std::string, std::string>::iterator it = values.begin();
+    if(it == values.end())
+        errorPage("400", data);
     while(it != values.end())
     {
-        std::pair<std::string, std::string> pair = *it;
-        data->session->credentials.insert(pair);
+        if(!newSession.second.credentials.first.size())
+            newSession.second.credentials.first = it->second;
+        else
+            newSession.second.credentials.second = it->second;
         it++;
     }
-}
-
-void putDataSession(std::map<std::string, std::string> values, t_serverData *data)
-{
-    (void)data;
-    // write all my connection data inside a file
-    std::map<std::string, std::string>::iterator it = values.begin();
-
-	int fd = open("./www/data/session/data.txt", O_WRONLY | O_APPEND | O_CREAT, 0644);
-	if(fd < 0)
-	{
-		std::cout << "Error during opening file:" << strerror(errno) << std::endl;
-		throw Response::Error();
-	}
-	while(it != values.end())
-	{
-		write(fd, "\"", 1);
-		write(fd, it->first.c_str(), it->first.size());
-		write(fd, "\" : \"", 5);
-		write(fd, it->second.c_str(), it->second.size());
-		it++;
-		if(it != values.end())
-			write(fd, "\",\n", 3);
-		else
-			write(fd, "\"\n", 2);
-	}
-	close(fd);
+    cookie.add_session(newSession);
+    return (newSession.first);
 }

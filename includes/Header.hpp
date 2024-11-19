@@ -41,6 +41,7 @@
 #include "Response.hpp"			// Classe pour les réponses
 #include "Utils.hpp"
 #include "delete.hpp"
+#include "cookie.hpp"
 
 /* ------------- COLORS ------------- */
 // Reset
@@ -86,14 +87,12 @@ class Request;
 class RequestHandler;
 class Response;
 class Server;
-
-extern int session_id;
+class Cookie;
 
 // autoindex.cpp Functions
 bool						isDirectory(const std::string& path);
 std::vector<std::string>	listDirectory(const std::string& directory);
 std::string					generateAutoIndexPage(const std::string directory, const std::vector<std::string>& files);
-std::string					handleAutoIndex(const std::string& path);
 
 // get.cpp Functions
 void						redirRequest(std::string location, int fd);
@@ -101,25 +100,24 @@ std::string                 check_location(std::string &uri, std::string &conten
 std::string                 getContentType(std::string &path);
 void                        checkAccessFile(std::string &code, std::string &filePath, t_serverData *data);
 std::string                 httpGetResponse(std::string code, std::string contentType, std::string content);
-void                        parseAndGetRequest(std::string buffer, t_serverData *data);
+void                        parseAndGetRequest(std::string buffer, t_serverData *data, Cookie &cookie);
 
 // post.cpp Functions
-void		sendPostData(std::string code , std::string contentType, std::string content, t_serverData *data);
 int 		getContentLength(std::string header, t_serverData *data);
 int         getContentLength(std::string header, t_serverData *data);
 std::string	getFileName(std::string body);
-void		postRequest(std::string buffer, t_serverData *data);
+void		postRequest(std::string buffer, t_serverData *data, Cookie &cookie);
 
 //Cookies
-void            putDataSession(std::map<std::string, std::string> values, t_serverData *data);
-void            newSessionCookie(std::map<std::string, std::string> values, t_serverData *data);
+std::string     newSessionCookie(std::map<std::string, std::string> values,Cookie &cookie, t_serverData *data);
 std::string     manageDate(time_t current_time);
-bool check_cookie_validity(t_serverData *data);
+bool            check_cookie_validity(Cookie &cookie, std::string id);
+std::string     get_cookie_id(std::string buffer);
 
 //Response
 std::string     httpGetResponseDownload(std::string code, std::string contentType, std::string content);
 std::string     httpGetResponse(std::string code, std::string contentType, std::string content);
-void            httpPostResponse(std::string code , std::string contentType, std::string content, t_serverData *data);
+void            httpPostResponse(std::string code , std::string contentType, std::string content, t_serverData *data, Cookie &cookie, std::string id);
 
 // error.cpp Functions
 void	errorCloseEpollFd(int &epoll_fd, int errCode);

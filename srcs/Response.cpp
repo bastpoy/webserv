@@ -38,31 +38,38 @@ std::string httpGetResponseDownload(std::string code, std::string contentType, s
 			"\r\n" + content);
 }
 
-void httpPostResponse(std::string code , std::string contentType, std::string content, t_serverData *data)
+void redirRequest(std::string location, int fd)
+{
+	std::string response = "HTTP/1.1 302 Found \r\n"
+							"Location: " + location + "\r\n"
+							"Content-Type: text/html\r\n"
+							"Content-Length: 0 \r\n"
+							"Connection: keep-alive\r\n\r\n";
+
+	if(send(fd, response.c_str(), response.size(), 0) < 0)
+	{
+		std::cout << strerror(errno) << std::endl;
+		std::cout << "Error redirection: " << strerror(errno) << std::endl;
+	}
+    close(fd);
+}
+
+void httpPostResponse(std::string code , std::string contentType, std::string content, t_serverData *data, Cookie &cookie, std::string id)
 {
 	//build the http header response
 	std::string response = "HTTP/1.1 " + code + " \r\n"
 							"Content-Type: " + contentType + "\r\n";
-    //if i have a cookie session i return it
-    if(data->session)
-    {
-        //convert my second date into strings
-        std::stringstream ss;
-        ss << data->session->expireDate;
-        std::string ts = ss.str();
 
-        std::map<std::string, std::string>::iterator it = data->session->credentials.begin();
+    std::pair<std::string, t_session> session = cookie.get_session_id(id);
+    //I check if i have a cookie with the current id pass
+    if(!session.first.empty())
+    {
         //fill my credentials in the response header
-        while(it != data->session->credentials.end())
-        {
-            response += "Set-Cookie: id=" + data->session->id + 
-                        "; Expires=" + manageDate(data->session->expireDate) +
-                        "; password=" + it->second +
-                        "; Path=/";
-            it++;
-            response += "; email=" + it->second + "\r\n";
-            it++;
-        }
+        response += "Set-Cookie: id=" + session.first + 
+                    "; Expires=" + manageDate(session.second.expireDate) +
+                    "; password=" + session.second.credentials.first +
+                    "; Path=/";
+        response += "; email=" + session.second.credentials.second + "\r\n";
     }
 	response +=	"Content-Length: " + to_string(content.size()) + "\r\n"
 				"\r\n" + content;

@@ -131,7 +131,37 @@ void checkAccessDir(std::string &code, std::string &dirPath, t_serverData *data)
 		code = "200 OK";
 }
 
-void getRequest(std::string &uri, t_serverData *data)
+void process_extension(std::string &filePath, std::string &code, std::string uri, std::string buffer, std::string &content, Cookie &cookie, t_serverData *data)
+{
+    // if no root inside my server
+    if(data->path.empty())
+    {
+        errorPage("403", data);
+    }
+    //if i have an extension
+    if(isExtension(uri))
+    {
+        filePath = data->path + uri;
+        //if its a python file
+        if (filePath.find(".py") != std::string::npos)
+        {
+            std::cout << BLUE "It's a CGI " RESET << filePath <<std::endl; // Debug
+            checkAccessFile(code, filePath, data);
+            content = CGIHandler::execute(uri.c_str(), code);
+        }
+        //if i am at a connexion page and if i have cookies
+        else if(filePath  == "./www/pages/cookie/connexion.html" && check_cookie_validity(cookie, get_cookie_id(buffer)))
+        {
+            std::cout << "no nead to reconnect cause user already exist\n";
+            redirRequest("/", data->sockfd);
+            throw Response::responseOk();
+        }
+        else
+            content = readFile(filePath, data);
+    }
+}
+
+void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::string buffer)
 {
 	std::vector<Location>location = data->location;
 	std::string	content;
@@ -141,6 +171,7 @@ void getRequest(std::string &uri, t_serverData *data)
 	std::string filePath = check_location(uri, content, data->location, data);
     bool download = false;
 
+    std::cout << "the uri " << uri << std::endl;
 	//check if i dont have a location
 	if(filePath.empty())
 	{
@@ -148,27 +179,11 @@ void getRequest(std::string &uri, t_serverData *data)
 		if(data->path.empty())
         {
 			errorPage("403", data);
-			throw Response::Error();
 		}
         //if i have an extension
 		if(isExtension(uri))
 		{
-			filePath = data->path + uri;
-            //if its a python file
-			if (filePath.find(".py") != std::string::npos)
-			{
-				std::cout << BLUE "It's a CGI " RESET << filePath <<std::endl; // Debug
-				checkAccessFile(code, filePath, data);
-				content = CGIHandler::execute(uri.c_str(), code);
-			}
-            //if i am at a certain page and if i have cookies
-            else if(filePath  == "./www/pages/cookie/connexion.html" && check_cookie_validity(data))
-            {
-                std::cout << "no nead to reconnect cause user already exist\n";
-                redirRequest("/", data->sockfd);
-            }
-            else
-                content = readFile(filePath, data);
+            process_extension(filePath, code, uri, buffer, content, cookie, data);
 		}
         // if i have a file to download
         else if(isExtensionDownload(uri))
@@ -176,6 +191,15 @@ void getRequest(std::string &uri, t_serverData *data)
             filePath= data->path + uri;
             download = true;
             content = readFile(filePath, data);
+        }
+        //if i make a deconnexion
+        else if(uri == "pages/deconnexion/")
+        {
+            std::string id = get_cookie_id(buffer);
+            if(!id.empty() && check_cookie_validity(cookie, id))
+                cookie.remove_session_id(id);
+            redirRequest("/", data->sockfd);
+            throw Response::responseOk();
         }
 		// if an index inside my server
 		else if (!data->index.empty())
@@ -211,18 +235,13 @@ void getRequest(std::string &uri, t_serverData *data)
 }
 
 //parse the get request header and return the response with getrequest
-void parseAndGetRequest(std::string buffer, t_serverData *data)
+void parseAndGetRequest(std::string buffer, t_serverData *data, Cookie &cookie)
 {
     //get the url of the request
     std::string path = buffer.substr(buffer.find('/') + 1, buffer.size() - buffer.find('/'));
     path = path.substr(0, path.find(' '));
 
     std::cout << "GET RESPONSE " << path <<  std::endl;
-    if(buffer.find("Cookie: ") != std::string::npos)
-    {
-        size_t pos = buffer.find("Cookie: ");
-        std::cout << buffer.substr(pos, 20) << std::endl;
-    }
     if(path.find("favicon.ico") != std::string::npos)
     {
         notFoundFavicon(data);
@@ -236,21 +255,6 @@ void parseAndGetRequest(std::string buffer, t_serverData *data)
         displayDeletePage(path, data);
     // return the data to the client
     else
-        getRequest(path, data);
+        getRequest(path, data, cookie, buffer);
 }
 
-void redirRequest(std::string location, int fd)
-{
-	std::string response = "HTTP/1.1 302 Found \r\n"
-							"Location: " + location + "\r\n"
-							"Content-Type: text/html\r\n"
-							"Content-Length: 0 \r\n"
-							"Connection: keep-alive\r\n\r\n";
-
-	if(send(fd, response.c_str(), response.size(), 0) < 0)
-	{
-		std::cout << strerror(errno) << std::endl;
-		std::cout << "Error redirection: " << strerror(errno) << std::endl;
-	}
-    close(fd);
-}

@@ -59,7 +59,7 @@ void putFormData(std::map<std::string, std::string> values)
 	close(fd);
 }
 
-void parsePostBody(std::string &body, t_serverData *data)
+void parsePostBody(std::string &body, t_serverData *data, Cookie &cookie)
 {
 	std::map<std::string, std::string> values;
 	std::string temp;
@@ -82,9 +82,8 @@ void parsePostBody(std::string &body, t_serverData *data)
     if(values.find("password") != values.end())
     {
         std::string file = "./www/pages/post/post.html";
-        // putDataSession(values, data);
-        newSessionCookie(values, data);
-        httpPostResponse("201 Created", "text/html", readFile(file, data), data);
+        std::string id = newSessionCookie(values, cookie, data);
+        httpPostResponse("201 Created", "text/html", readFile(file, data), data, cookie, id);
         Response::responseOk();
     }
     else
@@ -205,7 +204,7 @@ bool read_full_body(t_serverData *data, std::string &body, int content_length)
 	return total_read == content_length;
 }
 
-void postRequest(std::string buffer, t_serverData *data)
+void postRequest(std::string buffer, t_serverData *data, Cookie &cookie)
 {
 	std::cout << "\nPOST REQUEST\n" << std::endl;
 	//search the body in the header
@@ -236,7 +235,8 @@ void postRequest(std::string buffer, t_serverData *data)
 			//put the download data inside a file
 			output << body;
 			output.close();
-			httpPostResponse("201 Created", "text/html", readFile(file, data), data);
+            std::string id = get_cookie_id(buffer);
+			httpPostResponse("201 Created", "text/html", readFile(file, data), data, cookie, id);
 		}
 		// If i have a form
 		else
@@ -247,11 +247,12 @@ void postRequest(std::string buffer, t_serverData *data)
             int size = getContentLength(header, data);
             read_full_body(data, body, size);
             // std::cout << body << std::endl;
-			parsePostBody(body, data);
+			parsePostBody(body, data, cookie);
 			//put all the data from the body inside a file
 			translateJson(data);
 			//send responseiPOST
-			httpPostResponse("201 Created", "application/json", readFile(file, data), data);
+            std::string id = get_cookie_id(buffer);
+			httpPostResponse("201 Created", "application/json", readFile(file, data), data, cookie, id);
 		}
 	}
 	// error post body
