@@ -106,7 +106,7 @@ void                        parseAndGetRequest(std::string buffer, t_serverData 
 int 		getContentLength(std::string header, t_serverData *data);
 int         getContentLength(std::string header, t_serverData *data);
 std::string	getFileName(std::string body);
-void		postRequest(std::string buffer, t_serverData *data, Cookie &cookie);
+void		postRequest(t_serverData *data, Cookie &cookie);
 
 //Cookies
 std::string     newSessionCookie(std::map<std::string, std::string> values,Cookie &cookie, t_serverData *data);
@@ -121,8 +121,6 @@ void            httpPostResponse(std::string code , std::string contentType, std
 
 // error.cpp Functions
 void	errorCloseEpollFd(int &epoll_fd, int errCode);
-void	contentTooLarge(std::string size, t_serverData *data);
-void	notFound(t_serverData *data);
 void	errorPage(std::string error, t_serverData *data);
 void    notFoundFavicon(t_serverData *data);
 

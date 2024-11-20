@@ -177,13 +177,16 @@ bool read_full_body(t_serverData *data, std::string &body, int content_length)
 	const int buffer_size = 1024;   // Use a large buffer if desired
 	char buffer[buffer_size];
 
+    std::cout << body << std::endl;
 	while (total_read < content_length) {
 		// Calculate how much more data we need to read
 		int bytes_to_read = std::min(content_length - total_read, buffer_size);
+        // std::cout << content_length - total_read << " " << buffer_size << " " << bytes_to_read << std::endl;
 		
 		// Read data into the buffer
+        // int bytes_read =  read(data->sockfd, buffer, bytes_to_read);
 		int bytes_read = recv(data->sockfd, buffer, bytes_to_read, 0);
-		
+        // std::cout << "bytes read " << bytes_read << std::endl;
 		if (bytes_read < 0) 
 		{
 			std::cout << "Error reading from socket: " << strerror(errno) << std::endl;
@@ -191,41 +194,48 @@ bool read_full_body(t_serverData *data, std::string &body, int content_length)
 		} 
 		else if (bytes_read == 0) 
 		{
-			std::cerr << "Connection closed by the client." << std::endl;
+			std::cout << "Connection closed by the client." << std::endl;
 			break; // Connection closed
 		}
-
+        // else if(bytes_read < buffer_size)
+        // {
+        //     std::cout << "je break alors que faut pas " << bytes_read << std::endl;
+		//     body.append(buffer, bytes_read);
+        //     // exit(1);
+		// 	break; // Connection closed
+        // }
+        // std::cout << bytes_to_read << " " << total_read << " " << content_length << std::endl;
 		// Append the read data to the body string
 		body.append(buffer, bytes_read);
 		total_read += bytes_read;
 	}
-
+    std::cout << "je suis sorti\n" << total_read << " " << content_length << std::endl;
 	// Check if we read the expected content length
 	return total_read == content_length;
 }
 
-void postRequest(std::string buffer, t_serverData *data, Cookie &cookie)
+void postRequest(t_serverData *data, Cookie &cookie)
 {
 	std::cout << "\nPOST REQUEST\n" << std::endl;
 	//search the body in the header
-	size_t pos = buffer.find("\r\n\r\n");
+	size_t pos = data->buffer.find("\r\n\r\n");
 	// If i have a body in the post request
 	if(pos != std::string::npos)
 	{
 		// retrieve the body and remove the \r\n\r\n before by adding + 4
-		std::string body = buffer.substr(pos + 4, buffer.size());
-		std::string header = buffer.substr(0, pos);
+		// std::string body = buffer.substr(pos + 4, buffer.size());
+		// std::string header = buffer.substr(0, pos);
 		// If I have an upload
-		if(header.find("multipart/form-data") != std::string::npos)
+		if(data->header.find("multipart/form-data") != std::string::npos)
 		{
 			std::string file = "./www/pages/post/post.html";
 			std::cout << "UPLOADING FILE" << std::endl;
 			//get the size of the file to upload
-			int size = getContentLength(header, data);
-			std::string fileName = getFileName(body, data);
+			// int size = getContentLength(data->header, data);
+			std::string fileName = getFileName(data->body, data);
 			fileName = "./www/upload/" + fileName;
 			//read all the data of the upload file
-			read_full_body(data, body, size);
+			// read_full_body(data, body, size);
 			std::ofstream output(fileName.c_str());
 			if(!output.is_open())
 			{
@@ -233,9 +243,10 @@ void postRequest(std::string buffer, t_serverData *data, Cookie &cookie)
 				throw Response::ErrorOpeningFile();
 			}
 			//put the download data inside a file
-			output << body;
+			output << data->body;
 			output.close();
-            std::string id = get_cookie_id(buffer);
+            // std::cout << body << std::endl;
+            std::string id = get_cookie_id(data->buffer);
 			httpPostResponse("201 Created", "text/html", readFile(file, data), data, cookie, id);
 		}
 		// If i have a form
@@ -244,14 +255,14 @@ void postRequest(std::string buffer, t_serverData *data, Cookie &cookie)
 			std::string file = "./www/data/form/keyvalue.json";
 			std::cout << "POSTING DATA" << std::endl;
 			//parse the actual body of the post request
-            int size = getContentLength(header, data);
-            read_full_body(data, body, size);
+            // int size = getContentLength(data->header, data);
+            // read_full_body(data, body, size);
             // std::cout << body << std::endl;
-			parsePostBody(body, data, cookie);
+			parsePostBody(data->body, data, cookie);
 			//put all the data from the body inside a file
 			translateJson(data);
 			//send responseiPOST
-            std::string id = get_cookie_id(buffer);
+            std::string id = get_cookie_id(data->buffer);
 			httpPostResponse("201 Created", "application/json", readFile(file, data), data, cookie, id);
 		}
 	}

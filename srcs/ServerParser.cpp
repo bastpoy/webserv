@@ -61,9 +61,9 @@ void Server::setRedir(std::string code, std::string domain)
 	this->_redir.insert(std::make_pair(code, domain));
 }
 
-void Server::setErrorPage(int code, std::string errorFile)
+void Server::setErrorPage(std::string code, std::string errorFile)
 {
-	errorFile.erase(std::remove(errorFile.begin(), errorFile.end(), ' '), errorFile.end());
+	// errorFile.erase(std::remove(errorFile.begin(), errorFile.end(), ' '), errorFile.end());
 	this->_errorPage.insert(std::make_pair(code, errorFile));
 }
 
@@ -111,7 +111,7 @@ std::map<std::string,std::string>	&Server::getRedir()
 	return (this->_redir);
 }
 
-std::map<int,std::string>	&Server::getErrorPage()
+std::map<std::string,std::string>	&Server::getErrorPage()
 {
 	return (this->_errorPage);
 }
@@ -192,9 +192,11 @@ void	Server::fillAutoIndex(std::string line)
 
 void	Server::fillErrorPage(std::string line)
 {
-	size_t pos = line.find("error_page");
-	int code = atoi(line.substr(pos + strlen("error_page"), 3).c_str());
-	std::string domain = line.substr(pos + strlen("error_page") + 3, line.length());
+	size_t pos = line.find("error_page ");
+    // line.erase(std::remove(line.begin(), line.end(), ' '), line.end());
+    // std::cout << line << std::endl;
+	std::string code = line.substr(pos + strlen("error_page "), 3).c_str();
+	std::string domain = line.substr(pos + strlen("error_page ") + 4, line.length());
 	this->setErrorPage(code, domain);
 
 	//print
@@ -241,7 +243,7 @@ void	Server::fillLocation(std::ifstream &file, std::string line)
 			location.fillIndex(line);
 		else if (line.find("return") != std::string::npos)
 			location.fillRedir(line, this);
-		else if (line.find("error_page") != std::string::npos)
+		else if (line.find("error_page ") != std::string::npos)
 			location.fillErrorPage(line, this);
 		else if (line.find("}") != std::string::npos)
 		{
@@ -274,10 +276,10 @@ void	Server::printConfig()
 	if(!this->getMaxBody().empty())
 		std::cout << "maxBody\t\t" YELLOW << this->getMaxBody() << RESET << std::endl;
 	if(!this->getIndex().empty())
-		std::cout << "index " << this->getIndex() << std::endl;
+		std::cout << "index\t\t" YELLOW<< this->getIndex() << RESET << std::endl;
 	if(!this->getAutoIndex().empty())
-		std::cout << "autoindex " << this->getAutoIndex() << std::endl;
-	if(this->getErrorPage().begin()->first) 
+		std::cout << "autoindex\t" YELLOW<< this->getAutoIndex() << RESET << std::endl;
+	if(this->getErrorPage().size()) 
 		std::cout << "error_page\t" YELLOW << this->getErrorPage().begin()->first << " " << this->getErrorPage().begin()->second << RESET << std::endl;
 	if(this->getRedir().size()) 
 		std::cout << "return\t\t" YELLOW << this->getRedir().begin()->first << " " << this->getRedir().begin()->second << RESET << std::endl;

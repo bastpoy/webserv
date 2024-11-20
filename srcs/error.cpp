@@ -42,8 +42,8 @@ void contentTooLarge(std::string size, t_serverData *data)
 		std::cout << strerror(errno) << std::endl;
 		throw Response::ErrorSendingResponse(); 
 	}
+    throw Response::Error();
 }
-
 
 void badRequest(t_serverData *data)
 {
@@ -155,12 +155,18 @@ void notImplemented(t_serverData *data)
 
 void errorPage(std::string error, t_serverData *data)
 {
+    // if()
+    // {
+
+    // }
 	if (error == "400")
 		Response::sendResponse("400 Bad Request", "text/html", readFile("./www/error/error400.html", data), data);
 	else if (error == "403")
 		Response::sendResponse("403 Forbidden", "text/html", readFile("./www/error/error403.html", data), data);
 	else if (error == "404")
 		Response::sendResponse("404 Not Found", "text/html", readFile("./www/error/error404.html", data), data);
+    else if (error == "413")
+        Response::sendResponse("413 Content Too Large", "text/html", readFile("./www/error/error413.html", data), data);
 	else if (error == "500")
 		Response::sendResponse("500 Internal Server Error", "text/html", readFile("./www/error/error500.html", data), data);
 	else if (error == "501")

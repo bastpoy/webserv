@@ -16,9 +16,13 @@ struct epoll_event fillEpoolDataIterator(int sockfd, std::vector<Server>::iterat
 	data->errorPage = itbeg->getErrorPage();
 	data->redir = itbeg->getRedir();
 	data->location = itbeg->getLocation();
+    data->buffer = "";
+    data->header = "";
+    data->body = "";
 
-	event.events = EPOLLIN | EPOLLOUT; // Monitor for input events
+	event.events = EPOLLIN; // Monitor for input events
 	//I stock the info server on the event ptr data
+    event.data.fd = sockfd;
 	event.data.ptr = static_cast<void*>(data);
 
 	return (event);
@@ -39,10 +43,14 @@ struct epoll_event fillEpoolDataInfo(int &client_fd, t_serverData *info)
 	data->errorPage = info->errorPage;
 	data->redir = info->redir;
 	data->location = info->location;
+    data->buffer = "";
+    data->header = "";
+    data->body = "";
 
 	struct epoll_event client_event;
 
-	client_event.events = EPOLLIN | EPOLLOUT;
+	client_event.events = EPOLLIN;
+    client_event.data.fd = client_fd;
 	client_event.data.ptr = static_cast<void*>(data);
 
 	return(client_event);
@@ -159,8 +167,8 @@ std::string readingData(int &fd, int &epoll_fd, struct epoll_event *client_event
 
 bool handleRequest(std::string buffer, t_serverData *data, Cookie &cookie) 
 {
-	std::string firstLine = buffer.substr(0, buffer.find("\n"));
-	std::string typeRequest =  firstLine.substr(0, buffer.find(" "));
+	std::string firstLine = data->header.substr(0, data->header.find("\n"));
+	std::string typeRequest = firstLine.substr(0, data->header.find(" "));
 
 	if(typeRequest == "GET")
 	{
@@ -179,7 +187,7 @@ bool handleRequest(std::string buffer, t_serverData *data, Cookie &cookie)
     //if it is a post request
 	else if(typeRequest == "POST")
 	{
-		postRequest(buffer, data, cookie);
+		postRequest(data, cookie);
 	}
     //if its a delete request
 	else if(typeRequest == "DELETE")
@@ -190,6 +198,56 @@ bool handleRequest(std::string buffer, t_serverData *data, Cookie &cookie)
 	else
 		std::cout << "404 not found" << std::endl;
 	return(false);
+}
+
+bool read_one_chunk(t_serverData *data) 
+{
+    int bufferSize = 1024;
+    char buffer[bufferSize];
+    // Read data into the buffer
+    int bytes_read = recv(data->sockfd, buffer, bufferSize, 0);
+    std::cout << "bytes read " << bytes_read << " with sockfd "<< data->sockfd << std::endl;
+    if (bytes_read < 0) 
+    {
+        std::cout << "Error reading from socket: " << strerror(errno) << std::endl;
+        errorPage("400", data);
+    } 
+    // if there is a deconnection
+    else if (bytes_read == 0) 
+    {
+        std::cout << "Connection closed by the client. (recv = 0)" << std::endl;
+        // close(data->sockfd);
+        return (true); 
+    }
+    else if (bytes_read < bufferSize) 
+    {
+        std::cout << BLUE "Bytes inferior to actual bytes " << bytes_read << RESET << std::endl;
+        // close(data->sockfd);
+        //do the responseS
+        data->buffer.append(buffer, bytes_read);
+        return (true); 
+    }
+    data->buffer.append(buffer, bytes_read);
+    // std::cout << data->buffer << std::endl;
+    return (false);
+}
+
+void parsing_buffer(t_serverData *data, Cookie cookie)
+{
+    //if i have a buffer so a request 
+    if(!data->buffer.empty())
+    {
+        //i fill my header and my body of my request
+        size_t pos = data->buffer.find("\r\n\r\n");
+        data->header = data->buffer.substr(0, pos);
+        data->body = data->buffer.substr(pos + 4, data->buffer.size() - pos + 4);
+        std::cout << MAGENTA "handling request\n" << RESET;
+        handleRequest(data->buffer, data, cookie);
+    }
+    else
+    {
+        std::cout << "no data provide" << std::endl;
+    }
 }
 
 // Fill from ServerAddr
@@ -213,7 +271,7 @@ void Server::createListenAddr(ConfigParser &config)
 
 	while (true) {
 		//epollwait return a number corresponding to all the files descriptor
-        std::cout << "waiting...\n";
+        // std::cout << "Waiting...\n";
 		int num_fds = epoll_wait(epoll_fd, events, MAX_EVENTS, -1);
 		if (num_fds == -1) 
 			errorCloseEpollFd(epoll_fd, 1);
@@ -241,26 +299,38 @@ void Server::createListenAddr(ConfigParser &config)
 			//Connection already etablish 
 			else
 			{
-				// check for modification inside the socket
-				if(events[i].events & (EPOLLIN | EPOLLOUT))
-				{
-					try
-					{
-						//reading data
-						std::string path = readingData(fd, epoll_fd, events);
-						if (path.empty())
-							continue;
-                        // std::cout << path << std::endl;
-						// response request
-						if(handleRequest(path, info, cookie))
-							continue;
-					}
-					catch(const std::exception& e)
-					{
-						std::cerr << e.what() << '\n';
-					}
-                    std::cout << "\n\n";
-				}
+                //i listen for some epollin event and possible data read
+                if(events[i].events & EPOLLIN)
+                {
+                    if(read_one_chunk(info))
+                    {
+                        //if i finish read the request info i change the status of the socket
+                        events[i].events = EPOLLOUT;
+                        epoll_ctl(epoll_fd, EPOLL_CTL_MOD, info->sockfd, events);
+                        // if the connection with the socket is over
+                        // close(info->sockfd);
+                    }
+                }
+                //if i can write to my socket
+                if(events[i].events & EPOLLOUT)
+                {
+                    try
+                    {
+                        // parse the data
+                        parsing_buffer(info, cookie);
+                        // if i finish sending the info I change the status of the socket
+                        events[i].events = EPOLLIN;
+                        epoll_ctl(epoll_fd, EPOLL_CTL_MOD, info->sockfd, events);
+                        close(info->sockfd);
+                    }
+                    catch(const std::exception& e)
+                    {
+                        std::cerr << e.what() << '\n';
+                    }
+                    
+                }
+                std::cout << "\n\n";
+                usleep(10);
 			}
 		}
 	}

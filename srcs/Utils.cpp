@@ -74,8 +74,7 @@ int getContentLength(std::string header, t_serverData *data)
 	//if the request size is superior to the max_body return an error
 	if(intSize > max_body)
 	{
-		contentTooLarge(data->maxBody, data);
-		throw Response::Error();
+        errorPage("413", data);
 	}
 	return(intSize);
 }
@@ -130,7 +129,7 @@ std::string readFile(std::string path, t_serverData *data)
 	if(!file.is_open())
 	{
 		std::cout << path << ": ";
-        notFound(data);
+        errorPage("404", data);
 	}
 	return std::string(
 		std::istreambuf_iterator<char>(file),

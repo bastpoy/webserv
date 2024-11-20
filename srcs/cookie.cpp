@@ -102,7 +102,7 @@ std::string newSessionCookie(std::map<std::string, std::string> values, Cookie &
     std::pair<std::string, t_session> newSession;
     //add all atributes to my session
     newSession.first = gen_random(8);
-    // cookie during 6 min
+    // cookie during 15sec
     newSession.second.expireDate = time(NULL) + 15;
     std::cout << newSession.second.expireDate << std::endl;
 
