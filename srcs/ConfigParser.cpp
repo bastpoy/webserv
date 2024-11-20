@@ -43,6 +43,7 @@ void	ConfigParser::checkServerAttributs(Server &server, std::vector<Server> &ser
 {
 	for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); it++)
 	{
+		std::cout << "server name: " << it->getServerName() << std::endl;
 		if (it->getServerName() == server.getServerName())
 			throw Response::ConfigurationFileServer();
 		if (it->getPort() == server.getPort())
@@ -74,6 +75,7 @@ void	ConfigParser::parseConfig(std::vector<Server> &servers)
 			//create a server instance and add it to Server Class
 			Server server;
 			getServerAttributs(file, server);
+			std::cout << "server name: " << server.getServerName() << std::endl;
 			checkServerAttributs(server, servers);
 			addServer(server);
 		}
@@ -112,7 +114,7 @@ void ConfigParser::getServerAttributs(std::ifstream& file, Server &server)
 		if (line.find("listen") != std::string::npos)
 			server.fillPort(line);
 		else if(line.find("server_name") != std::string::npos)
-			server.fillServerName(line, server);
+			server.fillServerName(line);
 		else if(line.find("root") != std::string::npos)
 			server.fillPath(line);
 		else if(line.find("client_max_body_size") != std::string::npos)

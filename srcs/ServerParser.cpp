@@ -127,18 +127,10 @@ void	Server::fillPort(std::string line)
 	// std::cout << "the port is: " << this->getPort() << std::endl;
 }
 
-void	Server::fillServerName(std::string line, Server &server)
+void	Server::fillServerName(std::string line)
 {
 	size_t pos = line.find("server_name");
-	std::string server_name = line.substr(pos + strlen("server_name"), line.length() - (pos + strlen("server_name")))
-
-	//check if the each server name already exist
-	
-
-
-
-
-	this->setServerName(server_name);
+	this->setServerName(line.substr(pos + strlen("server_name"), line.length() - (pos + strlen("server_name"))));
 	//print
 	// std::cout << "the server is: " << this->getServerName() << std::endl;
 }

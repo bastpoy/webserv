@@ -76,9 +76,10 @@ $(OBJS_DIR)/%.o: $(SRCS_DIR)/%.cpp Makefile
 all: $(NAME)
 
 simple:
+	@clear
 	@make -j4 -s
 	@clear
-	./webserv conf/test/conflict_location.conf
+	./webserv conf/test/conflict_servername.conf
 
 # parsing : $(NAME1)
 

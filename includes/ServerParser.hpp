@@ -80,7 +80,7 @@ class Server
 
 		// Fill
 		void	fillPort(std::string line);
-		void	fillServerName(std::string line, Server &server);
+		void	fillServerName(std::string line);
 		void	fillPath(std::string line);
 		void	fillMaxBody(std::string line);
 		void	fillIndex(std::string line);

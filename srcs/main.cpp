@@ -12,7 +12,7 @@ int main(int ac, char **av)
 		ConfigParser	config(av[1]); // Initialiser ConfigParser avec le fichier de configuration fourni
 		Server			listenAddress;
 
-		config.parseConfig();
+		config.parseConfig(config.getServers());
 		config.printConfig();
 		listenAddress.createListenAddr(config);
 	}

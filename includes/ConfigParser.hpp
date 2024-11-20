@@ -27,7 +27,8 @@ class ConfigParser
 		void				addServer(Server &server);
 		std::vector<Server>	&getServers();
 		void				parseLine(std::string &line);
-		void				parseConfig(); // pour analyser le fichier de configuration et remplir les attributs.
+		void				checkServerAttributs(Server &server, std::vector<Server> &servers);
+		void				parseConfig(std::vector<Server> &servers); // pour analyser le fichier de configuration et remplir les attributs.
 		void				getServerAttributs(std::ifstream &file, Server &server);
 		void				printConfig();
 
