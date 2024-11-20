@@ -19,8 +19,13 @@ class Response
 		static std::string	sendResponse(std::string statusCode, std::string contentType, std::string content, t_serverData *data);
 
 		class ErrorOpeningFile : public std::exception{
+			private:
+				std::string _msg;
 			public:
+				explicit ErrorOpeningFile(const std::string &msg):
+					_msg("Error opening File: " + msg) {}
 				virtual const char* what() const throw();
+				virtual ~ErrorOpeningFile() throw() {}
 		};
 
 		class ErrorSendingResponse : public std::exception{
@@ -39,8 +44,13 @@ class Response
 		};
 
 		class ConfigurationFileServer : public std::exception{
+			private:
+				std::string _msg;
 			public:
+				explicit ConfigurationFileServer(const std::string &msg):
+					_msg("Error in the Server block configuration file: " + msg) {}
 				virtual const char* what() const throw();
+				virtual ~ConfigurationFileServer() throw() {}
 		};
 
 		class Error : public std::exception{

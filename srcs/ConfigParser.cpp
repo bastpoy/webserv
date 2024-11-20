@@ -26,7 +26,6 @@ ConfigParser::~ConfigParser()
 void ConfigParser::addServer(Server &server)
 {
 	this->_servers.push_back(server);
-	// std::cout << GREEN "Server added" RESET << std::endl;
 }
 
 //getter
@@ -43,40 +42,27 @@ void	ConfigParser::checkServerAttributs(Server &server, std::vector<Server> &ser
 {
 	for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); it++)
 	{
-		std::cout << "server name: " << it->getServerName() << std::endl;
 		if (it->getServerName() == server.getServerName())
-			throw Response::ConfigurationFileServer();
-		if (it->getPort() == server.getPort())
-			throw Response::ConfigurationFileServer();
+			throw Response::ConfigurationFileServer("Server name already exist");
 	}
 }
 
 void	ConfigParser::parseConfig(std::vector<Server> &servers)
 {
-	// std::cout << "---------PARSING CONF-----------\n";
-
-	// ConfigParser *config;
 	std::string line;
-	// std::ifstream file("./conf/Bastien.conf");
 	std::ifstream file(this->_path.c_str());
+	(void)servers;
 
 	if (!file.is_open())
-	{
-		std::cout << strerror(errno) << std::endl;
-		throw Response::ErrorOpeningFile();
-	}
+		throw Response::ErrorOpeningFile(strerror(errno));
 	while (getline(file, line))
 	{
-		// std::cout << YELLOW << line << RESET << std::endl;
 		// fill new server block
 		if (line.find("server") != std::string::npos)
 		{
-			// std::cout << GREEN "\nNew Server detected" RESET << std::endl;
-			//create a server instance and add it to Server Class
 			Server server;
 			getServerAttributs(file, server);
-			std::cout << "server name: " << server.getServerName() << std::endl;
-			checkServerAttributs(server, servers);
+			// checkServerAttributs(server, servers);
 			addServer(server);
 		}
 	}

@@ -16,9 +16,9 @@ std::string Response::sendResponse(std::string statusCode, std::string contentTy
 	throw Response::Error(); 
 }
 
-const char* Response::ErrorOpeningFile::what() const throw()
+const char*	Response::ErrorOpeningFile::what() const throw()
 {
-	return("Error opening File");
+	return _msg.c_str();
 }
 
 const char* Response::ErrorSendingResponse::what() const throw()
@@ -33,12 +33,12 @@ const char* Response::ConfigurationFileLocation::what() const throw()
 
 const char* Response::ConfigurationFileLocationPath::what() const throw()
 {
-	return("Error in the Location block configuration file:\nPath already exist");
+	return("Location configuration: Path already exist");
 }
 
 const char* Response::ConfigurationFileServer::what() const throw()
 {
-	return("Error in the Server block configuration file");
+	return _msg.c_str();
 }
 
 const char* Response::Error::what() const throw()

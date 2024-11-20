@@ -262,7 +262,7 @@ void postRequest(std::string buffer, t_serverData *data)
 			if(!output.is_open())
 			{
 				errorPage("500", data);
-				throw Response::ErrorOpeningFile();
+				throw Response::ErrorOpeningFile(NULL);
 			}
 			//put the download data inside a file
 			output << body;

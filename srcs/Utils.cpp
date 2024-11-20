@@ -20,8 +20,8 @@ std::string readFile(std::string path)
 	std::ifstream file(path.c_str(), std::ios::binary);
 	if(!file.is_open())
 	{
-		std::cout << path << ": ";
-		throw Response::ErrorOpeningFile();
+		// std::cout << path << ": ";
+		throw Response::ErrorOpeningFile(path);
 	}
 	return std::string(
 		std::istreambuf_iterator<char>(file),

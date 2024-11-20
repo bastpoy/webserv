@@ -2,6 +2,10 @@
 
 # # Colors and Styles
 RESET		:=	\e[0m
+BOLD		:=	\e[1m
+DIM			:=	\e[2m
+ITALIC		:=	\e[3m
+UNDERLINE	:=	\e[4m
 RED			:=	\e[31m
 GREEN		:=	\e[32m
 PURPLE		:=	\e[95m
@@ -16,10 +20,12 @@ MESSAGE_OK			=	[\e[32mOK\e[0m]
 MESSAGE_COMPILE		=	$(BLUE)Compiling :$(RESET)
 MESSAGE_DONE		=	$(MESSAGE_OK) WebServ compiled.
 MESSAGE_CLEAN		=	$(PURPLE)WebServ cleanup completed.$(RESET)
+MESSAGE_PASS		=	$(GREEN)Success: $$config failed as expected$(RESET)
+MESSAGE_FAIL		=	$(RED)Failed: $$config should have failed but didn't$(RESET)
+MESSAGE_TEST		=	---\n$(MAGENTA)Testing:
 
 # Executable name
 NAME		:=	webserv
-# NAME1 = config
 
 # Source directories and files
 SRCS_DIR	:=	srcs
@@ -35,16 +41,16 @@ SRCS		=	srcs/autoIndex.cpp \
 				srcs/error.cpp \
 				srcs/post.cpp \
 				srcs/get.cpp
-# srcs/Client.cpp
-# srcs/socket.cpp
 
-# SRCSPARSING =
+TEST_CONFS	=	conf/test/conflict_location.conf \
+				conf/test/conflict_servername.conf \
+				conf/test/do_not_exist.conf
+
 FILE_TO_DELETE	:=	www/assets/files/file_to_delete
 
 # Object directories and files
 OBJS_DIR	:=	.objs
 OBJS		:=	$(patsubst $(SRCS_DIR)/%.cpp, $(OBJS_DIR)/%.o, $(SRCS))
-# OBJSPARSING = $(patsubst %.cpp, objects/%.o, $(SRCSPARSING))
 
 # Dependency directory
 DEPS_DIR	:=	.deps
@@ -59,7 +65,6 @@ RM			:=	rm -rf
 
 # Include automatically generated dependency files
 -include $(DEPS)
-# -include $(OBJSPARSING:.o=.d)
 
 # Build the executable
 $(NAME): $(OBJS)
@@ -81,7 +86,36 @@ simple:
 	@clear
 	./webserv conf/test/conflict_servername.conf
 
-# parsing : $(NAME1)
+test:
+	@clear
+	@make -j4 -s
+	@clear
+	@echo "Testing WebServ configuration files..."
+	@failure_count=0; \
+	failed_confs=""; \
+	for config in $(TEST_CONFS); do \
+		echo "\nTesting $$config:"; \
+		timeout 0.2s ./$(NAME) $$config; \
+		if [ $$? -eq 0 ]; then \
+			echo "$(MESSAGE_PASS)"; \
+		else \
+			echo "$(MESSAGE_FAIL)"; \
+			failure_count=$$((failure_count + 1)); \
+		fi; \
+	done; \
+	echo "\n$(YELLOW)Bad confs test completed.$(RESET)"; \
+	if [ $$failure_count -eq 0 ]; then \
+		echo "$(GREEN)All bad configurations were corectly handled.$(RESET)"; \
+	else \
+		echo "$(RED)$$failure_count bad configuration(s) were not handled.$(RESET)"; \
+		echo "$(YELLOW)Please check the configurations below:$(RESET)"; \
+		for config in $(TEST_CONFS); do \
+			timeout 0.2s ./$(NAME) $$config > /dev/null 2>&1; \
+			if [ $$? -ne 0 ]; then \
+				echo "$(RED) - $$config$(RESET)"; \
+			fi; \
+		done; \
+	fi
 
 file_to_delete:
 	@touch $(FILE_TO_DELETE)
