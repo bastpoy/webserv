@@ -25,7 +25,7 @@ void Server::setPath(std::string path)
 
 void Server::setMaxBody(std::string maxBody)
 {
-	maxBody.erase(std::remove(maxBody.begin(), maxBody.end(), ' '), maxBody.end());
+	// maxBody.erase(std::remove(maxBody.begin(), maxBody.end(), ' '), maxBody.end());
 	this->_maxBody = maxBody;
 }
 
@@ -151,20 +151,20 @@ void	Server::fillPath(std::string line)
 
 void	Server::fillMaxBody(std::string line)
 {
-	size_t pos = line.find("client_max_body_size ");
-	std::string size = line.substr(pos + strlen("client_max_body_size "), line.length() - (pos + strlen("client_max_body_size ")));
-	//check if there is non autorize caracter in the maxbody
+	size_t pos = line.find("client_max_body_size");
+	std::string size = line.substr(pos + strlen("client_max_body_size"), line.length() - (pos + strlen("client_max_body_size")));
+	// Erase spaces
+	size.erase(std::remove(size.begin(), size.end(), ' '), size.end());
+	// Check autorize caracter
 	if(size.find_first_not_of("0123456789kmKM") != std::string::npos)
 		throw Response::ErrorMaxBody();
-	//replace the k and m by real number and check for errors
+	// Replace the k and m by real number and check for errors
 	maxBodyParsing("k", size);
 	maxBodyParsing("K", size);
 	maxBodyParsing("m", size);
 	maxBodyParsing("M", size);
 
 	this->setMaxBody(size);
-	//print
-	// std::cout << "the maxBody is: " << this->getMaxBody() << std::endl;
 }
 
 void	Server::fillIndex(std::string line)
@@ -187,6 +187,7 @@ void	Server::fillAutoIndex(std::string line)
 void	Server::fillErrorPage(std::string line)
 {
 	size_t pos = line.find("error_page");
+	line.erase(std::remove(line.begin(), line.end(), ' '), line.end());
 	int code = atoi(line.substr(pos + strlen("error_page"), 3).c_str());
 	std::string domain = line.substr(pos + strlen("error_page") + 3, line.length());
 	this->setErrorPage(code, domain);
@@ -259,21 +260,21 @@ void	Server::printConfig()
 	int								i = 1;
 	
 	//print all server attributs
-	if(!this->getPort().empty())
+	if (!this->getPort().empty())
 		std::cout << "listen\t\t" YELLOW << this->getPort() << RESET << std::endl;
-	if(!this->getServerName().empty())
+	if (!this->getServerName().empty())
 		std::cout << "server_name\t" YELLOW << this->getServerName() << RESET << std::endl;
-	if(!this->getPath().empty())
+	if (!this->getPath().empty())
 		std::cout << "root\t\t" YELLOW <<this->getPath() << RESET << std::endl;
-	if(!this->getMaxBody().empty())
+	if (!this->getMaxBody().empty())
 		std::cout << "maxBody\t\t" YELLOW << this->getMaxBody() << RESET << std::endl;
-	if(!this->getIndex().empty())
-		std::cout << "index " << this->getIndex() << std::endl;
-	if(!this->getAutoIndex().empty())
+	if (!this->getIndex().empty())
+		std::cout << "index\t\t" YELLOW << this->getIndex() << RESET << std::endl;
+	if (!this->getAutoIndex().empty())
 		std::cout << "autoindex\t" YELLOW << this->getAutoIndex() << RESET << std::endl;
-	if(this->getErrorPage().begin()->first) 
+	if (this->getErrorPage().begin()->first) 
 		std::cout << "error_page\t" YELLOW << this->getErrorPage().begin()->first << " " << this->getErrorPage().begin()->second << RESET << std::endl;
-	if(this->getRedir().size()) 
+	if (this->getRedir().size()) 
 		std::cout << "return\t\t" YELLOW << this->getRedir().begin()->first << " " << this->getRedir().begin()->second << RESET << std::endl;
 	std::cout << std::endl;
 
@@ -286,7 +287,7 @@ void	Server::printConfig()
 	}
 }
 
-void    maxBodyParsing(std::string caracter, std::string &size)
+void	maxBodyParsing(std::string caracter, std::string &size)
 {
 	size_t pos;
 	

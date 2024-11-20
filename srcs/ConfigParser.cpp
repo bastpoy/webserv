@@ -69,6 +69,23 @@ void	ConfigParser::parseConfig( )
 	}
 }
 
+void ConfigParser::parseLine(std::string &line)
+{
+	// Trouve la position du début d'un commentaire
+	size_t commentPos = line.find('#');
+	if (commentPos != std::string::npos)
+	{
+		// Supprime tout ce qui vient après (et y compris) le commentaire
+		line = line.substr(0, commentPos);
+	}
+	
+	// Supprime les espaces inutiles au début et à la fin
+	line.erase(0, line.find_first_not_of(" \t")); // Trim début
+	line.erase(line.find_last_not_of(" \t") + 1); // Trim fin
+
+	// std::cout << GREEN "line: " RED << line << RESET << std::endl;
+}
+
 /**
  * @brief	This function will find each attribute to parse and redirectto the good fill function.
  * @note	It will erase all spaces between key and value in the configuration file.ADJ_FREQUENCY
@@ -80,6 +97,7 @@ void ConfigParser::getServerAttributs(std::ifstream& file, Server &server)
 
 	while(getline(file, line))
 	{
+		parseLine(line);
 		if (line.find("listen") != std::string::npos)
 			server.fillPort(line);
 		else if(line.find("server_name") != std::string::npos)

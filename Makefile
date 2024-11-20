@@ -78,7 +78,7 @@ all: $(NAME)
 simple:
 	@make -j4 -s
 	@clear
-	@./webserv conf/Bastien.conf
+	./webserv conf/test/comments.conf
 
 # parsing : $(NAME1)
 

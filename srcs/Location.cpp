@@ -165,6 +165,7 @@ void	Location::fillRedir(std::string line, Server *server)
 void	Location::fillErrorPage(std::string line, Server *server)
 {
 	size_t pos = line.find("error_page");
+	line.erase(std::remove(line.begin(), line.end(), ' '), line.end());
 	int code = atoi(line.substr(pos + strlen("error_page"), 3).c_str());
 	std::string domain = line.substr(pos + strlen("error_page") + 3, line.length());
 	this->setErrorPage(code, domain);
