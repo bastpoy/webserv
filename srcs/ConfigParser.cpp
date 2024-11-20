@@ -39,8 +39,18 @@ std::vector<Server>	&ConfigParser::getServers()
 /*		PARSING		*/
 /* ================ */
 
+void	ConfigParser::checkServerAttributs(Server &server, std::vector<Server> &servers)
+{
+	for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); it++)
+	{
+		if (it->getServerName() == server.getServerName())
+			throw Response::ConfigurationFileServer();
+		if (it->getPort() == server.getPort())
+			throw Response::ConfigurationFileServer();
+	}
+}
 
-void	ConfigParser::parseConfig( )
+void	ConfigParser::parseConfig(std::vector<Server> &servers)
 {
 	// std::cout << "---------PARSING CONF-----------\n";
 
@@ -64,6 +74,7 @@ void	ConfigParser::parseConfig( )
 			//create a server instance and add it to Server Class
 			Server server;
 			getServerAttributs(file, server);
+			checkServerAttributs(server, servers);
 			addServer(server);
 		}
 	}
@@ -101,7 +112,7 @@ void ConfigParser::getServerAttributs(std::ifstream& file, Server &server)
 		if (line.find("listen") != std::string::npos)
 			server.fillPort(line);
 		else if(line.find("server_name") != std::string::npos)
-			server.fillServerName(line);
+			server.fillServerName(line, server);
 		else if(line.find("root") != std::string::npos)
 			server.fillPath(line);
 		else if(line.find("client_max_body_size") != std::string::npos)
@@ -115,7 +126,7 @@ void ConfigParser::getServerAttributs(std::ifstream& file, Server &server)
 		else if(line.find("error_page") != std::string::npos)
 			server.fillErrorPage(line);
 		else if(line.find("location") != std::string::npos)
-			server.fillLocation(file, line);
+			server.fillLocation(file, line, server.getLocation());
 		// getLocationAttributs(file, server, line);
 		else if(line.find("}") != std::string::npos)
 			return ;

@@ -41,7 +41,7 @@ class Location
 		std::map<int,std::string>	&getErrorPage();
 
 		// Fill
-		void	fillPath(std::string line);
+		void	fillPath(std::string line, std::vector<Location> &locations);
 		void	fillRoot(std::string line);
 		void	fillIndex(std::string line);
 		void	fillMaxBody(std::string line);

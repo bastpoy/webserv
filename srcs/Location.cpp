@@ -103,17 +103,24 @@ std::map<int,std::string> &Location::getErrorPage()
 /*		FILL		*/
 /* ================ */
 
-void	Location::fillPath(std::string line)
+void	Location::fillPath(std::string line, std::vector<Location> &locations)
 {
 	size_t pos = line.find("location ") + strlen("location ");
-	// if(line.find(" {") == std::string::npos)
-	// 	throw Response::ConfigurationFileLocation(); 
+
 	size_t pos2 = line.find(" {");
-	this->setPath(line.substr(pos, pos2 - pos));
-	if(this->getPath().at(this->getPath().size() - 1) != '/')
+	std::string path = line.substr(pos, pos2 - pos);
+
+	// check the path of each location
+	for (std::vector<Location>::iterator it = locations.begin(); it != locations.end(); it++)
 	{
-		this->setPath(this->getPath() + "/");
+		if (it->getPath() == path)
+			throw Response::ConfigurationFileLocationPath();
 	}
+
+	
+	this->setPath(path);
+	if (this->getPath().at(this->getPath().size() - 1) != '/')
+		this->setPath(this->getPath() + "/");
 	// std::cout << "the path:\t\t" YELLOW << this->getPath() << RESET << std::endl;
 }
 

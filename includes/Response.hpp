@@ -33,6 +33,11 @@ class Response
 				virtual const char* what() const throw();
 		};
 
+		class ConfigurationFileLocationPath : public std::exception{
+			public:
+				virtual const char* what() const throw();
+		};
+
 		class ConfigurationFileServer : public std::exception{
 			public:
 				virtual const char* what() const throw();

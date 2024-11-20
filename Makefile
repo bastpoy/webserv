@@ -78,7 +78,7 @@ all: $(NAME)
 simple:
 	@make -j4 -s
 	@clear
-	./webserv conf/test/comments.conf
+	./webserv conf/test/conflict_location.conf
 
 # parsing : $(NAME1)
 

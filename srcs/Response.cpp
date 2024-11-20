@@ -31,6 +31,11 @@ const char* Response::ConfigurationFileLocation::what() const throw()
 	return("Error in the Location block configuration file");
 }
 
+const char* Response::ConfigurationFileLocationPath::what() const throw()
+{
+	return("Error in the Location block configuration file:\nPath already exist");
+}
+
 const char* Response::ConfigurationFileServer::what() const throw()
 {
 	return("Error in the Server block configuration file");

@@ -127,10 +127,18 @@ void	Server::fillPort(std::string line)
 	// std::cout << "the port is: " << this->getPort() << std::endl;
 }
 
-void	Server::fillServerName(std::string line)
+void	Server::fillServerName(std::string line, Server &server)
 {
 	size_t pos = line.find("server_name");
-	this->setServerName(line.substr(pos + strlen("server_name"), line.length() - (pos + strlen("server_name"))));
+	std::string server_name = line.substr(pos + strlen("server_name"), line.length() - (pos + strlen("server_name")))
+
+	//check if the each server name already exist
+	
+
+
+
+
+	this->setServerName(server_name);
 	//print
 	// std::cout << "the server is: " << this->getServerName() << std::endl;
 }
@@ -216,12 +224,12 @@ void	Server::fillRedir(std::string line)
  * @note	It will erase spaces between key and value.
  * @author	Ozan, if you need to ask something...
 */
-void	Server::fillLocation(std::ifstream &file, std::string line)
+void	Server::fillLocation(std::ifstream &file, std::string line, std::vector<Location> &locations)
 {
 	// std::cout << GREEN "\nNew Location detected" RESET << std::endl;
 	Location location;
 
-	location.fillPath(line);
+	location.fillPath(line, locations);
 	while(getline(file, line))
 	{
 		if (line.find("{") != std::string::npos)

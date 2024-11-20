@@ -80,14 +80,14 @@ class Server
 
 		// Fill
 		void	fillPort(std::string line);
-		void	fillServerName(std::string line);
+		void	fillServerName(std::string line, Server &server);
 		void	fillPath(std::string line);
 		void	fillMaxBody(std::string line);
 		void	fillIndex(std::string line);
 		void	fillAutoIndex(std::string line);
 		void	fillErrorPage(std::string line);
 		void	fillRedir(std::string line);
-		void	fillLocation(std::ifstream &file, std::string line);
+		void	fillLocation(std::ifstream &file, std::string line, std::vector<Location> &location);
 		
 		// ServerAddr Fill
 		void	createListenAddr(ConfigParser &config);
