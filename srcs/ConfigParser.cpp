@@ -116,6 +116,7 @@ void ConfigParser::parseLine(std::string &line)
 void ConfigParser::getServerAttributs(std::ifstream& file, Server &server)
 {
 	std::string line;
+	
 
 	while(getline(file, line))
 	{
@@ -141,7 +142,7 @@ void ConfigParser::getServerAttributs(std::ifstream& file, Server &server)
 			server.fillErrorPage(line);
 		else if (line.find("location") != std::string::npos)
 			server.fillLocation(file, line, server.getLocation());
-		else if(line.find("}") == std::string::npos && !line.empty())
+		else if (line.find("}") == std::string::npos && !line.empty())
 			throw Response::ConfigurationFileServer("Unknown attribute: " + line);
 		if (line.find("}") != std::string::npos)
 			return;
