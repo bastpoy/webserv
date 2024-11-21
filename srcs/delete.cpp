@@ -39,9 +39,8 @@ void displayDeletePage(std::string path, t_serverData *data)
     }
     html += "</body>\n</html>";
     content += html;
-    std::cout << content << std::endl;
     //render the full html page
-    response = httpGetResponse("200 Ok", contentType, content);
+    response = httpGetResponse("200 Ok", contentType, content, data);
     if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 	{
 		std::cout << strerror(errno) << std::endl;
@@ -62,20 +61,16 @@ void deleteRequest(std::string &uri, t_serverData *data)
     {
         //if I have an access file
         checkAccessFile(code, filePath, data);
-        content = readFile(filePath, data);
         deleteFile(filePath);
     }
     else
     {
         filePath = data->path + uri;
         checkAccessFile(code, filePath, data);
-        content = readFile(filePath, data);
         deleteFile(filePath);
     }
 
-	std::cout << "the filePath is: " << filePath << " uri : " << uri << "and the code "<< code << std::endl;
-    
-	response = httpDeleteResponse(code, contentType, content);
+    response = httpGetResponse("200", "text/html", "", data);
     //send response
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 	{

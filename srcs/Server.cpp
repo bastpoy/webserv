@@ -33,6 +33,9 @@ struct epoll_event fillEpoolDataInfo(int &client_fd, t_serverData *info)
 {
 	t_serverData *data = new t_serverData;
 
+    // int flags = fcntl(client_fd, F_GETFL, 0);
+    // fcntl(client_fd, F_SETFL, flags | O_NONBLOCK);
+
 	data->sockfd = client_fd;
 	data->port = info->port;
 	data->server_name = info->server_name;
@@ -49,7 +52,7 @@ struct epoll_event fillEpoolDataInfo(int &client_fd, t_serverData *info)
 
 	struct epoll_event client_event;
 
-	client_event.events = EPOLLIN;
+	client_event.events = EPOLLIN | EPOLLOUT;
     client_event.data.fd = client_fd;
 	client_event.data.ptr = static_cast<void*>(data);
 
@@ -176,7 +179,7 @@ bool handleRequest(std::string buffer, t_serverData *data, Cookie &cookie)
 		if(data->redir.size())
 		{
             std::cout << "REDIRECTION GET" << std::endl;
-			redirRequest(data->redir.begin()->second, data->sockfd);
+			redirRequest(data->redir.begin()->second, data->sockfd, data);
 		}
 		// else I respond 
 		else
@@ -202,37 +205,38 @@ bool handleRequest(std::string buffer, t_serverData *data, Cookie &cookie)
 
 bool read_one_chunk(t_serverData *data) 
 {
-    int bufferSize = 1024;
+    int bufferSize = 4096;
     char buffer[bufferSize];
     // Read data into the buffer
+    std::cout << "waiting before the buffer" << std::endl;
     int bytes_read = recv(data->sockfd, buffer, bufferSize, 0);
-    std::cout << "bytes read " << bytes_read << " with sockfd "<< data->sockfd << std::endl;
     if (bytes_read < 0) 
     {
-        std::cout << "Error reading from socket: " << strerror(errno) << std::endl;
+        std::cout << "Error " << errno << "reading from socket: " << strerror(errno) << std::endl;
         errorPage("400", data);
     } 
     // if there is a deconnection
     else if (bytes_read == 0) 
     {
-        std::cout << "Connection closed by the client. (recv = 0)" << std::endl;
-        // close(data->sockfd);
+        std::cout << RED "Connection closed by the client. (recv = 0) " << data->sockfd << RESET << std::endl;
+        close(data->sockfd);
         return (true); 
     }
-    else if (bytes_read < bufferSize) 
-    {
-        std::cout << BLUE "Bytes inferior to actual bytes " << bytes_read << RESET << std::endl;
-        // close(data->sockfd);
-        //do the responseS
-        data->buffer.append(buffer, bytes_read);
-        return (true); 
-    }
+    // else if (bytes_read < bufferSize)
+    // {
+    //     std::cout << BLUE "Bytes inferior to actual bytes " << bytes_read << " and bytes read: " << data->buffer.size() << RESET << std::endl;
+    //     // close(data->sockfd);
+    //     //do the responseS
+    //     data->buffer.append(buffer, bytes_read);
+    //     return (true); 
+    // }
     data->buffer.append(buffer, bytes_read);
+    std::cout << BLUE "bytes read " << bytes_read << " with sockfd "<< data->sockfd << " and sizebuffer" << data->buffer.size() << RESET <<std::endl;
     // std::cout << data->buffer << std::endl;
     return (false);
 }
 
-void parsing_buffer(t_serverData *data, Cookie cookie)
+void parsing_buffer(t_serverData *data, Cookie &cookie)
 {
     //if i have a buffer so a request 
     if(!data->buffer.empty())
@@ -271,7 +275,7 @@ void Server::createListenAddr(ConfigParser &config)
 
 	while (true) {
 		//epollwait return a number corresponding to all the files descriptor
-        // std::cout << "Waiting...\n";
+        std::cout << "Waiting...\n";
 		int num_fds = epoll_wait(epoll_fd, events, MAX_EVENTS, -1);
 		if (num_fds == -1) 
 			errorCloseEpollFd(epoll_fd, 1);
@@ -312,7 +316,7 @@ void Server::createListenAddr(ConfigParser &config)
                     }
                 }
                 //if i can write to my socket
-                if(events[i].events & EPOLLOUT)
+                else if(events[i].events & EPOLLOUT)
                 {
                     try
                     {
@@ -325,9 +329,9 @@ void Server::createListenAddr(ConfigParser &config)
                     }
                     catch(const std::exception& e)
                     {
+                        close(info->sockfd);
                         std::cerr << e.what() << '\n';
                     }
-                    
                 }
                 std::cout << "\n\n";
                 usleep(10);

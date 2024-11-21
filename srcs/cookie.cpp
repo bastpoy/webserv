@@ -64,6 +64,7 @@ bool check_cookie_validity(Cookie &cookie, std::string id)
 
     if(!cookie.get_session().empty())
     {
+        std::cout << "checking cookie validity" << std::endl;
         if(cookie.get_session_id(id).second.expireDate < actualTime)
             return (false);
     }
@@ -122,5 +123,6 @@ std::string newSessionCookie(std::map<std::string, std::string> values, Cookie &
         it++;
     }
     cookie.add_session(newSession);
+    std::cout << "adding new cookie" << std::endl;
     return (newSession.first);
 }

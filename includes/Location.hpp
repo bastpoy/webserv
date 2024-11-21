@@ -8,13 +8,13 @@ class Server;
 class Location
 {
 	private:
-		std::string					_path;
-		std::string					_root;
-		std::string					_index;
-		std::string					_maxBody;
-		std::string					_autoindex;
+		std::string					        _path;
+		std::string					        _root;
+		std::string					        _index;
+		std::string					        _maxBody;
+		std::string					        _autoindex;
 		std::map<std::string,std::string>	_redir;
-		std::map<int, std::string>	_errorPage;
+		std::map<std::string, std::string>	_errorPage;
 
 	public:
 		// Canonical form
@@ -30,7 +30,7 @@ class Location
 		void	setMaxBody(std::string maxBody);
 		void	setAutoIndex(std::string autoIndex);
 		void	setRedir(std::string code, std::string path);
-		void	setErrorPage(int errCode, std::string errorPage);
+		void	setErrorPage(std::string errCode, std::string errorPage);
         
 		// Getter
 		std::string					getPath() const;
@@ -39,7 +39,7 @@ class Location
 		std::string					getMaxBody() const;
 		std::string					getAutoIndex() const;
 		std::map<std::string, std::string>	&getRedir();
-		std::map<int,std::string>	&getErrorPage();
+		std::map<std::string,std::string>	&getErrorPage();
 
 		// Fill
 		void	fillPath(std::string line);

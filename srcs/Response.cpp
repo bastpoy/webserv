@@ -6,6 +6,14 @@ std::string Response::sendResponse(std::string statusCode, std::string contentTy
 	response = "HTTP/1.1 " + statusCode + " \r\n";
 	response += "Content-Type: " + contentType + " \r\n";
 	response += "Content-Length: " + to_string(content.size()) + "\r\n";
+    if (is_keep_alive(data->header))
+    {
+        response += "Connection: keep-alive\r\n";
+    }
+    else
+    {
+        response += "Connection: close\r\n";
+    }
 	response += "\r\n" + content;
 
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
@@ -16,36 +24,57 @@ std::string Response::sendResponse(std::string statusCode, std::string contentTy
 	throw Response::Error(); 
 }
 
-std::string httpGetResponse(std::string code, std::string contentType, std::string content)
+std::string httpGetResponse(std::string code, std::string contentType, std::string content, t_serverData *data)
 {
 	//make the header response
-	return ("HTTP/1.1 " + code + " \r\n"
-			"Content-Type: " + contentType + "\r\n"
-			"Content-Length: " + to_string(content.size()) + "\r\n"
-			"Connection: close\r\n"
-			"\r\n" + content);
+    std::string response = "HTTP/1.1 " + code + " \r\n" ;
+    response += "Content-Type: " + contentType + "\r\n";
+    response += "Content-Length: " + to_string(content.size()) + "\r\n";
+    if (is_keep_alive(data->header))
+    {
+        response += "Connection: keep-alive\r\n";
+    }
+    else
+    {
+        response += "Connection: close\r\n";
+    }
+    response += "\r\n" + content;
+    return (response);
 }
 
-std::string httpGetResponseDownload(std::string code, std::string contentType, std::string content)
+std::string httpGetResponseDownload(std::string code, std::string contentType, std::string content, t_serverData *data)
 {
-	//make the header response
-	return ("HTTP/1.1 " + code + " \r\n"
-			"Content-Type: " + contentType + "\r\n"
-			"Content-Length: " + to_string(content.size()) + "\r\n"
-            "Content-Disposition: attachment\r\n"
-            // ; filename=\"" + file + "\"
-			"Connection: close\r\n"
-			"\r\n" + content);
+    //make the header response
+    std::string response = "HTTP/1.1 " + code + " \r\n" ;
+    response += "Content-Type: " + contentType + "\r\n";
+    response += "Content-Length: " + to_string(content.size()) + "\r\n";
+    response += "Content-Disposition: attachment\r\n";
+    if (is_keep_alive(data->header))
+    {
+        response += "Connection: keep-alive\r\n";
+    }
+    else
+    {
+        response += "Connection: close\r\n";
+    }
+    response += "\r\n" + content;
+    return (response);
 }
 
-void redirRequest(std::string location, int fd)
+void redirRequest(std::string location, int fd, t_serverData *data)
 {
 	std::string response = "HTTP/1.1 302 Found \r\n"
 							"Location: " + location + "\r\n"
 							"Content-Type: text/html\r\n"
-							"Content-Length: 0 \r\n"
-							"Connection: keep-alive\r\n\r\n";
-
+							"Content-Length: 0 \r\n";
+    if (is_keep_alive(data->header))
+    {
+        response += "Connection: keep-alive\r\n\r\n";
+    }
+    else
+    {
+        response += "Connection: close\r\n\r\n";
+    }
 	if(send(fd, response.c_str(), response.size(), 0) < 0)
 	{
 		std::cout << strerror(errno) << std::endl;
@@ -70,6 +99,14 @@ void httpPostResponse(std::string code , std::string contentType, std::string co
                     "; password=" + session.second.credentials.first +
                     "; Path=/";
         response += "; email=" + session.second.credentials.second + "\r\n";
+    }
+    if (is_keep_alive(data->header))
+    {
+        response += "Connection: keep-alive\r\n";
+    }
+    else
+    {
+        response += "Connection: close\r\n";
     }
 	response +=	"Content-Length: " + to_string(content.size()) + "\r\n"
 				"\r\n" + content;

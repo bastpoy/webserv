@@ -62,7 +62,7 @@ std::string check_location(std::string &uri, std::string &content, std::vector<L
             {
                 //i redirec
                 std::cout << "inside location redirection" << std::endl;
-                redirRequest(it->getRedir().begin()->second, data->sockfd);
+                redirRequest(it->getRedir().begin()->second, data->sockfd, data);
                 //and leave
                 throw Response::Error();
             }
@@ -110,7 +110,10 @@ void checkAccessFile(std::string &code, std::string &filePath, t_serverData *dat
 {
 	// check if i can access the current ressource request 
 	if(access(filePath.c_str(), F_OK) != 0)
+    {
+        std::cout << "here" << std::endl;
 		errorPage("404", data);
+    }
 	else if (access(filePath.c_str(), R_OK) != 0)
 		errorPage("403", data);
 	else
@@ -153,7 +156,7 @@ void process_extension(std::string &filePath, std::string &code, std::string uri
         else if(filePath  == "./www/pages/cookie/connexion.html" && check_cookie_validity(cookie, get_cookie_id(buffer)))
         {
             std::cout << "no nead to reconnect cause user already exist\n";
-            redirRequest("/", data->sockfd);
+            redirRequest("/", data->sockfd, data);
             throw Response::responseOk();
         }
         else
@@ -171,7 +174,6 @@ void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::strin
 	std::string filePath = check_location(uri, content, data->location, data);
     bool download = false;
 
-    std::cout << "the uri " << uri << std::endl;
 	//check if i dont have a location
 	if(filePath.empty())
 	{
@@ -198,7 +200,7 @@ void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::strin
             std::string id = get_cookie_id(buffer);
             if(!id.empty() && check_cookie_validity(cookie, id))
                 cookie.remove_session_id(id);
-            redirRequest("/", data->sockfd);
+            redirRequest("/", data->sockfd, data);
             throw Response::responseOk();
         }
 		// if an index inside my server
@@ -225,7 +227,7 @@ void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::strin
 		checkAccessDir(code, filePath, data);
     //idem for the file
 	checkAccessFile(code, filePath, data);
-	std::string response = httpGetResponse(code, contentType, content);
+	std::string response = httpGetResponse(code, contentType, content, data);
 
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 	{

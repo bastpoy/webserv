@@ -58,7 +58,7 @@ void	Location::setRedir(std::string code, std::string domain)
     this->_redir.insert(std::make_pair(code, domain));
 }
 
-void	Location::setErrorPage(int code, std::string errorFile)
+void	Location::setErrorPage(std::string code, std::string errorFile)
 {
 	errorFile.erase(std::remove(errorFile.begin(), errorFile.end(), ' '), errorFile.end());
 	this->_errorPage.insert(std::make_pair(code, errorFile));
@@ -98,7 +98,7 @@ std::map<std::string,std::string> &Location::getRedir()
 	return (this->_redir);
 }
 
-std::map<int,std::string> &Location::getErrorPage()
+std::map<std::string,std::string> &Location::getErrorPage()
 {
 	return (this->_errorPage);
 }
@@ -172,9 +172,9 @@ void	Location::fillRedir(std::string line, Server *server)
 
 void	Location::fillErrorPage(std::string line, Server *server)
 {
-	size_t pos = line.find("error_page");
-	int code = atoi(line.substr(pos + strlen("error_page"), 3).c_str());
-	std::string domain = line.substr(pos + strlen("error_page") + 3, line.length());
+	size_t pos = line.find("error_page ");
+	std::string code = line.substr(pos + strlen("error_page "), 3).c_str();
+	std::string domain = line.substr(pos + strlen("error_page ") + 3, line.length());
 	this->setErrorPage(code, domain);
 
 	(void)server;
@@ -197,9 +197,9 @@ void	Location::printConfig()
 		std::cout << "\tindex\t\t" YELLOW << this->getIndex() << RESET << std::endl;
 	if(!this->getMaxBody().empty())
 		std::cout << "\tclient_max_body_size\t\t" YELLOW << this->getMaxBody() << RESET << std::endl;
-	if(this->getErrorPage().begin()->first) 
+	if(this->getErrorPage().size()) 
 		std::cout << "\terror_page\t" YELLOW << this->getErrorPage().begin()->first << " " << this->getErrorPage().begin()->second << RESET << std::endl;
-	if(!this->getRedir().begin()->first.empty()) 
+	if(this->getRedir().size()) 
 		std::cout << "\treturn\t\t" YELLOW << this->getRedir().begin()->first << " " << this->getRedir().begin()->second << RESET << std::endl;
 	std::cout << std::endl;
 }

@@ -236,15 +236,17 @@ void postRequest(t_serverData *data, Cookie &cookie)
 			fileName = "./www/upload/" + fileName;
 			//read all the data of the upload file
 			// read_full_body(data, body, size);
-			std::ofstream output(fileName.c_str());
+			std::ofstream output(fileName.c_str(), std::ios::binary);
 			if(!output.is_open())
 			{
 				errorPage("500", data);
 				throw Response::ErrorOpeningFile();
 			}
+            //truncate the beginning and the end of my file and remove boundaries
+            truncate_file(data->body);
 			//put the download data inside a file
-			output << data->body;
-			output.close();
+            output.write(data->body.c_str(), data->body.size());
+            
             // std::cout << body << std::endl;
             std::string id = get_cookie_id(data->buffer);
 			httpPostResponse("201 Created", "text/html", readFile(file, data), data, cookie, id);

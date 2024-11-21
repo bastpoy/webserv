@@ -81,7 +81,7 @@
 // Class Prototypes
 class Client;
 class ConfigParser;
-class location;
+class Location;
 // class Logger;
 class Request;
 class RequestHandler;
@@ -95,11 +95,10 @@ std::vector<std::string>	listDirectory(const std::string& directory);
 std::string					generateAutoIndexPage(const std::string directory, const std::vector<std::string>& files);
 
 // get.cpp Functions
-void						redirRequest(std::string location, int fd);
+void						redirRequest(std::string location, int fd, t_serverData *data);
 std::string                 check_location(std::string &uri, std::string &content, std::vector<Location> &location, t_serverData *data);
 std::string                 getContentType(std::string &path);
 void                        checkAccessFile(std::string &code, std::string &filePath, t_serverData *data);
-std::string                 httpGetResponse(std::string code, std::string contentType, std::string content);
 void                        parseAndGetRequest(std::string buffer, t_serverData *data, Cookie &cookie);
 
 // post.cpp Functions
@@ -115,8 +114,8 @@ bool            check_cookie_validity(Cookie &cookie, std::string id);
 std::string     get_cookie_id(std::string buffer);
 
 //Response
-std::string     httpGetResponseDownload(std::string code, std::string contentType, std::string content);
-std::string     httpGetResponse(std::string code, std::string contentType, std::string content);
+std::string     httpGetResponse(std::string code, std::string contentType, std::string content, t_serverData *data);
+std::string     httpGetResponseDownload(std::string code, std::string contentType, std::string content, t_serverData *data);
 void            httpPostResponse(std::string code , std::string contentType, std::string content, t_serverData *data, Cookie &cookie, std::string id);
 
 // error.cpp Functions
