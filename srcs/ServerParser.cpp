@@ -226,9 +226,6 @@ void	Server::fillLocation(std::ifstream &file, std::string line, std::vector<Loc
 	{
 		if (line.find("{") != std::string::npos)
 			continue ;
-		if (line.find(";") == std::string::npos && line.find("}") == std::string::npos)
-			throw Response::ConfigurationFileServer();
-		line.erase(line.size() - 1);
 		if (line.find("autoindex") != std::string::npos)
 			location.fillAutoIndex(line);
 		else if (line.find("client_max_body_size") != std::string::npos)

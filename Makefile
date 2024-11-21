@@ -84,7 +84,7 @@ simple:
 	@clear
 	@make -j4 -s
 	@clear
-	./webserv conf/Bastien.conf
+	./webserv conf/test/conflict_servername.conf
 
 test:
 	@clear

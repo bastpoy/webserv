@@ -24,6 +24,7 @@ class ConfigParser
 		ConfigParser(char *path);
 		~ConfigParser(void);
 
+		bool				isFileEmpty(const std::string &filePath);
 		void				addServer(Server &server);
 		std::vector<Server>	&getServers();
 		void				parseLine(std::string &line);
