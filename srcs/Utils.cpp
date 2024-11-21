@@ -1,9 +1,8 @@
 #include "Header.hpp"
 
 
-int	ft_stoi(const std::string &str)
+bool	ft_stoi(const std::string &str, int &result)
 {
-	int result = 0;
 	bool isNegative = false;
 	size_t i = 0;
 
@@ -21,10 +20,11 @@ int	ft_stoi(const std::string &str)
 		i++;
 	}
 	if (i < str.length() && (str[i] < '0' || str[i] > '9')) {
-		throw std::invalid_argument("Invalid argument: contains non-digit characters");
+		return false;
 	}
 
-	return isNegative ? -result : result;
+	result = isNegative ? -result : result;
+	return true;
 }
 
 std::vector<std::string> ft_split(const std::string& str, char delimiter)

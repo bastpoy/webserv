@@ -135,8 +135,10 @@ void	Server::fillServerName(std::string line)
 
 	for (size_t i = 0; i < substr_ip.size(); i++)
 	{
-		int sub = ft_stoi(substr_ip[i]);
-		if (!(sub >= 0 && sub <= 255))
+		int result = 0;
+		if (ft_stoi(substr_ip[i], result))
+			break ;
+		if (!(result >= 0 && result <= 255))
 			throw Response::ConfigurationFileServer("Wrong Server Name");
 	}
 	//print
