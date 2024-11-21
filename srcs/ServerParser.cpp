@@ -224,6 +224,7 @@ void	Server::fillLocation(std::ifstream &file, std::string line, std::vector<Loc
 	location.fillPath(line, locations);
 	while(getline(file, line))
 	{
+		std::cout << line << std::endl;
 		if (line.find("{") != std::string::npos)
 			continue ;
 		if (line.find("autoindex") != std::string::npos)

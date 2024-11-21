@@ -51,7 +51,7 @@ bool ConfigParser::isFileEmpty(const std::string &filePath)
 {
 	std::ifstream file(filePath.c_str(), std::ios::ate);
 	if (!file.is_open())
-		throw Response::ErrorOpeningFile(strerror(errno));
+		throw Response::ErrorOpeningFile("Can't opening file.");
 	return file.tellg() == 0;
 }
 
@@ -62,9 +62,11 @@ void	ConfigParser::parseConfig(std::vector<Server> &servers)
 	(void)servers;
 
 	if (isFileEmpty(this->_path))
-		throw Response::ErrorOpeningFile(strerror(errno));
+		throw Response::ErrorOpeningFile("File empty");
 	while (getline(file, line))
 	{
+		rmComments(line);
+
 		// fill new server block
 		if (line.find("server") != std::string::npos)
 		{
@@ -76,20 +78,38 @@ void	ConfigParser::parseConfig(std::vector<Server> &servers)
 	}
 }
 
-void ConfigParser::parseLine(std::string &line)
+void	ConfigParser::rmComments(std::string &line)
 {
-	// Trouve la position du début d'un commentaire
 	size_t commentPos = line.find('#');
+
 	if (commentPos != std::string::npos)
 		line = line.substr(0, commentPos);
+}
+
+void	ConfigParser::checkSemicolon(std::string &line)
+{
+	//On check s'il sont bien present
+	if (line.find("}") == std::string::npos
+			&& line.find_last_of(';') == 0
+			&& line.find("location") == std::string::npos)
+		throw Response::ConfigurationFileServer("\';\' is missing");
+
+	// On enleve les ; de la fin
+	if (line.find("}") == std::string::npos
+			&& line.find("location") == std::string::npos
+			&& !line.empty())
+		line.erase(line.size() - 1);
+}
+
+void ConfigParser::parseLine(std::string &line)
+{
+	rmComments(line);
 
 	// Supprime les espaces inutiles au début et à la fin
 	line.erase(0, line.find_first_not_of(" \t")); // Trim début
 	line.erase(line.find_last_not_of(" \t") + 1); // Trim fin
-	if (line.find("}") == std::string::npos && line.find_last_of(';') == 0)
-		throw Response::ConfigurationFileServer("\';\' is missing");
-	if (line.find("}") == std::string::npos)
-		line.erase(line.size() - 1);
+
+	checkSemicolon(line);
 }
 
 /**
@@ -103,6 +123,7 @@ void ConfigParser::getServerAttributs(std::ifstream& file, Server &server)
 
 	while(getline(file, line))
 	{
+		std::cout << line<< std::endl;
 		if (line.find("{") != std::string::npos)
 			continue;
 		parseLine(line);
@@ -123,7 +144,11 @@ void ConfigParser::getServerAttributs(std::ifstream& file, Server &server)
 		else if(line.find("error_page") != std::string::npos)
 			server.fillErrorPage(line);
 		else if(line.find("location") != std::string::npos)
+		{
+			std::cout << "la" << std::endl;
 			server.fillLocation(file, line, server.getLocation());
+
+		}
 		// getLocationAttributs(file, server, line);
 		if(line.find("}") != std::string::npos)
 			return ;

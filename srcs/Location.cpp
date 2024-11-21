@@ -106,16 +106,15 @@ std::map<int,std::string> &Location::getErrorPage()
 void	Location::fillPath(std::string line, std::vector<Location> &locations)
 {
 	size_t pos = line.find("location ") + strlen("location ");
+	
 
 	size_t pos2 = line.find(" {");
 	std::string path = line.substr(pos, pos2 - pos);
 
 	// check the path of each location
 	for (std::vector<Location>::iterator it = locations.begin(); it != locations.end(); it++)
-	{
 		if (it->getPath() == path)
 			throw Response::ConfigurationFileLocationPath();
-	}
 
 	
 	this->setPath(path);

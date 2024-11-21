@@ -27,6 +27,8 @@ class ConfigParser
 		bool				isFileEmpty(const std::string &filePath);
 		void				addServer(Server &server);
 		std::vector<Server>	&getServers();
+		void				rmComments(std::string &line);
+		void				checkSemicolon(std::string &line);
 		void				parseLine(std::string &line);
 		void				checkServerAttributs(Server &server, std::vector<Server> &servers);
 		void				parseConfig(std::vector<Server> &servers); // pour analyser le fichier de configuration et remplir les attributs.

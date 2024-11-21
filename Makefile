@@ -84,7 +84,7 @@ simple:
 	@clear
 	@make -j4 -s
 	@clear
-	./webserv conf/test/conflict_servername.conf
+	./webserv conf/test/comments.conf
 
 test:
 	@clear
