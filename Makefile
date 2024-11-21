@@ -44,6 +44,11 @@ SRCS		=	srcs/autoIndex.cpp \
 
 TEST_CONFS	=	conf/test/conflict_location.conf \
 				conf/test/conflict_servername.conf \
+				conf/test/empty.conf \
+				conf/test/forbidden_directive.conf \
+				conf/test/invalid_cgi_path.conf \
+				conf/test/invalid_ip.conf \
+				conf/test/invalid_port.conf \
 				conf/test/do_not_exist.conf
 
 FILE_TO_DELETE	:=	www/assets/files/file_to_delete
