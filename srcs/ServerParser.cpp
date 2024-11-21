@@ -130,7 +130,15 @@ void	Server::fillPort(std::string line)
 void	Server::fillServerName(std::string line)
 {
 	size_t pos = line.find("server_name");
-	this->setServerName(line.substr(pos + strlen("server_name"), line.length() - (pos + strlen("server_name"))));
+	this->_server_name =  line.substr(pos + strlen("server_name"), line.length() - (pos + strlen("server_name")));
+	std::vector<std::string>	substr_ip = ft_split(_server_name, '.');
+
+	for (size_t i = 0; i < substr_ip.size(); i++)
+	{
+		int sub = ft_stoi(substr_ip[i]);
+		if (!(sub >= 0 && sub <= 255))
+			throw Response::ConfigurationFileServer("Wrong Server Name");
+	}
 	//print
 	// std::cout << "the server is: " << this->getServerName() << std::endl;
 }

@@ -125,25 +125,25 @@ void ConfigParser::getServerAttributs(std::ifstream& file, Server &server)
 		// std::cout << MAGENTA << line << RESET << std::endl;
 		if (line.find("listen") != std::string::npos)
 			server.fillPort(line);
-		else if(line.find("server_name") != std::string::npos)
+		else if (line.find("server_name") != std::string::npos)
 			server.fillServerName(line);
-		else if(line.find("root") != std::string::npos)
+		else if (line.find("root") != std::string::npos)
 			server.fillPath(line);
-		else if(line.find("client_max_body_size") != std::string::npos)
+		else if (line.find("client_max_body_size") != std::string::npos)
 			server.fillMaxBody(line);
-		else if(line.find("autoindex") != std::string::npos)
+		else if (line.find("autoindex") != std::string::npos)
 			server.fillAutoIndex(line);
-		else if(line.find("index") != std::string::npos)
+		else if (line.find("index") != std::string::npos)
 			server.fillIndex(line);
-		else if(line.find("return") != std::string::npos)
+		else if (line.find("return") != std::string::npos)
 			server.fillRedir(line);
-		else if(line.find("error_page") != std::string::npos)
+		else if (line.find("error_page") != std::string::npos)
 			server.fillErrorPage(line);
-		else if(line.find("location") != std::string::npos)
+		else if (line.find("location") != std::string::npos)
 			server.fillLocation(file, line, server.getLocation());
 		else if(line.find("}") == std::string::npos && !line.empty())
 			throw Response::ConfigurationFileServer("Unknown attribute: " + line);
-		if(line.find("}") != std::string::npos)
+		if (line.find("}") != std::string::npos)
 			return;
 
 	}

@@ -3,6 +3,8 @@
 
 #include "Header.hpp"
 
+int	ft_stoi(const std::string &str);
+std::vector<std::string> ft_split(const std::string& str, char delimiter);
 std::string readFile(std::string path);
 bool isExtension(std::string path);
 
