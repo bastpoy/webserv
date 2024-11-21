@@ -120,7 +120,6 @@ void	Location::fillPath(std::string line, std::vector<Location> &locations)
 	this->setPath(path);
 	if (this->getPath().at(this->getPath().size() - 1) != '/')
 		this->setPath(this->getPath() + "/");
-	// std::cout << "the path:\t\t" YELLOW << this->getPath() << RESET << std::endl;
 }
 
 void Location::fillRoot(std::string line)
@@ -131,28 +130,24 @@ void Location::fillRoot(std::string line)
 		this->setRoot(this->getRoot() + "/");
 	if(this->getRoot().at(0) != '.')
 		this->setRoot("." + this->getRoot());
-	// std::cout << "the root:\t\t" YELLOW << this->getRoot() << RESET << std::endl;
 }
 
 void	Location::fillIndex(std::string line)
 {
 	size_t pos = line.find("index");
 	this->setIndex(line.substr(pos + strlen("index"), line.length() - (pos + strlen("index"))));
-	// std::cout << "the index is:\t\t" YELLOW << this->getIndex() << RESET << std::endl;
 }
 
 void	Location::fillMaxBody(std::string line)
 {
 	size_t pos = line.find("client_max_body_size");
 	this->setMaxBody(line.substr(pos + strlen("client_max_body_size"), line.length() - (pos + strlen("client_max_body_size"))));
-	// std::cout << "the maxBody is: " << this->getMaxBody() << std::endl;
 }
 
 void	Location::fillAutoIndex(std::string line)
 {
 	size_t pos = line.find("autoindex");
 	this->setAutoIndex(line.substr(pos + strlen("autoindex"), line.length() - (pos + strlen("autoindex"))));
-	// std::cout << "The auto index is " << this->getAutoIndex() << std::endl;
 }
 
 void	Location::fillRedir(std::string line, Server *server)
@@ -163,9 +158,6 @@ void	Location::fillRedir(std::string line, Server *server)
 	this->setRedir(code, domain);
 
 	(void)server;
-	//print
-	// std::map<std::string, std::string>::iterator it = server->getRedir().begin();
-	// std::cout << "the code is: " << it->first << "\t the domain is: " << it->second <<  std::endl;
 }
 
 void	Location::fillErrorPage(std::string line, Server *server)
@@ -177,9 +169,6 @@ void	Location::fillErrorPage(std::string line, Server *server)
 	this->setErrorPage(code, domain);
 
 	(void)server;
-	//print
-	// std::map<int, std::string>::iterator it = server->getErrorPage().begin();
-	// std::cout << "the errorCode is:\t" YELLOW << it->first << RESET " (" YELLOW << it->second << RESET ")" << std::endl;
 }
 
 /* ================ */

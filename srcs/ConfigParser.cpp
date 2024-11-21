@@ -4,19 +4,14 @@
 /*	CANONICAL FORMS	*/
 /* ================ */
 
-ConfigParser::ConfigParser(void)
-{
-	// std::cout << GREEN "Creating a ConfigParser " RESET << std::endl;
-}
+ConfigParser::ConfigParser(void) {}
 
 ConfigParser::ConfigParser(char *path)
 {
 	this->_path = path;
 }
 
-ConfigParser::~ConfigParser()
-{
-}
+ConfigParser::~ConfigParser() {}
 
 /* ================ */
 /*		SETTER		*/
@@ -72,7 +67,7 @@ void	ConfigParser::parseConfig(std::vector<Server> &servers)
 		{
 			Server server;
 			getServerAttributs(file, server);
-			// checkServerAttributs(server, servers);
+			// checkServerAttributs(server, servers); // TODO - look si besoin
 			addServer(server);
 		}
 	}
@@ -97,6 +92,7 @@ void	ConfigParser::checkSemicolon(std::string &line)
 	// On enleve les ; de la fin
 	if (line.find("}") == std::string::npos
 			&& line.find("location") == std::string::npos
+			&& line.find("server ") == std::string::npos
 			&& !line.empty())
 		line.erase(line.size() - 1);
 }
@@ -123,10 +119,10 @@ void ConfigParser::getServerAttributs(std::ifstream& file, Server &server)
 
 	while(getline(file, line))
 	{
-		std::cout << line<< std::endl;
 		if (line.find("{") != std::string::npos)
 			continue;
 		parseLine(line);
+		// std::cout << MAGENTA << line << RESET << std::endl;
 		if (line.find("listen") != std::string::npos)
 			server.fillPort(line);
 		else if(line.find("server_name") != std::string::npos)
@@ -144,14 +140,12 @@ void ConfigParser::getServerAttributs(std::ifstream& file, Server &server)
 		else if(line.find("error_page") != std::string::npos)
 			server.fillErrorPage(line);
 		else if(line.find("location") != std::string::npos)
-		{
-			std::cout << "la" << std::endl;
 			server.fillLocation(file, line, server.getLocation());
-
-		}
-		// getLocationAttributs(file, server, line);
+		else if(line.find("}") == std::string::npos && !line.empty())
+			throw Response::ConfigurationFileServer("Unknown attribute: " + line);
 		if(line.find("}") != std::string::npos)
-			return ;
+			return;
+
 	}
 }
 
@@ -163,15 +157,9 @@ void ConfigParser::printConfig()
 {
 	std::vector<Server>::iterator	itbeg = this->_servers.begin();
 	std::vector<Server>::iterator	itend = this->_servers.end();
-	int								i = 1;
 
 	std::cout << "---------PRINTING CONF-----------\n\n";
-	while(itbeg != itend)
-	{
-		//print server config who call location config
-		std::cout << BWHITE "Server "  << i++ << RESET << std::endl;
-		(itbeg)->printConfig();
-		itbeg++;
-	}
+	for (int i = 1; itbeg != itend; ++itbeg, ++i)
+		std::cout << BWHITE "Server " << i << RESET << std::endl, (itbeg)->printConfig();
 	std::cout << "---------------------------------\n\n";
 }

@@ -48,7 +48,7 @@ class Response
 				std::string _msg;
 			public:
 				explicit ConfigurationFileServer(const std::string &msg):
-					_msg("Error in the Server block configuration file: " + msg) {}
+					_msg("Server configuration: " + msg) {}
 				virtual const char* what() const throw();
 				virtual ~ConfigurationFileServer() throw() {}
 		};
@@ -56,6 +56,16 @@ class Response
 		class Error : public std::exception{
 			public:
 				virtual const char* what() const throw();
+		};
+
+		class ErrorCreatingSocket : public std::exception{
+			private:
+				std::string _msg;
+			public:
+				explicit ErrorCreatingSocket(const std::string &msg):
+					_msg("Error creating socket: " + msg) {}
+				virtual const char* what() const throw();
+				virtual ~ErrorCreatingSocket() throw() {}
 		};
 
 		class ErrorBodyPostRequest : public std::exception{

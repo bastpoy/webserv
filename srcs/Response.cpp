@@ -24,16 +24,19 @@ const char*	Response::ErrorOpeningFile::what() const throw()
 const char* Response::ErrorSendingResponse::what() const throw()
 {
 	return("Error sending response");
+	// return _msg.c_str();
 }
 
 const char* Response::ConfigurationFileLocation::what() const throw()
 {
-	return("Error in the Location block configuration file");
+	return("Location configuration");
+	// return _msg.c_str();
 }
 
 const char* Response::ConfigurationFileLocationPath::what() const throw()
 {
 	return("Location configuration: Path already exist");
+	// return _msg.c_str();
 }
 
 const char* Response::ConfigurationFileServer::what() const throw()
@@ -41,8 +44,14 @@ const char* Response::ConfigurationFileServer::what() const throw()
 	return _msg.c_str();
 }
 
+const char* Response::ErrorCreatingSocket::what() const throw()
+{
+	return _msg.c_str();
+}
+
 const char* Response::Error::what() const throw()
 {
+	// return _msg.c_str();
 	return("");
 }
 

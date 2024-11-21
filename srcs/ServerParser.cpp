@@ -218,13 +218,11 @@ void	Server::fillRedir(std::string line)
 */
 void	Server::fillLocation(std::ifstream &file, std::string line, std::vector<Location> &locations)
 {
-	// std::cout << GREEN "\nNew Location detected" RESET << std::endl;
 	Location location;
 
 	location.fillPath(line, locations);
 	while(getline(file, line))
 	{
-		std::cout << line << std::endl;
 		if (line.find("{") != std::string::npos)
 			continue ;
 		if (line.find("autoindex") != std::string::npos)
@@ -247,7 +245,6 @@ void	Server::fillLocation(std::ifstream &file, std::string line, std::vector<Loc
 		else
 			throw Response::ConfigurationFileLocation();
 	}
-	//add my location to my server
 }
 
 /* ================ */
@@ -258,7 +255,6 @@ void	Server::printConfig()
 {
 	std::vector<Location>::iterator	itbeg = this->_location.begin();
 	std::vector<Location>::iterator	itend = this->_location.end();
-	int								i = 1;
 	
 	//print all server attributs
 	if (!this->getPort().empty())
@@ -278,14 +274,10 @@ void	Server::printConfig()
 	if (this->getRedir().size()) 
 		std::cout << "return\t\t" YELLOW << this->getRedir().begin()->first << " " << this->getRedir().begin()->second << RESET << std::endl;
 	std::cout << std::endl;
-
 	//print every location of my current server
-	while(itbeg != itend)
-	{
-		std::cout << BWHITE "\tLocation "  << i++ << RESET << std::endl;
-		(itbeg)->printConfig();
-		itbeg++;
-	}
+	for (int i = 1; itbeg != itend; ++itbeg, ++i)
+		std::cout << BWHITE "\tLocation " << i << RESET << std::endl, (itbeg)->printConfig();
+
 }
 
 void	maxBodyParsing(std::string caracter, std::string &size)

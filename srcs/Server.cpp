@@ -63,8 +63,8 @@ void setupSocket(int &sockfd, struct sockaddr_in &addr, std::vector<Server>::ite
 	//bind my socket with the current fill sockaddr_in
 	if (bind(sockfd, (struct sockaddr*)&addr, sizeof(sockaddr)) < 0)
 	{
-		std::cout << "BIND: "<< strerror(errno) << " ";
-		throw Response::Error();
+		// std::cout << "BIND: "<< strerror(errno) << " ";
+		throw Response::ErrorCreatingSocket(strerror(errno));
 	}
 
 	//listen on the current socket created
