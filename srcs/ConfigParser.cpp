@@ -1,5 +1,27 @@
 #include "Header.hpp"
 
+std::string	keywords[] = {
+	"listen",
+	"server_name",
+	"root",
+	"client_max_body_size",
+	"autoindex",
+	"index",
+	"return",
+	"error_page"
+};
+void (Server::*ptrs[8])(std::string line) = {
+	&Server::fillPort,
+	&Server::fillServerName,
+	&Server::fillPath,
+	&Server::fillMaxBody,
+	&Server::fillAutoIndex,
+	&Server::fillIndex,
+	&Server::fillRedir,
+	&Server::fillErrorPage
+};
+const int	keywordsSize = 8;
+
 /* ================ */
 /*	CANONICAL FORMS	*/
 /* ================ */
@@ -11,7 +33,7 @@ ConfigParser::ConfigParser(char *path)
 	this->_path = path;
 }
 
-ConfigParser::~ConfigParser() {}
+ConfigParser::~ConfigParser(void) {}
 
 /* ================ */
 /*		SETTER		*/
@@ -24,7 +46,7 @@ void ConfigParser::addServer(Server &server)
 }
 
 //getter
-std::vector<Server>	&ConfigParser::getServers()
+std::vector<Server>	&ConfigParser::getServers(void)
 {
 	return(this->_servers);
 }
@@ -50,25 +72,41 @@ bool ConfigParser::isFileEmpty(const std::string &filePath)
 	return file.tellg() == 0;
 }
 
-void	ConfigParser::parseConfig(std::vector<Server> &servers)
+void checkTwoKeywordsSameLine(const std::string	line)
 {
-	std::string	line;
-	std::ifstream file(this->_path.c_str());
-	(void)servers;
+	int count = 0;
+
+	for (std::size_t i = 0; i < keywordsSize; ++i)
+		if (line.find(keywords[i]) != std::string::npos)
+			++count;
+	if (count >= 2)
+		throw std::runtime_error("Two keywords on the same line.");
+}
+
+void	ConfigParser::parseConfig(void)
+{
+	std::string		line;
+	std::ifstream	file(this->_path.c_str());
+	bool			httpBlock = false;
 
 	if (isFileEmpty(this->_path))
 		throw Response::ErrorOpeningFile("File empty");
 	while (getline(file, line))
 	{
 		rmComments(line);
+		checkTwoKeywordsSameLine(line);
+		if (line.find("http") != std::string::npos)
+			httpBlock = true;
 		// fill new server block
-		if (line.find("server ") != std::string::npos)
+		if (line.find("server") != std::string::npos && httpBlock)
 		{
 			Server server;
 			getServerAttributs(file, server);
 			// checkServerAttributs(server, servers); // TODO - look si besoin
 			addServer(server);
 		}
+		else if (line.find("server") != std::string::npos && !httpBlock)
+			throw Response::ConfigurationFileServer("http block is missing");
 	}
 }
 
@@ -108,7 +146,6 @@ void ConfigParser::parseLine(std::string &line)
 void ConfigParser::getServerAttributs(std::ifstream& file, Server &server)
 {
 	std::string	line;
-	std::string	directives[8] = {"listen", "server_name", "root", "client_max_body_size", "autoindex", "index", "return", "error_page"};
 	void		(Server::*ptrs[8])(std::string line) = {&Server::fillPort, &Server::fillServerName, &Server::fillPath, &Server::fillMaxBody, &Server::fillAutoIndex, &Server::fillIndex, &Server::fillRedir, &Server::fillErrorPage};
 	int			i = -1;
 
@@ -123,7 +160,7 @@ void ConfigParser::getServerAttributs(std::ifstream& file, Server &server)
 			server.fillLocation(file, line, server.getLocation());
 			// continue ;
 		}
-		while (i < 8 && line.find(directives[i]) == std::string::npos)
+		while (i < 8 && line.find(keywords[i]) == std::string::npos)
 			i++;
 		if (i < 8)
 			(server.*ptrs[i])(line);
@@ -138,7 +175,7 @@ void ConfigParser::getServerAttributs(std::ifstream& file, Server &server)
 /*		DEBUG		*/
 /* ================ */
 
-void ConfigParser::printConfig()
+void ConfigParser::printConfig(void)
 {
 	std::vector<Server>::iterator	itbeg = this->_servers.begin();
 	std::vector<Server>::iterator	itend = this->_servers.end();
