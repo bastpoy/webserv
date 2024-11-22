@@ -159,16 +159,23 @@ bool is_keep_alive(std::string &header)
     return (false);
 }
 
-void truncate_file(std::string &file)
+void truncate_file(std::string &file, t_serverData *data)
 {
-    size_t pos = file.find("\n");
-    file.erase(0, pos + 1);
+
+    // get the boundary 
+    size_t pos = data->header.find("boundary=");
+    std::string boundary = data->header.substr(pos + 9, data->header.size() - pos);
+    pos = boundary.find("\r\n");
+    boundary = boundary.substr(0, pos);
+    // erase the line
     pos = file.find("\n");
     file.erase(0, pos + 1);
     pos = file.find("\n");
     file.erase(0, pos + 1);
     pos = file.find("\n");
     file.erase(0, pos + 1);
-    pos = file.find("\n----");
+    pos = file.find("\n");
+    file.erase(0, pos + 1);
+    pos = file.find(boundary);
     file.erase(pos, file.size() - pos);
 }

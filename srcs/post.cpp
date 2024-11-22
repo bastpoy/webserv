@@ -243,7 +243,7 @@ void postRequest(t_serverData *data, Cookie &cookie)
 				throw Response::ErrorOpeningFile();
 			}
             //truncate the beginning and the end of my file and remove boundaries
-            truncate_file(data->body);
+            truncate_file(data->body, data);
 			//put the download data inside a file
             output.write(data->body.c_str(), data->body.size());
             
@@ -257,9 +257,6 @@ void postRequest(t_serverData *data, Cookie &cookie)
 			std::string file = "./www/data/form/keyvalue.json";
 			std::cout << "POSTING DATA" << std::endl;
 			//parse the actual body of the post request
-            // int size = getContentLength(data->header, data);
-            // read_full_body(data, body, size);
-            // std::cout << body << std::endl;
 			parsePostBody(data->body, data, cookie);
 			//put all the data from the body inside a file
 			translateJson(data);

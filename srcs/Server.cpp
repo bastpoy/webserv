@@ -218,7 +218,7 @@ bool read_one_chunk(t_serverData *data)
     // if there is a deconnection
     else if (bytes_read == 0) 
     {
-        std::cout << RED "Connection closed by the client. (recv = 0) " << data->sockfd << RESET << std::endl;
+        // std::cout << RED "Connection closed by the client. (recv = 0) " << data->sockfd << RESET << std::endl;
         close(data->sockfd);
         return (true); 
     }
@@ -231,7 +231,7 @@ bool read_one_chunk(t_serverData *data)
     //     return (true); 
     // }
     data->buffer.append(buffer, bytes_read);
-    std::cout << BLUE "bytes read " << bytes_read << " with sockfd "<< data->sockfd << " and sizebuffer" << data->buffer.size() << RESET <<std::endl;
+    // std::cout << BLUE "bytes read " << bytes_read << " with sockfd "<< data->sockfd << " and sizebuffer" << data->buffer.size() << RESET <<std::endl;
     // std::cout << data->buffer << std::endl;
     return (false);
 }
@@ -245,7 +245,7 @@ void parsing_buffer(t_serverData *data, Cookie &cookie)
         size_t pos = data->buffer.find("\r\n\r\n");
         data->header = data->buffer.substr(0, pos);
         data->body = data->buffer.substr(pos + 4, data->buffer.size() - pos + 4);
-        std::cout << MAGENTA "handling request\n" << RESET;
+        std::cout << MAGENTA "handling request\n" << data->header << RESET << std::endl;
         handleRequest(data->buffer, data, cookie);
     }
     else
