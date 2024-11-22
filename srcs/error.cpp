@@ -86,6 +86,8 @@ void choose_error_page(std::string error, t_serverData *data, std::string path)
 		Response::sendResponse("403 Forbidden", "text/html", read_error_file(path, data), data);
 	else if (error == "404")
 		Response::sendResponse("404 Not Found", "text/html", read_error_file(path, data), data);
+	else if (error == "405")
+		Response::sendResponse("405 Method Not Allowed", "text/html", read_error_file(path, data), data);
     else if (error == "413")
         Response::sendResponse("413 Content Too Large", "text/html", read_error_file(path, data), data);
 	else if (error == "500")
@@ -152,6 +154,8 @@ void errorPage(std::string error, t_serverData *data)
 		Response::sendResponse("403 Forbidden", "text/html", read_error_file("./www/error/error403.html", data), data);
 	else if (error == "404")
 		Response::sendResponse("404 Not Found", "text/html", read_error_file("./www/error/error404.html", data), data);
+	else if (error == "405")
+		Response::sendResponse("405 Method Not Allowed", "text/html", read_error_file("./www/error/error405.html", data), data);
     else if (error == "413")
         Response::sendResponse("413 Content Too Large", "text/html", read_error_file("./www/error/error413.html", data), data);
 	else if (error == "500")

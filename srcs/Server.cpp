@@ -49,6 +49,7 @@ struct epoll_event fillEpoolDataInfo(int &client_fd, t_serverData *info)
     data->buffer = "";
     data->header = "";
     data->body = "";
+    // data->requestAllow.push_back("GET");
 
 	struct epoll_event client_event;
 
@@ -173,7 +174,7 @@ bool handleRequest(std::string buffer, t_serverData *data, Cookie &cookie)
 	std::string firstLine = data->header.substr(0, data->header.find("\n"));
 	std::string typeRequest = firstLine.substr(0, data->header.find(" "));
 
-	if(typeRequest == "GET")
+	if(typeRequest == "GET" && request_allowed("GET", data))
 	{
 		//if i have a redirection on the server or the location
 		if(data->redir.size())
@@ -188,12 +189,12 @@ bool handleRequest(std::string buffer, t_serverData *data, Cookie &cookie)
 		}
 	}
     //if it is a post request
-	else if(typeRequest == "POST")
+	else if(typeRequest == "POST" && request_allowed("POST", data))
 	{
 		postRequest(data, cookie);
 	}
     //if its a delete request
-	else if(typeRequest == "DELETE")
+	else if(typeRequest == "DELETE" && request_allowed("DELETE", data))
 	{
         parseAndDeleteRequest(buffer, data);
     }

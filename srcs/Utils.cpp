@@ -159,9 +159,17 @@ bool is_keep_alive(std::string &header)
     return (false);
 }
 
+bool request_allowed(std::string typeRequest, t_serverData *data)
+{
+    std::vector<std::string>::iterator it = std::find(data->requestAllow.begin(), data->requestAllow.end(), typeRequest);
+    if(it != data->requestAllow.end() || !data->requestAllow.size())
+        return(true);
+    errorPage("403", data);
+    return (false);
+}
+
 void truncate_file(std::string &file, t_serverData *data)
 {
-
     // get the boundary 
     size_t pos = data->header.find("boundary=");
     std::string boundary = data->header.substr(pos + 9, data->header.size() - pos);

@@ -43,6 +43,7 @@ typedef struct s_serverData
 	std::map<std::string, std::string>	errorPage;
 	std::map<std::string, std::string>	redir;
 	std::vector<Location>				location;
+    std::vector<std::string>            requestAllow;
     // t_session                           *session;
 }t_serverData;
 
