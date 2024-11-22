@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Upload</title>
-	<link rel="stylesheet" type="text/css" href="../css/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload</title>
 </head>
 <body style="text-align: center;">
 	<nav style="padding:15px;">
@@ -36,8 +35,14 @@
 </script>
 
 <button class="minimal-button" id="refreshButton">Refresh</button>
+<script>
+    // Get a reference to the button element
+    const button = document.getElementById('refreshButton');
 
+    // Add a click event listener to the button
+    button.addEventListener('click', function() {
+        // Refresh the page
+        location.reload();
+    });
+</script>
 <h3>List of uploaded files :</h3>
-
-</body>
-</html>

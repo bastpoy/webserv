@@ -57,6 +57,15 @@ std::string check_location(std::string &uri, std::string &content, std::vector<L
 		// if the path matchs the location path
 		if(!it->getPath().empty() && uri.find(it->getPath()) != std::string::npos)
 		{
+            // if i have a redirection
+            if(it->getRedir().size())
+            {
+                //i redirec
+                std::cout << "inside location redirection" << std::endl;
+                redirRequest(it->getRedir().begin()->second, data->sockfd, data);
+                //and leave
+                throw Response::Error();
+            }
 			//if file in my request
 			if(isExtension(uri))
 			{
@@ -97,85 +106,14 @@ std::string check_location(std::string &uri, std::string &content, std::vector<L
 	return ("");
 }
 
-std::string getContentType(std::string &path) 
-{
-	std::map<std::string, std::string> contentTypes;
-
-	contentTypes.insert(std::pair<std::string, std::string>(".html", "text/html"));
-	contentTypes.insert(std::pair<std::string, std::string>(".css", "text/css"));
-	contentTypes.insert(std::pair<std::string, std::string>(".js", "application/javascript"));
-	contentTypes.insert(std::pair<std::string, std::string>(".png", "image/png"));
-	contentTypes.insert(std::pair<std::string, std::string>(".jpg", "image/jpeg"));
-	contentTypes.insert(std::pair<std::string, std::string>(".gif", "image/gif"));
-	contentTypes.insert(std::pair<std::string, std::string>(".svg", "image/svg+xml"));
-	contentTypes.insert(std::pair<std::string, std::string>(".webp", "image/webp"));
-	contentTypes.insert(std::pair<std::string, std::string>(".ico", "image/x-icon"));
-	contentTypes.insert(std::pair<std::string, std::string>(".pdf", "application/pdf"));
-	contentTypes.insert(std::pair<std::string, std::string>(".mp3", "video/mpeg"));
-	contentTypes.insert(std::pair<std::string, std::string>(".mp4", "video/mp4"));
-	contentTypes.insert(std::pair<std::string, std::string>(".webm", "video/webm"));
-	contentTypes.insert(std::pair<std::string, std::string>(".ogg", "video/ogg"));
-	contentTypes.insert(std::pair<std::string, std::string>(".doc", "application/msword"));
-	contentTypes.insert(std::pair<std::string, std::string>(".docx", "application/msword"));
-	contentTypes.insert(std::pair<std::string, std::string>(".xls", "application/vnd.ms-excel"));
-	contentTypes.insert(std::pair<std::string, std::string>(".xlsx", "application/vnd.ms-excel"));
-	contentTypes.insert(std::pair<std::string, std::string>(".ppt", "application/vnd.ms-powerpoint"));
-	contentTypes.insert(std::pair<std::string, std::string>(".pptx", "application/vnd.ms-powerpoint"));
-	contentTypes.insert(std::pair<std::string, std::string>(".ppt", "application/vnd.ms-powerpoint"));
-	contentTypes.insert(std::pair<std::string, std::string>(".zip", "application/zip"));
-	contentTypes.insert(std::pair<std::string, std::string>(".rar", "application/vnd.rar"));
-	contentTypes.insert(std::pair<std::string, std::string>(".tar", "application/x-tar"));
-	contentTypes.insert(std::pair<std::string, std::string>(".gz", "application/gzip"));
-	contentTypes.insert(std::pair<std::string, std::string>(".7z", "application/x-7z-compressed"));
-	contentTypes.insert(std::pair<std::string, std::string>(".txt", "text/plain"));
-	contentTypes.insert(std::pair<std::string, std::string>(".xml", "application/xml"));
-	contentTypes.insert(std::pair<std::string, std::string>(".json", "application/json"));
-	contentTypes.insert(std::pair<std::string, std::string>(".csv", "text/csv"));
-
-	size_t dotPos = path.find_last_of(".");
-	if (dotPos != std::string::npos) {
-		std::string extension = path.substr(dotPos);
-		if (contentTypes.find(extension) != contentTypes.end()) {
-			return contentTypes[extension];
-		}
-	}
-	//if i dont have exetension i add backslash
-	else
-	{
-		//if size of path = 0 or no '/' at the end
-		if(path.size() == 0 || path.at(path.size() - 1) != '/')
-			path += "/";
-	}
-	return "text/html"; // Default content type
-}
-
-std::string httpGetResponse(std::string code, std::string contentType, std::string content)
-{
-	//make the header response
-	return ("HTTP/1.1 " + code + " \r\n"
-			"Content-Type: " + contentType + "\r\n"
-			"Content-Length: " + to_string(content.size()) + "\r\n"
-			"Connection: close\r\n"
-			"\r\n" + content);
-}
-
-std::string httpGetResponseDownload(std::string code, std::string contentType, std::string content)
-{
-	//make the header response
-	return ("HTTP/1.1 " + code + " \r\n"
-			"Content-Type: " + contentType + "\r\n"
-			"Content-Length: " + to_string(content.size()) + "\r\n"
-			"Content-Disposition: attachment\r\n"
-			// ; filename=\"" + file + "\"
-			"Connection: close\r\n"
-			"\r\n" + content);
-}
-
 void checkAccessFile(std::string &code, std::string &filePath, t_serverData *data)
 {
 	// check if i can access the current ressource request 
 	if(access(filePath.c_str(), F_OK) != 0)
+    {
+        std::cout << "here" << std::endl;
 		errorPage("404", data);
+    }
 	else if (access(filePath.c_str(), R_OK) != 0)
 		errorPage("403", data);
 	else
@@ -196,7 +134,37 @@ void checkAccessDir(std::string &code, std::string &dirPath, t_serverData *data)
 		code = "200 OK";
 }
 
-void getRequest(std::string &uri, t_serverData *data)
+void process_extension(std::string &filePath, std::string &code, std::string uri, std::string buffer, std::string &content, Cookie &cookie, t_serverData *data)
+{
+    // if no root inside my server
+    if(data->path.empty())
+    {
+        errorPage("403", data);
+    }
+    //if i have an extension
+    if(isExtension(uri))
+    {
+        filePath = data->path + uri;
+        //if its a python file
+        if (filePath.find(".py") != std::string::npos)
+        {
+            std::cout << BLUE "It's a CGI " RESET << filePath <<std::endl; // Debug
+            checkAccessFile(code, filePath, data);
+            content = CGIHandler::execute(uri.c_str(), code);
+        }
+        //if i am at a connexion page and if i have cookies
+        else if(filePath  == "./www/pages/cookie/connexion.html" && check_cookie_validity(cookie, get_cookie_id(buffer)))
+        {
+            std::cout << "no nead to reconnect cause user already exist\n";
+            redirRequest("/", data->sockfd, data);
+            throw Response::responseOk();
+        }
+        else
+            content = readFile(filePath, data);
+    }
+}
+
+void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::string buffer)
 {
 	std::vector<Location>location = data->location;
 	std::string	content;
@@ -214,30 +182,31 @@ void getRequest(std::string &uri, t_serverData *data)
 			errorPage("403", data);
 		if(isExtension(uri))
 		{
-			filePath = data->path + uri;
-
-			if (filePath.find(".py") != std::string::npos)
-			{
-				std::cout << BLUE "It's a CGI" RESET << std::endl; // Debug
-				checkAccessFile(code, filePath, data);
-				content = execute(filePath.c_str(), code, data);
-			}
-			else
-				content = readFile(filePath, data);
+            process_extension(filePath, code, uri, buffer, content, cookie, data);
 		}
-		// if i have a file to download
-		else if(isExtensionDownload(uri))
-		{
-			filePath= data->path + uri;
-			download = true;
-			content = readFile(filePath, data);
-		}
+        // if i have a file to download
+        else if(isExtensionDownload(uri))
+        {
+            filePath= data->path + uri;
+            download = true;
+            content = readFile(filePath, data);
+        }
+        //if i make a deconnexion
+        else if(uri == "pages/deconnexion/")
+        {
+            std::string id = get_cookie_id(buffer);
+            if(!id.empty() && check_cookie_validity(cookie, id))
+                cookie.remove_session_id(id);
+            redirRequest("/", data->sockfd, data);
+            throw Response::responseOk();
+        }
 		// if an index inside my server
 		else if (!data->index.empty())
 		{
 			filePath = data->path + uri + data->index;
 			content = readFile(filePath, data);
 		}
+        //if i have an autoindex
 		else if(!data->autoindex.empty() && data->autoindex == "on")
 		{
 			filePath = data->path + uri;
@@ -250,10 +219,12 @@ void getRequest(std::string &uri, t_serverData *data)
 	}
 	std::cout << "the filePath is: " << filePath << " uri : " << uri << std::endl;
 
+    //check if i am a directory and if i can enter inside
 	if (isDirectory(filePath))
 		checkAccessDir(code, filePath, data);
+    //idem for the file
 	checkAccessFile(code, filePath, data);
-	std::string response = httpGetResponse(code, contentType, content);
+	std::string response = httpGetResponse(code, contentType, content, data);
 
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 	{
@@ -262,24 +233,27 @@ void getRequest(std::string &uri, t_serverData *data)
 	}
 }
 
-	// // get the type of the request file
-	// if(!download)
-	// 	response = httpGetResponse(code, contentType, content);
-	// // if its a download file not the same request
-	// else
-	// 	response = httpGetResponseDownload(code, contentType, content);
-
-void redirRequest(std::map<std::string, std::string>::iterator redir, int fd)
+//parse the get request header and return the response with getrequest
+void parseAndGetRequest(std::string buffer, t_serverData *data, Cookie &cookie)
 {
-	std::string response = "HTTP/1.1 302 Found \r\n"
-							"Location: " + redir->second + "\r\n"
-							"Content-Type: text/html\r\n"
-							"Content-Length: 0 \r\n"
-							"Connection: keep-alive\r\n\r\n";
+    //get the url of the request
+    std::string path = buffer.substr(buffer.find('/') + 1, buffer.size() - buffer.find('/'));
+    path = path.substr(0, path.find(' '));
 
-	if(send(fd, response.c_str(), response.size(), 0) < 0)
-	{
-		std::cout << strerror(errno) << std::endl;
-		std::cout << "Error redirection: " << strerror(errno) << std::endl;
-	}
+    std::cout << "GET RESPONSE " << path <<  std::endl;
+    if(path.find("favicon.ico") != std::string::npos)
+    {
+        notFoundFavicon(data);
+        return;
+    }
+    //if i have a ? inside my url which represent filtering
+    else if(path.find("?") != std::string::npos)
+        errorPage("501", data);
+    //if i have a redirection to delete page i modify it in the displaydeletepage
+    else if(path == "pages/delete/delete.html")
+        displayDeletePage(path, data);
+    // return the data to the client
+    else
+        getRequest(path, data, cookie, buffer);
 }
+

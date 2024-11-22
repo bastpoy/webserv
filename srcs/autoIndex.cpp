@@ -5,11 +5,10 @@ bool isDirectory(const std::string& path)
 	struct stat statbuf;
 	std::string full = "./www/" + path;
 	if (stat(full.c_str(), &statbuf) != 0)
-	{
-		std::cout << "return false " << path << std::endl;
-		return false;
-	}
-	std::cout << "true " << path << " and full " << full << std::endl;
+    {
+        return false;
+    }
+    std::cout << "true " << path << " and full " << full << std::endl;
 	return S_ISDIR(statbuf.st_mode);
 }
 

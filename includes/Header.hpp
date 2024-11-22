@@ -41,6 +41,7 @@
 #include "Response.hpp"			// Classe pour les réponses
 #include "Utils.hpp"
 #include "delete.hpp"
+#include "cookie.hpp"
 
 /* ------------- COLORS ------------- */
 // Reset
@@ -79,14 +80,13 @@
 // Class Prototypes
 class Client;
 class ConfigParser;
-class location;
+class Location;
 // class Logger;
 class Request;
 class RequestHandler;
 class Response;
 class Server;
-// class Socket;
-// class VirtualHost;
+class Cookie;
 
 
 // main.cpp Functions
@@ -102,28 +102,36 @@ std::string					generateAutoIndexPage(const std::string directory, const std::ve
 std::string					execute(std::string uri, std::string &code, t_serverData *data);
 
 // get.cpp Functions
-void						getRequest(std::string &uri, t_serverData *data);
-void						redirRequest(std::map<std::string, std::string>::iterator redir, int fd);
-std::string					check_location(std::string &uri, std::string &content, std::vector<Location> &location, t_serverData *data);
-std::string					getContentType(std::string &path);
-void						checkAccessFile(std::string &code, std::string &filePath, t_serverData *data);
+void						redirRequest(std::string location, int fd, t_serverData *data);
+std::string                 check_location(std::string &uri, std::string &content, std::vector<Location> &location, t_serverData *data);
+std::string                 getContentType(std::string &path);
+void                        checkAccessFile(std::string &code, std::string &filePath, t_serverData *data);
+void                        parseAndGetRequest(std::string buffer, t_serverData *data, Cookie &cookie);
 
 // post.cpp Functions
-void		sendPostData(std::string code , std::string contentType, std::string content, t_serverData *data);
 int 		getContentLength(std::string header, t_serverData *data);
+int         getContentLength(std::string header, t_serverData *data);
 std::string	getFileName(std::string body);
-void		postRequest(std::string buffer, t_serverData *data);
+void		postRequest(t_serverData *data, Cookie &cookie);
+
+//Cookies
+std::string     newSessionCookie(std::map<std::string, std::string> values,Cookie &cookie, t_serverData *data);
+std::string     manageDate(time_t current_time);
+bool            check_cookie_validity(Cookie &cookie, std::string id);
+std::string     get_cookie_id(std::string buffer);
+
+//Response
+std::string     httpGetResponse(std::string code, std::string contentType, std::string content, t_serverData *data);
+std::string     httpGetResponseDownload(std::string code, std::string contentType, std::string content, t_serverData *data);
+void            httpPostResponse(std::string code , std::string contentType, std::string content, t_serverData *data, Cookie &cookie, std::string id);
 
 // error.cpp Functions
 void	errorCloseEpollFd(int &epoll_fd, int errCode);
-void	contentTooLarge(std::string size, t_serverData *data);
-// void	badRequest(t_serverData *data);
-// void	internalError(t_serverData *data);
-// void	forbidden(t_serverData *data);
-// void	notFound(t_serverData *data);
 void	errorPage(std::string error, t_serverData *data);
 
 // error.cpp Functions
 void	configureSignals();
+void    notFoundFavicon(t_serverData *data);
+
 
 #endif /* HEADER_HPP */

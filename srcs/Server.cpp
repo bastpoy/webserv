@@ -1,7 +1,5 @@
 #include "Header.hpp"
 
-//------SERVER FUNCTIONS-------
-
 //Fill data epoll with server iterator
 struct epoll_event fillEpoolDataIterator(int sockfd, std::vector<Server>::iterator itbeg)
 {
@@ -20,9 +18,13 @@ struct epoll_event fillEpoolDataIterator(int sockfd, std::vector<Server>::iterat
 	data->errorPage = itbeg->getErrorPage();
 	data->redir = itbeg->getRedir();
 	data->location = itbeg->getLocation();
+    data->buffer = "";
+    data->header = "";
+    data->body = "";
 
-	event.events = EPOLLIN | EPOLLOUT; // Monitor for input events
+	event.events = EPOLLIN; // Monitor for input events
 	//I stock the info server on the event ptr data
+    event.data.fd = sockfd;
 	event.data.ptr = static_cast<void*>(data);
 
 	return (event);
@@ -32,6 +34,9 @@ struct epoll_event fillEpoolDataIterator(int sockfd, std::vector<Server>::iterat
 struct epoll_event fillEpoolDataInfo(int &client_fd, t_serverData *info)
 {
 	t_serverData *data = new t_serverData;
+
+    // int flags = fcntl(client_fd, F_GETFL, 0);
+    // fcntl(client_fd, F_SETFL, flags | O_NONBLOCK);
 
 	std::cout << RED "data: " << data << RESET << std::endl;
 	data->sockfd = client_fd;
@@ -44,10 +49,15 @@ struct epoll_event fillEpoolDataInfo(int &client_fd, t_serverData *info)
 	data->errorPage = info->errorPage;
 	data->redir = info->redir;
 	data->location = info->location;
+    data->buffer = "";
+    data->header = "";
+    data->body = "";
+    // data->requestAllow.push_back("GET");
 
 	struct epoll_event client_event;
 
 	client_event.events = EPOLLIN | EPOLLOUT;
+    client_event.data.fd = client_fd;
 	client_event.data.ptr = static_cast<void*>(data);
 
 	return(client_event);
@@ -162,65 +172,90 @@ std::string readingData(int &fd, int &epoll_fd, struct epoll_event *client_event
 	return(buffer);
 }
 
-bool redirectRequest(std::string buffer, t_serverData *data) 
+bool handleRequest(std::string buffer, t_serverData *data, Cookie &cookie) 
 {
-	std::string firstLine = buffer.substr(0, buffer.find("\n"));
-	std::string typeRequest =  firstLine.substr(0, buffer.find(" "));
+	std::string firstLine = data->header.substr(0, data->header.find("\n"));
+	std::string typeRequest = firstLine.substr(0, data->header.find(" "));
 
-	if(typeRequest == "GET")
+	if(typeRequest == "GET" && request_allowed("GET", data))
 	{
-		//if i have a redirection 
+		//if i have a redirection on the server or the location
 		if(data->redir.size())
 		{
-			redirRequest(data->redir.begin(), data->sockfd);
+            std::cout << "REDIRECTION GET" << std::endl;
+			redirRequest(data->redir.begin()->second, data->sockfd, data);
 		}
 		// else I respond 
 		else
 		{
-			std::cout << "GET RESPONSE" << std::endl;
-
-			//get the url of the request
-			std::string path = buffer.substr(buffer.find('/') + 1, buffer.size() - buffer.find('/'));
-			path = path.substr(0, path.find(' '));
-			if(path.find("favicon.ico") != std::string::npos)
-			{
-				close(data->sockfd);
-				return (false);
-			}
-			//if i have a ? inside my url which represent filtering
-			else if(path.find("?") != std::string::npos)
-				errorPage("501", data);
-			// return the data to the client
-			getRequest(path, data);
+            parseAndGetRequest(buffer, data, cookie);
 		}
 	}
-	else if(typeRequest == "POST")
+    //if it is a post request
+	else if(typeRequest == "POST" && request_allowed("POST", data))
 	{
-		postRequest(buffer, data);
+		postRequest(data, cookie);
 	}
-	else if(typeRequest == "DELETE")
+    //if its a delete request
+	else if(typeRequest == "DELETE" && request_allowed("DELETE", data))
 	{
-		std::cout << "DELETE RESPONSE" << std::endl;
-
-		//get the url of the request
-		std::string path = buffer.substr(buffer.find('/') + 1, buffer.size() - buffer.find('/'));
-		path = path.substr(0, path.find(' '));
-		if(path.find("favicon.ico") != std::string::npos)
-		{
-			close(data->sockfd);
-			return (false);
-		}
-		//if i have a ? inside my url which represent filtering
-		else if(path.find("?") != std::string::npos)
-			errorPage("501", data);
-		// return the data to the client
-		deleteRequest(path, data);
-		close(data->sockfd);
-	}
+        parseAndDeleteRequest(buffer, data);
+    }
 	//if its not get, post or delete request
 	else
 		std::cout << "404 not found" << std::endl;
 	return(false);
+}
+
+bool read_one_chunk(t_serverData *data) 
+{
+    int bufferSize = 4096;
+    char buffer[bufferSize];
+    // Read data into the buffer
+    std::cout << "waiting before the buffer" << std::endl;
+    int bytes_read = recv(data->sockfd, buffer, bufferSize, 0);
+    if (bytes_read < 0) 
+    {
+        std::cout << "Error " << errno << "reading from socket: " << strerror(errno) << std::endl;
+        errorPage("400", data);
+    } 
+    // if there is a deconnection
+    else if (bytes_read == 0) 
+    {
+        // std::cout << RED "Connection closed by the client. (recv = 0) " << data->sockfd << RESET << std::endl;
+        close(data->sockfd);
+        return (true); 
+    }
+    // else if (bytes_read < bufferSize)
+    // {
+    //     std::cout << BLUE "Bytes inferior to actual bytes " << bytes_read << " and bytes read: " << data->buffer.size() << RESET << std::endl;
+    //     // close(data->sockfd);
+    //     //do the responseS
+    //     data->buffer.append(buffer, bytes_read);
+    //     return (true); 
+    // }
+    data->buffer.append(buffer, bytes_read);
+    // std::cout << BLUE "bytes read " << bytes_read << " with sockfd "<< data->sockfd << " and sizebuffer" << data->buffer.size() << RESET <<std::endl;
+    // std::cout << data->buffer << std::endl;
+    return (false);
+}
+
+void parsing_buffer(t_serverData *data, Cookie &cookie)
+{
+    //if i have a buffer so a request 
+    if(!data->buffer.empty())
+    {
+        //i fill my header and my body of my request
+        size_t pos = data->buffer.find("\r\n\r\n");
+        data->header = data->buffer.substr(0, pos);
+        data->body = data->buffer.substr(pos + 4, data->buffer.size() - pos + 4);
+        std::cout << MAGENTA "handling request\n" << data->header << RESET << std::endl;
+        handleRequest(data->buffer, data, cookie);
+    }
+    else
+    {
+        std::cout << "no data provide" << std::endl;
+    }
 }
 
 // Fill from ServerAddr
@@ -233,6 +268,7 @@ void Server::createListenAddr(ConfigParser &config)
 	if (epoll_fd == -1)
 		errorCloseEpollFd(epoll_fd, 7);
 
+    Cookie cookie;
 	//iterate through every server and retrieve information
 	this->configuringNetwork(itbeg, config, epoll_fd);
 
@@ -243,7 +279,7 @@ void Server::createListenAddr(ConfigParser &config)
 
 	while (true) {
 		//epollwait return a number corresponding to all the files descriptor
-		std::cout << "waiting...\n";
+        std::cout << "Waiting...\n";
 		int num_fds = epoll_wait(epoll_fd, events, MAX_EVENTS, -1);
 		if (num_fds == -1) 
 			errorCloseEpollFd(epoll_fd, 1);
@@ -271,25 +307,38 @@ void Server::createListenAddr(ConfigParser &config)
 			//Connection already etablish 
 			else
 			{
-				// check for modification inside the socket
-				if(events[i].events & (EPOLLIN | EPOLLOUT))
-				{
-					try
-					{
-						//reading data
-						std::string path = readingData(fd, epoll_fd, events);
-						if (path.empty())
-							continue;
-						// std::cout << path << std::endl;
-						// response request
-						if(redirectRequest(path, info))
-							continue;
-					}
-					catch(const std::exception& e)
-					{
-						std::cerr << e.what() << '\n';
-					}
-				}
+                //i listen for some epollin event and possible data read
+                if(events[i].events & EPOLLIN)
+                {
+                    if(read_one_chunk(info))
+                    {
+                        //if i finish read the request info i change the status of the socket
+                        events[i].events = EPOLLOUT;
+                        epoll_ctl(epoll_fd, EPOLL_CTL_MOD, info->sockfd, events);
+                        // if the connection with the socket is over
+                        // close(info->sockfd);
+                    }
+                }
+                //if i can write to my socket
+                else if(events[i].events & EPOLLOUT)
+                {
+                    try
+                    {
+                        // parse the data
+                        parsing_buffer(info, cookie);
+                        // if i finish sending the info I change the status of the socket
+                        events[i].events = EPOLLIN;
+                        epoll_ctl(epoll_fd, EPOLL_CTL_MOD, info->sockfd, events);
+                        close(info->sockfd);
+                    }
+                    catch(const std::exception& e)
+                    {
+                        close(info->sockfd);
+                        std::cerr << e.what() << '\n';
+                    }
+                }
+                std::cout << "\n\n";
+                usleep(10);
 			}
 		}
 	}

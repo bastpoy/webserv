@@ -21,6 +21,13 @@ Accepter les connexions des clients et les rediriger vers un gestionnaire de req
  * @details	Responsible for server configuration and management of virtual hosts.
 */
 
+// typedef struct s_session {
+//     time_t expireDate;
+//     std::string id;
+//     int is_valid;
+//     std::map<std::string, std::string>  credentials;
+// } t_session;
+
 typedef struct s_serverData
 {
 	int									sockfd;
@@ -30,10 +37,15 @@ typedef struct s_serverData
 	std::string							maxBody;
 	std::string							index;
 	std::string							autoindex;
-	std::map<int, std::string>			errorPage;
+    std::string                         buffer;
+    std::string                         header;
+    std::string                         body;
+	std::map<std::string, std::string>	errorPage;
 	std::map<std::string, std::string>	redir;
 	std::vector<Location>				location;
-}	t_serverData;
+    std::vector<std::string>            requestAllow;
+    // t_session                           *session;
+}t_serverData;
 
 class Server
 {
@@ -46,7 +58,7 @@ class Server
 		std::string							_maxBody;		// 36M
 		std::string							_index;			// index.html
 		std::string							_autoindex;		// on/off
-		std::map<int, std::string>			_errorPage;		// 404: /var/www/error/error404.html
+        std::map<std::string, std::string>	_errorPage;		// 404: /var/www/error/error404.html
 		std::map<std::string, std::string>	_redir;			// 302: http://127.0.0.3:8080
 		std::vector<Location>				_location;
 		// Server file descriptor
@@ -61,7 +73,7 @@ class Server
 		void	setMaxBody(std::string maxBody);
 		void	setIndex(std::string index);
 		void	setAutoIndex(std::string autoindex);
-		void	setErrorPage(int code, std::string errorFile);
+		void	setErrorPage(std::string code, std::string errorFile);
 		void	setRedir(std::string code, std::string domain);
 		void	setLocation(Location &location);
 		// ServerAddr Setters
@@ -74,7 +86,7 @@ class Server
 		std::string							getMaxBody() const;
 		std::string							getIndex() const;
 		std::string							getAutoIndex() const;
-		std::map<int,std::string>			&getErrorPage();
+        std::map<std::string,std::string>   &getErrorPage();
 		std::map<std::string,std::string>	&getRedir();
 		std::vector<Location>				&getLocation();
 

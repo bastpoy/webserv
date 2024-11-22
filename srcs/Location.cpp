@@ -48,13 +48,17 @@ void	Location::setAutoIndex(std::string autoIndex)
 	this->_autoindex = autoIndex;
 }
 
-void	Location::setRedir(int code, std::string domain)
+void	Location::setRedir(std::string code, std::string domain)
 {
 	domain.erase(std::remove(domain.begin(), domain.end(), ' '), domain.end());
-	this->_redir.insert(std::make_pair(code, domain));
+    //if i have already a redirection i delete it and replace it
+    if(this->getRedir().size())
+        this->_redir.erase(this->_redir.begin());
+    //add the new redirection
+    this->_redir.insert(std::make_pair(code, domain));
 }
 
-void	Location::setErrorPage(int code, std::string errorFile)
+void	Location::setErrorPage(std::string code, std::string errorFile)
 {
 	errorFile.erase(std::remove(errorFile.begin(), errorFile.end(), ' '), errorFile.end());
 	this->_errorPage.insert(std::make_pair(code, errorFile));
@@ -89,12 +93,12 @@ std::string Location::getAutoIndex() const
 	return (this->_autoindex);
 }
 
-std::map<int,std::string> &Location::getRedir()
+std::map<std::string,std::string> &Location::getRedir()
 {
 	return (this->_redir);
 }
 
-std::map<int,std::string> &Location::getErrorPage()
+std::map<std::string,std::string> &Location::getErrorPage()
 {
 	return (this->_errorPage);
 }
@@ -151,9 +155,13 @@ void	Location::fillAutoIndex(std::string line)
 
 void	Location::fillRedir(std::string line, Server *server)
 {
-	size_t pos = line.find("return");
-	int code = atoi(line.substr(pos + strlen("return"), 3).c_str());
-	std::string domain = line.substr(pos + strlen("return") + 3, line.length() - (pos + strlen("return")));
+	size_t pos = line.find("return ");
+    if(pos == std::string::npos)
+    {
+        throw Response::ConfigurationFileLocation();
+    }
+	std::string code = line.substr(pos + strlen("return "), 3);
+	std::string domain = line.substr(pos + strlen("return ") + 4, line.length() - (pos + strlen("return")));
 	this->setRedir(code, domain);
 
 	(void)server;
@@ -164,9 +172,9 @@ void	Location::fillRedir(std::string line, Server *server)
 
 void	Location::fillErrorPage(std::string line, Server *server)
 {
-	size_t pos = line.find("error_page");
-	int code = atoi(line.substr(pos + strlen("error_page"), 3).c_str());
-	std::string domain = line.substr(pos + strlen("error_page") + 3, line.length());
+	size_t pos = line.find("error_page ");
+	std::string code = line.substr(pos + strlen("error_page "), 3).c_str();
+	std::string domain = line.substr(pos + strlen("error_page ") + 3, line.length());
 	this->setErrorPage(code, domain);
 
 	(void)server;
@@ -189,9 +197,9 @@ void	Location::printConfig()
 		std::cout << "\tindex\t\t" YELLOW << this->getIndex() << RESET << std::endl;
 	if(!this->getMaxBody().empty())
 		std::cout << "\tclient_max_body_size\t\t" YELLOW << this->getMaxBody() << RESET << std::endl;
-	if(this->getErrorPage().begin()->first) 
+	if(this->getErrorPage().size()) 
 		std::cout << "\terror_page\t" YELLOW << this->getErrorPage().begin()->first << " " << this->getErrorPage().begin()->second << RESET << std::endl;
-	if(this->getRedir().begin()->first) 
+	if(this->getRedir().size()) 
 		std::cout << "\treturn\t\t" YELLOW << this->getRedir().begin()->first << " " << this->getRedir().begin()->second << RESET << std::endl;
 	std::cout << std::endl;
 }

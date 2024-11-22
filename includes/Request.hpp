@@ -19,14 +19,6 @@ class Request
 	public:
 		void	parseRequest(); // pour analyser les données brutes et remplir les attributs de la requête.
 
-//From  RequestHandler
-		// void	handleGetRequest();
-		// void	handlePostRequest();
-		// void	handleDeleteRequest();
-
-		// void	serveStaticFile(); // pour récupérer le contenu des fichiers statiques.
-		// void	handleError(); // pour créer une réponse d'erreur (par exemple, 404 Not Found).
-
 
 };
 

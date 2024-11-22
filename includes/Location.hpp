@@ -8,13 +8,13 @@ class Server;
 class Location
 {
 	private:
-		std::string					_path;
-		std::string					_root;
-		std::string					_index;
-		std::string					_maxBody;
-		std::string					_autoindex;
-		std::map<int,std::string>	_redir;
-		std::map<int, std::string>	_errorPage;
+		std::string					        _path;
+		std::string					        _root;
+		std::string					        _index;
+		std::string					        _maxBody;
+		std::string					        _autoindex;
+		std::map<std::string,std::string>	_redir;
+		std::map<std::string, std::string>	_errorPage;
 
 	public:
 		// Canonical form
@@ -29,16 +29,17 @@ class Location
 		void	setIndex(std::string index);
 		void	setMaxBody(std::string maxBody);
 		void	setAutoIndex(std::string autoIndex);
-		void	setRedir(int code, std::string path);
-		void	setErrorPage(int errCode, std::string errorPage);
+		void	setRedir(std::string code, std::string path);
+		void	setErrorPage(std::string errCode, std::string errorPage);
+        
 		// Getter
 		std::string					getPath() const;
 		std::string					getRoot() const;
 		std::string					getIndex() const;
 		std::string					getMaxBody() const;
 		std::string					getAutoIndex() const;
-		std::map<int,std::string>	&getRedir();
-		std::map<int,std::string>	&getErrorPage();
+		std::map<std::string, std::string>	&getRedir();
+		std::map<std::string,std::string>	&getErrorPage();
 
 		// Fill
 		void	fillPath(std::string line);
