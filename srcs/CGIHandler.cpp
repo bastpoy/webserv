@@ -87,7 +87,7 @@ std::string execute(std::string uri, std::string &code, t_serverData *data) {
 
 		setenv("REQUEST_METHOD", "GET", 1);
 		setenv("SCRIPT_NAME", uri.c_str(), 1);
-
+        
 		execl("/usr/bin/python3", "python3", uri.c_str(), NULL);
 		perror("execl");
 		exit(1);

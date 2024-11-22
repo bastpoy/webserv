@@ -197,6 +197,7 @@ void truncate_file(std::string &file, t_serverData *data)
     std::string boundary = data->header.substr(pos + 9, data->header.size() - pos);
     pos = boundary.find("\r\n");
     boundary = boundary.substr(0, pos);
+    std::cout << RED << "boundary: " << boundary << RESET  << std::endl;
     // erase the line
     pos = file.find("\n");
     file.erase(0, pos + 1);
@@ -207,5 +208,8 @@ void truncate_file(std::string &file, t_serverData *data)
     pos = file.find("\n");
     file.erase(0, pos + 1);
     pos = file.find(boundary);
-    file.erase(pos, file.size() - pos);
+    if(pos != std::string::npos)
+    {
+        file.erase(pos - 2, file.size() - pos - 2);
+    }
 }

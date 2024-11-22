@@ -38,7 +38,7 @@ struct epoll_event fillEpoolDataInfo(int &client_fd, t_serverData *info)
     // int flags = fcntl(client_fd, F_GETFL, 0);
     // fcntl(client_fd, F_SETFL, flags | O_NONBLOCK);
 
-	std::cout << RED "data: " << data << RESET << std::endl;
+	// std::cout << RED "data: " << data << RESET << std::endl;
 	data->sockfd = client_fd;
 	data->port = info->port;
 	data->server_name = info->server_name;
@@ -222,7 +222,7 @@ bool read_one_chunk(t_serverData *data)
     // if there is a deconnection
     else if (bytes_read == 0) 
     {
-        // std::cout << RED "Connection closed by the client. (recv = 0) " << data->sockfd << RESET << std::endl;
+        std::cout << RED "Connection closed by the client. (recv = 0) " << data->sockfd << RESET << std::endl;
         close(data->sockfd);
         return (true); 
     }
@@ -232,7 +232,7 @@ bool read_one_chunk(t_serverData *data)
     //     // close(data->sockfd);
     //     //do the responseS
     //     data->buffer.append(buffer, bytes_read);
-    //     return (true); 
+    //     return (true);
     // }
     data->buffer.append(buffer, bytes_read);
     // std::cout << BLUE "bytes read " << bytes_read << " with sockfd "<< data->sockfd << " and sizebuffer" << data->buffer.size() << RESET <<std::endl;
@@ -307,6 +307,8 @@ void Server::createListenAddr(ConfigParser &config)
 			//Connection already etablish 
 			else
 			{
+                // usleep(10);
+
                 //i listen for some epollin event and possible data read
                 if(events[i].events & EPOLLIN)
                 {
@@ -329,7 +331,7 @@ void Server::createListenAddr(ConfigParser &config)
                         // if i finish sending the info I change the status of the socket
                         events[i].events = EPOLLIN;
                         epoll_ctl(epoll_fd, EPOLL_CTL_MOD, info->sockfd, events);
-                        close(info->sockfd);
+                        // close(info->sockfd);
                     }
                     catch(const std::exception& e)
                     {
@@ -338,7 +340,7 @@ void Server::createListenAddr(ConfigParser &config)
                     }
                 }
                 std::cout << "\n\n";
-                usleep(10);
+                // usleep(10);
 			}
 		}
 	}

@@ -1,7 +1,3 @@
------------------------------3468029891109689352256906647
-Content-Disposition: form-data; name="files"; filename="script.py"
-Content-Type: text/x-python
-
 #!/usr/bin/env python3
 print("<!DOCTYPE html>")
 print()
@@ -20,4 +16,4 @@ print("</nav>")
 print("<h1 style=\"font-size:30px;margin:3rem\">Hello World</h1>")
 print("</body>")
 print("</html>")
------------------------------3468029891109689352256906647--
+--
