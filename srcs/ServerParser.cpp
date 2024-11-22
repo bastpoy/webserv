@@ -130,19 +130,18 @@ void	Server::fillPort(std::string line)
 void	Server::fillServerName(std::string line)
 {
 	size_t pos = line.find("server_name");
-	this->_server_name =  line.substr(pos + strlen("server_name"), line.length() - (pos + strlen("server_name")));
+
+	this->setServerName(line.substr(pos + strlen("server_name"), line.length() - (pos + strlen("server_name"))));
 	std::vector<std::string>	substr_ip = ft_split(_server_name, '.');
 
 	for (size_t i = 0; i < substr_ip.size(); i++)
 	{
 		int result = 0;
-		if (ft_stoi(substr_ip[i], result))
+		if (!ft_stoi(substr_ip[i], result))
 			break ;
 		if (!(result >= 0 && result <= 255))
 			throw Response::ConfigurationFileServer("Wrong Server Name");
 	}
-	//print
-	// std::cout << "the server is: " << this->getServerName() << std::endl;
 }
 
 void	Server::fillPath(std::string line)
@@ -155,8 +154,6 @@ void	Server::fillPath(std::string line)
 	//if no . at the begining add it
 	if(this->getPath().at(0) != '.')
 		this->setPath("." + this->getPath());
-	//print
-	// std::cout << "the path is: " << this->getPath() << std::endl;
 }
 
 void	Server::fillMaxBody(std::string line)
@@ -181,8 +178,6 @@ void	Server::fillIndex(std::string line)
 {
 	size_t pos = line.find("index");
 	this->setIndex(line.substr(pos + strlen("index"), line.length() - (pos + strlen("index"))));
-	//print
-	// std::cout << "the index is: " << this->getIndex() << std::endl;
 }
 
 //TODO - Delete spaces
@@ -190,8 +185,6 @@ void	Server::fillAutoIndex(std::string line)
 {
 	size_t pos = line.find("autoindex"); 
 	this->setAutoIndex(line.substr(pos + strlen("autoindex"), line.length() - (pos + strlen("autoindex"))));
-	//print
-	// std::cout << "the autoindex is: " << this->getAutoIndex() << std::endl;
 }
 
 void	Server::fillErrorPage(std::string line)
@@ -201,10 +194,6 @@ void	Server::fillErrorPage(std::string line)
 	int code = atoi(line.substr(pos + strlen("error_page"), 3).c_str());
 	std::string domain = line.substr(pos + strlen("error_page") + 3, line.length());
 	this->setErrorPage(code, domain);
-
-	//print
-	// std::map<int, std::string>::iterator it = this->getErrorPage().begin();
-	// std::cout << "the errorCode is: " << it->first << "\t the file is: " << it->second <<  std::endl;
 }
 
 void	Server::fillRedir(std::string line)
@@ -213,10 +202,6 @@ void	Server::fillRedir(std::string line)
 	std::string code = line.substr(pos + strlen("return"), 4);
 	std::string domain = line.substr(pos + strlen("return") + 4, line.length() - (pos + strlen("return")));
 	this->setRedir(code, domain);
-
-	//print
-	// std::map<std::string, std::string>::iterator it = this->getRedir().begin();
-	// std::cout << "the code is: " << it->first << "\t the domain is: " << it->second <<  std::endl;
 }
 
 /**
@@ -235,6 +220,7 @@ void	Server::fillLocation(std::ifstream &file, std::string line, std::vector<Loc
 	{
 		if (line.find("{") != std::string::npos)
 			continue ;
+		ConfigParser::parseLine(line);
 		if (line.find("autoindex") != std::string::npos)
 			location.fillAutoIndex(line);
 		else if (line.find("client_max_body_size") != std::string::npos)

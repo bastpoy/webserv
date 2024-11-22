@@ -53,6 +53,7 @@ bool ConfigParser::isFileEmpty(const std::string &filePath)
 void	ConfigParser::parseConfig(std::vector<Server> &servers)
 {
 	std::string line;
+	bool	serverFound = false;
 	std::ifstream file(this->_path.c_str());
 	(void)servers;
 
@@ -63,14 +64,17 @@ void	ConfigParser::parseConfig(std::vector<Server> &servers)
 		rmComments(line);
 
 		// fill new server block
-		if (line.find("server") != std::string::npos)
+		if (line.find("server ") != std::string::npos)
 		{
 			Server server;
 			getServerAttributs(file, server);
 			// checkServerAttributs(server, servers); // TODO - look si besoin
 			addServer(server);
+			serverFound = true;
 		}
 	}
+	if (!serverFound)
+		throw Response::ConfigurationFileServer("No server found");
 }
 
 void	ConfigParser::rmComments(std::string &line)
@@ -83,17 +87,10 @@ void	ConfigParser::rmComments(std::string &line)
 
 void	ConfigParser::checkSemicolon(std::string &line)
 {
-	//On check s'il sont bien present
-	if (line.find("}") == std::string::npos
-			&& line.find_last_of(';') == 0
-			&& line.find("location") == std::string::npos)
+	bool conditions = line.find("}") == std::string::npos && line.find("location") == std::string::npos && !line.empty();
+	if (conditions && line.find_last_of(';') == std::string::npos)
 		throw Response::ConfigurationFileServer("\';\' is missing");
-
-	// On enleve les ; de la fin
-	if (line.find("}") == std::string::npos
-			&& line.find("location") == std::string::npos
-			&& line.find("server ") == std::string::npos
-			&& !line.empty())
+	if (conditions)
 		line.erase(line.size() - 1);
 }
 
@@ -129,7 +126,7 @@ void ConfigParser::getServerAttributs(std::ifstream& file, Server &server)
 		if (line.find("location") != std::string::npos)
 		{
 			server.fillLocation(file, line, server.getLocation());
-			continue ;
+			// continue ;
 		}
 		while (i < 8 && line.find(directives[i]) == std::string::npos)
 			i++;
