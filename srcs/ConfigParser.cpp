@@ -52,8 +52,7 @@ bool ConfigParser::isFileEmpty(const std::string &filePath)
 
 void	ConfigParser::parseConfig(std::vector<Server> &servers)
 {
-	std::string line;
-	bool	serverFound = false;
+	std::string	line;
 	std::ifstream file(this->_path.c_str());
 	(void)servers;
 
@@ -62,7 +61,6 @@ void	ConfigParser::parseConfig(std::vector<Server> &servers)
 	while (getline(file, line))
 	{
 		rmComments(line);
-
 		// fill new server block
 		if (line.find("server ") != std::string::npos)
 		{
@@ -70,11 +68,8 @@ void	ConfigParser::parseConfig(std::vector<Server> &servers)
 			getServerAttributs(file, server);
 			// checkServerAttributs(server, servers); // TODO - look si besoin
 			addServer(server);
-			serverFound = true;
 		}
 	}
-	if (!serverFound)
-		throw Response::ConfigurationFileServer("No server found");
 }
 
 void	ConfigParser::rmComments(std::string &line)
