@@ -173,7 +173,7 @@ void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::strin
 	std::string contentType = getContentType(uri);
 	//check if I have a location block that match the query
 	std::string filePath = check_location(uri, content, data->location, data);
-	bool download = false;
+	// bool download = false;
 
 	//check if i dont have a location
 	if(filePath.empty())
@@ -189,7 +189,7 @@ void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::strin
         else if(isExtensionDownload(uri))
         {
             filePath= data->path + uri;
-            download = true;
+            // download = true;
             content = readFile(filePath, data);
         }
         //if i make a deconnexion
@@ -226,11 +226,11 @@ void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::strin
     //idem for the file
 	checkAccessFile(code, filePath, data);
 	std::string response = httpGetResponse(code, contentType, content, data);
-
+    // std::cout << MAGENTA "handling request\n" << response << RESET << std::endl;
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 	{
 		std::cout << strerror(errno) << std::endl;
-		throw Response::ErrorSendingResponse(); 
+		throw Response::ErrorSendingResponse();
 	}
 }
 

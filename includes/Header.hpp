@@ -110,7 +110,6 @@ void                        parseAndGetRequest(std::string buffer, t_serverData 
 
 // post.cpp Functions
 int 		getContentLength(std::string header, t_serverData *data);
-int         getContentLength(std::string header, t_serverData *data);
 std::string	getFileName(std::string body);
 void		postRequest(t_serverData *data, Cookie &cookie);
 

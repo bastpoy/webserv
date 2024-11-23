@@ -38,6 +38,7 @@ std::string httpGetResponse(std::string code, std::string contentType, std::stri
     {
         response += "Connection: close\r\n";
     }
+    std::cout << BLUE << response << RESET << std::endl;
     response += "\r\n" + content;
     return (response);
 }
@@ -80,7 +81,7 @@ void redirRequest(std::string location, int fd, t_serverData *data)
 		std::cout << strerror(errno) << std::endl;
 		std::cout << "Error redirection: " << strerror(errno) << std::endl;
 	}
-    close(fd);
+    // close(fd);
 }
 
 void httpPostResponse(std::string code , std::string contentType, std::string content, t_serverData *data, Cookie &cookie, std::string id)

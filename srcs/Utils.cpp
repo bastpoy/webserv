@@ -83,8 +83,9 @@ int getContentLength(std::string header, t_serverData *data)
 
 	if(pos == std::string::npos)
 	{
-		errorPage("400", data);
-		throw Response::ErrorBodyPostRequest();
+        return (header.size());
+		// errorPage("400", data);
+		// throw Response::ErrorBodyPostRequest();
 	}
 	//get the maxbody
 	std::string size = header.substr(pos + content.size(), header.size());
@@ -207,9 +208,9 @@ void truncate_file(std::string &file, t_serverData *data)
     file.erase(0, pos + 1);
     pos = file.find("\n");
     file.erase(0, pos + 1);
-    pos = file.find(boundary);
+    pos = file.find(boundary + "--");
     if(pos != std::string::npos)
     {
-        file.erase(pos - 2, file.size() - pos - 2);
+        file.erase(pos - 1, (boundary + "--").size());
     }
 }

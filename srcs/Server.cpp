@@ -56,7 +56,7 @@ struct epoll_event fillEpoolDataInfo(int &client_fd, t_serverData *info)
 
 	struct epoll_event client_event;
 
-	client_event.events = EPOLLIN | EPOLLOUT;
+	client_event.events = EPOLLIN ;
     client_event.data.fd = client_fd;
 	client_event.data.ptr = static_cast<void*>(data);
 
@@ -143,35 +143,6 @@ int acceptConnection(int &fd, int &epoll_fd, struct sockaddr_in &client_addr)
 	return(client_fd);
 }
 
-//reading the request http data
-std::string readingData(int &fd, int &epoll_fd, struct epoll_event *client_event)
-{
-	char buffer[1024];
-	ssize_t bytes_read = recv(fd, buffer, sizeof(buffer) - 1, 0);
-	//Error reading data
-	if (bytes_read > 0)
-	{
-		buffer[bytes_read] = '\0';
-		return(buffer);
-	}
-	else if (bytes_read == 0) 
-	{
-		// Connection closed by the client
-		std::cout << "Client disconnected: " << fd << std::endl;
-		if(epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, client_event) == -1)
-			errorCloseEpollFd(epoll_fd, 4);
-		close(fd);
-		return ("");
-	}
-	else if(bytes_read == -1 && (errno == EAGAIN || errno == EWOULDBLOCK))
-	{
-		std::cout << "Data not receive totally\n"; 
-	}
-	else
-		errorCloseEpollFd(fd, 5);
-	return(buffer);
-}
-
 bool handleRequest(std::string buffer, t_serverData *data, Cookie &cookie) 
 {
 	std::string firstLine = data->header.substr(0, data->header.find("\n"));
@@ -207,8 +178,10 @@ bool handleRequest(std::string buffer, t_serverData *data, Cookie &cookie)
 	return(false);
 }
 
-bool read_one_chunk(t_serverData *data) 
+bool read_one_chunk(t_serverData *data, int epoll_fd, epoll_event *events) 
 {
+    (void)epoll_fd;
+    (void)events;
     int bufferSize = 4096;
     char buffer[bufferSize];
     // Read data into the buffer
@@ -216,27 +189,40 @@ bool read_one_chunk(t_serverData *data)
     int bytes_read = recv(data->sockfd, buffer, bufferSize, 0);
     if (bytes_read < 0) 
     {
-        std::cout << "Error " << errno << "reading from socket: " << strerror(errno) << std::endl;
+        std::cout << "Error " << errno << " reading from socket: " << strerror(errno) << std::endl;
         errorPage("400", data);
     } 
     // if there is a deconnection
     else if (bytes_read == 0) 
     {
         std::cout << RED "Connection closed by the client. (recv = 0) " << data->sockfd << RESET << std::endl;
+        // epoll_ctl(epoll_fd, EPOLL_CTL_DEL, data->sockfd, events);
         close(data->sockfd);
-        return (true); 
+        // close(data->sockfd);
+        return (false); 
     }
-    // else if (bytes_read < bufferSize)
-    // {
-    //     std::cout << BLUE "Bytes inferior to actual bytes " << bytes_read << " and bytes read: " << data->buffer.size() << RESET << std::endl;
-    //     // close(data->sockfd);
-    //     //do the responseS
-    //     data->buffer.append(buffer, bytes_read);
-    //     return (true);
-    // }
     data->buffer.append(buffer, bytes_read);
+    // std::cout << YELLOW << "size " << data->buffer.size() << " " << data->buffer << std::endl;
+    //retieve the header
+    size_t pos = data->buffer.find("\r\n\r\n");
+    if(pos != std::string::npos)
+    {
+        data->header = data->buffer.substr(0, pos + 4);
+        std::cout << GREEN << data->header <<  "\n size: " << data->buffer.size() - data->header.size() << RESET << std::endl;
+    }
+    //check if buffer size - header size = contentlength
+    if(static_cast<int>(data->buffer.size() - data->header.size()) == getContentLength(data->buffer, data))
+    {
+        std::cout << BLUE "finish reading data first" << RESET << std::endl;
+        return (true);
+    }
+    //if i finish reading everything
+    if(static_cast<int>(data->buffer.size()) == getContentLength(data->buffer, data))
+    {
+        std::cout << BLUE "finish reading data second" << RESET << std::endl;
+        return true;
+    }
     // std::cout << BLUE "bytes read " << bytes_read << " with sockfd "<< data->sockfd << " and sizebuffer" << data->buffer.size() << RESET <<std::endl;
-    // std::cout << data->buffer << std::endl;
     return (false);
 }
 
@@ -249,7 +235,7 @@ void parsing_buffer(t_serverData *data, Cookie &cookie)
         size_t pos = data->buffer.find("\r\n\r\n");
         data->header = data->buffer.substr(0, pos);
         data->body = data->buffer.substr(pos + 4, data->buffer.size() - pos + 4);
-        std::cout << MAGENTA "handling request\n" << data->header << RESET << std::endl;
+        // std::cout << MAGENTA "handling request\n" << data->header << RESET << std::endl;
         handleRequest(data->buffer, data, cookie);
     }
     else
@@ -312,9 +298,10 @@ void Server::createListenAddr(ConfigParser &config)
                 //i listen for some epollin event and possible data read
                 if(events[i].events & EPOLLIN)
                 {
-                    if(read_one_chunk(info))
+                    if(read_one_chunk(info, epoll_fd, events))
                     {
                         //if i finish read the request info i change the status of the socket
+                        std::cout << BLUE "switching to epoolout" << RESET << std::endl;
                         events[i].events = EPOLLOUT;
                         epoll_ctl(epoll_fd, EPOLL_CTL_MOD, info->sockfd, events);
                         // if the connection with the socket is over
@@ -322,19 +309,30 @@ void Server::createListenAddr(ConfigParser &config)
                     }
                 }
                 //if i can write to my socket
-                else if(events[i].events & EPOLLOUT)
+                if(events[i].events & EPOLLOUT)
                 {
                     try
                     {
                         // parse the data
                         parsing_buffer(info, cookie);
                         // if i finish sending the info I change the status of the socket
+                        std::cout << BLUE "switching to epoolin" << RESET << std::endl;
                         events[i].events = EPOLLIN;
                         epoll_ctl(epoll_fd, EPOLL_CTL_MOD, info->sockfd, events);
-                        // close(info->sockfd);
+                        info->body = "";
+                        info->buffer = "";
+                        info->header = "";
+                        close(info->sockfd);
                     }
                     catch(const std::exception& e)
                     {
+                        std::cout << RED << "Error catch" << RESET << std::endl;
+                        std::cout << BLUE "switching to epoolin" << RESET << std::endl;
+                        events[i].events = EPOLLIN;
+                        epoll_ctl(epoll_fd, EPOLL_CTL_MOD, info->sockfd, events);
+                        info->body = "";
+                        info->buffer = "";
+                        info->header = "";
                         close(info->sockfd);
                         std::cerr << e.what() << '\n';
                     }
