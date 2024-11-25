@@ -87,14 +87,25 @@ std::string execute(std::string uri, std::string &code, t_serverData *data) {
 
 		setenv("REQUEST_METHOD", "GET", 1);
 		setenv("SCRIPT_NAME", uri.c_str(), 1);
-        
-		execl("/usr/bin/python3", "python3", uri.c_str(), NULL);
+        // std::cerr << "cgi uri: " << uri << std::endl;
+        char **script = (char **)malloc(sizeof(char*) * 3);
+        script[0] = strdup("/usr/bin/python3");
+        script[1] = strdup(uri.c_str());  // Creates a new C-string
+        script[2] = NULL;
+        // std::cerr << "rererererererer " << *script << " re" << std::endl;
+        if(execve("/usr/bin/python3", script, NULL) < 0)
+        {
+            std::cerr << strerror(errno) << std::endl;
+        }
+		// execl("/usr/bin/python3", "python3", uri.c_str(), NULL);
 		perror("execl");
 		exit(1);
-	} else {
+	} 
+    else 
+    {
 		// Processus parent
 		close(pipefd[1]);
-		char buffer[1024];
+		char buffer[1024];  
 		std::stringstream output;
 		ssize_t bytes_read;
 
@@ -104,17 +115,24 @@ std::string execute(std::string uri, std::string &code, t_serverData *data) {
 		FD_ZERO(&set);
 		FD_SET(pipefd[0], &set);
 
-		timeout.tv_sec = 10;  // Timeout de 10 secondes
+		timeout.tv_sec = 5;  // Timeout de 10 secondes
 		timeout.tv_usec = 0;
-
+    
 		int value = select(pipefd[0] + 1, &set, NULL, NULL, &timeout);
 		if (value == -1) {
 			perror("select");
 			close(pipefd[0]);
 			errorPage("500", data);
-		} else if (value == 0) {
+		}
+        else if (value == 0) {
+
+            std::cerr << "here before error " << pipefd[0] << " " << pid <<  std::endl;
+            if(kill(pid, SIGKILL) == -1)
+            {
+                std::cout << "error killing process: " << strerror(errno) << std::endl;
+            }
 			close(pipefd[0]);
-			errorPage("504", data);
+            errorPage("504", data);
 		}
 
 		// Lecture des données

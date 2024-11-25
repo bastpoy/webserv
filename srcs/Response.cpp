@@ -38,7 +38,7 @@ std::string httpGetResponse(std::string code, std::string contentType, std::stri
     {
         response += "Connection: close\r\n";
     }
-    std::cout << BLUE << response << RESET << std::endl;
+    // std::cout << BLUE << response << RESET << std::endl;
     response += "\r\n" + content;
     return (response);
 }

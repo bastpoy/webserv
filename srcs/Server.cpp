@@ -76,7 +76,10 @@ void setupSocket(int &sockfd, struct sockaddr_in &addr, std::vector<Server>::ite
 	//bind my socket with the current fill sockaddr_in
 	if (bind(sockfd, (struct sockaddr*)&addr, sizeof(sockaddr)) < 0) 
 	{
-		std::cout << "BIND: "<< strerror(errno) << " ";
+        close(3);
+        close(4);
+        close(5);
+		std::cout << "BIND: " << sockfd << " " << strerror(errno) << " ";
 		throw Response::Error();
 	}
 
@@ -100,15 +103,15 @@ void Server::configuringNetwork(std::vector<Server>::iterator &itbeg, ConfigPars
 		//I create my socket
 		int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 		if (sockfd == -1)
-			errorCloseEpollFd(epoll_fd, 2);
-		
-		// int flag = fcntl(sockfd, F_GETFL, 0);
-		// fcntl(sockfd, F_SETFL, flag | O_NONBLOCK);
+        {
+            std::cout << "error creating socket" << std::endl;
+            errorCloseEpollFd(epoll_fd, 2);
+        }
 
 		std::cout << sockfd << " and ";
 		//add properties to allow the socket to be reusable even if it is in time wait
 		int opt = 1;
-		if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1)
+		if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
 			errorCloseEpollFd(epoll_fd, 3);
 		
 		// std::cout << itbeg->getPort() << "-" << itbeg->getServerName() << "-" << std::endl;
@@ -185,11 +188,11 @@ bool read_one_chunk(t_serverData *data, int epoll_fd, epoll_event *events)
     int bufferSize = 4096;
     char buffer[bufferSize];
     // Read data into the buffer
-    std::cout << "waiting before the buffer" << std::endl;
+    // std::cout << "waiting before the buffer" << std::endl;
     int bytes_read = recv(data->sockfd, buffer, bufferSize, 0);
     if (bytes_read < 0) 
     {
-        std::cout << "Error " << errno << " reading from socket: " << strerror(errno) << std::endl;
+        std::cout << "Error " << errno << " reading from socket" << data->sockfd << ": " << strerror(errno) << std::endl;
         errorPage("400", data);
     } 
     // if there is a deconnection
@@ -208,18 +211,18 @@ bool read_one_chunk(t_serverData *data, int epoll_fd, epoll_event *events)
     if(pos != std::string::npos)
     {
         data->header = data->buffer.substr(0, pos + 4);
-        std::cout << GREEN << data->header <<  "\n size: " << data->buffer.size() - data->header.size() << RESET << std::endl;
+        // std::cout << GREEN << data->header <<  "\n size: " << data->buffer.size() - data->header.size() << RESET << std::endl;
     }
     //check if buffer size - header size = contentlength
     if(static_cast<int>(data->buffer.size() - data->header.size()) == getContentLength(data->buffer, data))
     {
-        std::cout << BLUE "finish reading data first" << RESET << std::endl;
+        // std::cout << BLUE "finish reading data first" << RESET << std::endl;
         return (true);
     }
     //if i finish reading everything
     if(static_cast<int>(data->buffer.size()) == getContentLength(data->buffer, data))
     {
-        std::cout << BLUE "finish reading data second" << RESET << std::endl;
+        // std::cout << BLUE "finish reading data second" << RESET << std::endl;
         return true;
     }
     // std::cout << BLUE "bytes read " << bytes_read << " with sockfd "<< data->sockfd << " and sizebuffer" << data->buffer.size() << RESET <<std::endl;
@@ -301,7 +304,7 @@ void Server::createListenAddr(ConfigParser &config)
                     if(read_one_chunk(info, epoll_fd, events))
                     {
                         //if i finish read the request info i change the status of the socket
-                        std::cout << BLUE "switching to epoolout" << RESET << std::endl;
+                        // std::cout << BLUE "switching to epoolout" << RESET << std::endl;
                         events[i].events = EPOLLOUT;
                         epoll_ctl(epoll_fd, EPOLL_CTL_MOD, info->sockfd, events);
                         // if the connection with the socket is over
@@ -316,7 +319,7 @@ void Server::createListenAddr(ConfigParser &config)
                         // parse the data
                         parsing_buffer(info, cookie);
                         // if i finish sending the info I change the status of the socket
-                        std::cout << BLUE "switching to epoolin" << RESET << std::endl;
+                        // std::cout << BLUE "switching to epoolin" << RESET << std::endl;
                         events[i].events = EPOLLIN;
                         epoll_ctl(epoll_fd, EPOLL_CTL_MOD, info->sockfd, events);
                         info->body = "";
@@ -327,7 +330,7 @@ void Server::createListenAddr(ConfigParser &config)
                     catch(const std::exception& e)
                     {
                         std::cout << RED << "Error catch" << RESET << std::endl;
-                        std::cout << BLUE "switching to epoolin" << RESET << std::endl;
+                        // std::cout << BLUE "switching to epoolin" << RESET << std::endl;
                         events[i].events = EPOLLIN;
                         epoll_ctl(epoll_fd, EPOLL_CTL_MOD, info->sockfd, events);
                         info->body = "";

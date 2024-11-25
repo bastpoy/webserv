@@ -37,6 +37,8 @@ void	SIGCHLD_handler(int signal)
 
 void	configureSignals()
 {
+    close(3);
+    close(4);
 	std::signal(SIGINT, SIGINT_handler);
 	std::signal(SIGTERM, SIGTERM_handler);
 	std::signal(SIGCHLD, SIGCHLD_handler);

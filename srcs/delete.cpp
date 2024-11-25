@@ -46,7 +46,7 @@ void displayDeletePage(std::string path, t_serverData *data)
 		std::cout << strerror(errno) << std::endl;
 		throw Response::ErrorSendingResponse(); 
 	}
-    close(data->sockfd);
+    // close(data->sockfd);
 }
 
 void deleteRequest(std::string &uri, t_serverData *data)
@@ -71,7 +71,7 @@ void deleteRequest(std::string &uri, t_serverData *data)
 		std::cout << strerror(errno) << std::endl;
 		throw Response::ErrorSendingResponse(); 
 	}
-    close(data->sockfd);
+    // close(data->sockfd);
 }
 
 void parseAndDeleteRequest(std::string buffer, t_serverData *data)
@@ -88,5 +88,5 @@ void parseAndDeleteRequest(std::string buffer, t_serverData *data)
         errorPage("501", data);
     // return the data to the client
     deleteRequest(path, data);
-    close(data->sockfd);    
+    // close(data->sockfd);    
 }
