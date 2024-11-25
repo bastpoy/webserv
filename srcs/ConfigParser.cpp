@@ -10,7 +10,7 @@ std::string	keywords[] = {
 	"return",
 	"error_page"
 };
-void (Server::*ptrs[8])(std::string line) = {
+void (Server::*serverFunctions[8])(std::string line) = {
 	&Server::fillPort,
 	&Server::fillServerName,
 	&Server::fillPath,
@@ -55,7 +55,7 @@ std::vector<Server>	&ConfigParser::getServers(void)
 /*		PARSING		*/
 /* ================ */
 
-void	ConfigParser::checkServerAttributs(Server &server, std::vector<Server> &servers)
+void	ConfigParser::checkServerAttributs(Server &server, std::vector<Server> &servers) //TODO - Mettre dans utils
 {
 	for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); it++)
 	{
@@ -64,7 +64,7 @@ void	ConfigParser::checkServerAttributs(Server &server, std::vector<Server> &ser
 	}
 }
 
-bool ConfigParser::isFileEmpty(const std::string &filePath)
+bool ConfigParser::isFileEmpty(const std::string &filePath) //TODO - Mettre dans utils
 {
 	std::ifstream file(filePath.c_str(), std::ios::ate);
 	if (!file.is_open())
@@ -83,7 +83,7 @@ void checkTwoKeywordsSameLine(const std::string	line)
 		throw std::runtime_error("Two keywords on the same line.");
 }
 
-void	ConfigParser::parseConfig(void)
+void	ConfigParser::parseConfig(std::vector<Server> &servers)
 {
 	std::string		line;
 	std::ifstream	file(this->_path.c_str());
@@ -102,7 +102,7 @@ void	ConfigParser::parseConfig(void)
 		{
 			Server server;
 			getServerAttributs(file, server);
-			// checkServerAttributs(server, servers); // TODO - look si besoin
+			checkServerAttributs(server, servers);
 			addServer(server);
 		}
 		else if (line.find("server") != std::string::npos && !httpBlock)
@@ -110,7 +110,7 @@ void	ConfigParser::parseConfig(void)
 	}
 }
 
-void	ConfigParser::rmComments(std::string &line)
+void	ConfigParser::rmComments(std::string &line) //TODO - Mettre dans utils
 {
 	size_t commentPos = line.find('#');
 
@@ -118,7 +118,7 @@ void	ConfigParser::rmComments(std::string &line)
 		line = line.substr(0, commentPos);
 }
 
-void	ConfigParser::checkSemicolon(std::string &line)
+void	ConfigParser::checkSemicolon(std::string &line) //TODO - Mettre dans utils
 {
 	bool conditions = line.find("}") == std::string::npos && line.find("location") == std::string::npos && !line.empty();
 	if (conditions && line.find_last_of(';') == std::string::npos)
@@ -127,7 +127,7 @@ void	ConfigParser::checkSemicolon(std::string &line)
 		line.erase(line.size() - 1);
 }
 
-void ConfigParser::parseLine(std::string &line)
+void ConfigParser::parseLine(std::string &line) //TODO - Mettre dans utils
 {
 	rmComments(line);
 
@@ -146,26 +146,31 @@ void ConfigParser::parseLine(std::string &line)
 void ConfigParser::getServerAttributs(std::ifstream& file, Server &server)
 {
 	std::string	line;
-	void		(Server::*ptrs[8])(std::string line) = {&Server::fillPort, &Server::fillServerName, &Server::fillPath, &Server::fillMaxBody, &Server::fillAutoIndex, &Server::fillIndex, &Server::fillRedir, &Server::fillErrorPage};
+	// void		(Server::*serverFunctions[8])(std::string line) = {&Server::fillPort, &Server::fillServerName, &Server::fillPath, &Server::fillMaxBody, &Server::fillAutoIndex, &Server::fillIndex, &Server::fillRedir, &Server::fillErrorPage};
 	int			i = -1;
 
 	while(getline(file, line))
 	{
 		i = 0;
-		if (line.find("{") != std::string::npos)
+		if (line.find("{") != std::string::npos && line.find("location") == std::string::npos)
 			continue;
 		parseLine(line);
 		if (line.find("location") != std::string::npos)
 		{
 			server.fillLocation(file, line, server.getLocation());
-			// continue ;
+			continue ;
 		}
 		while (i < 8 && line.find(keywords[i]) == std::string::npos)
 			i++;
 		if (i < 8)
-			(server.*ptrs[i])(line);
+			(server.*serverFunctions[i])(line);
 		else if (i > 7 && line.find("}") == std::string::npos && !line.empty())
 			throw Response::ConfigurationFileServer("Unknown attribute: " + line);
+		// i = 0;
+		//check if they are not other attributes in the same line
+		// for (std::size_t i = 0; i < keywordsSize; ++i)
+		// 	if (line.find(keywords[i]) != std::string::npos)
+		// 		throw Response::ConfigurationFileServer("Two keywords on the same line.");
 		if (line.find("}") != std::string::npos)
 			return;
 	}

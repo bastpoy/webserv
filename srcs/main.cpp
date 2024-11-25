@@ -12,7 +12,7 @@ int main(int ac, char **av)
 		ConfigParser	config(av[1]); // Initialiser ConfigParser avec le fichier de configuration fourni
 		Server			listenAddress;
 
-		config.parseConfig();
+		config.parseConfig(config.getServers());
 		if (config.getServers().empty())
 			throw std::runtime_error("No server configuration found in the file");
 		config.printConfig();

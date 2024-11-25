@@ -4,15 +4,9 @@
 /*	CANONICAL FORMS	*/
 /* ================ */
 
-Location::Location()
-{
-	// std::cout << GREEN "Creating a Location configuration" RESET << std::endl;
-}
+Location::Location() {}
 
-Location::~Location()
-{
-	// std::cout << RED "Destroying a Location configuration" RESET << std::endl;
-}
+Location::~Location() {}
 
 /* ================ */
 /*		SETTER		*/
@@ -103,20 +97,19 @@ std::map<int,std::string> &Location::getErrorPage()
 /*		FILL		*/
 /* ================ */
 
-void	Location::fillPath(std::string line, std::vector<Location> &locations)
+void	Location::fillPath(std::string line)
 {
-	size_t pos = line.find("location ") + strlen("location ");
-	
+	size_t pos = line.find("location") + strlen("location");
 
-	size_t pos2 = line.find(" {");
+	size_t pos2 = line.find("{");
 	std::string path = line.substr(pos, pos2 - pos);
 
-	// check the path of each location
-	for (std::vector<Location>::iterator it = locations.begin(); it != locations.end(); it++)
-		if (it->getPath() == path)
-			throw Response::ConfigurationFileLocationPath();
+	path.erase(std::remove(path.begin(), path.end(), ' '), path.end());
+	path.erase(std::remove(path.begin(), path.end(), '\t'), path.end());
 
-	
+	if (path.empty())
+		throw Response::ConfigurationFileLocation("path is empty");
+
 	this->setPath(path);
 	if (this->getPath().at(this->getPath().size() - 1) != '/')
 		this->setPath(this->getPath() + "/");
@@ -150,30 +143,37 @@ void	Location::fillAutoIndex(std::string line)
 	this->setAutoIndex(line.substr(pos + strlen("autoindex"), line.length() - (pos + strlen("autoindex"))));
 }
 
-void	Location::fillRedir(std::string line, Server *server)
+void	Location::fillRedir(std::string line)
 {
 	size_t pos = line.find("return");
 	int code = atoi(line.substr(pos + strlen("return"), 3).c_str());
 	std::string domain = line.substr(pos + strlen("return") + 3, line.length() - (pos + strlen("return")));
 	this->setRedir(code, domain);
-
-	(void)server;
 }
 
-void	Location::fillErrorPage(std::string line, Server *server)
+void	Location::fillErrorPage(std::string line)
 {
 	size_t pos = line.find("error_page");
 	line.erase(std::remove(line.begin(), line.end(), ' '), line.end());
 	int code = atoi(line.substr(pos + strlen("error_page"), 3).c_str());
 	std::string domain = line.substr(pos + strlen("error_page") + 3, line.length());
 	this->setErrorPage(code, domain);
-
-	(void)server;
 }
 
 /* ================ */
 /*		DEBUG		*/
 /* ================ */
+
+void Location::checkNotEmptys(void)
+{
+	if (this->getRoot().empty()
+		&& this->getIndex().empty()
+		&& this->getMaxBody().empty()
+		&& this->getAutoIndex().empty()
+		&& this->getRedir().empty()
+		&& this->getErrorPage().empty())
+		throw Response::ConfigurationFileLocation("Empty location");
+}
 
 void	Location::printConfig()
 {

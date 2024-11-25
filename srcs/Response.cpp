@@ -29,8 +29,8 @@ const char* Response::ErrorSendingResponse::what() const throw()
 
 const char* Response::ConfigurationFileLocation::what() const throw()
 {
-	return("Location configuration");
-	// return _msg.c_str();
+	// return("Location configuration");
+	return _msg.c_str();
 }
 
 const char* Response::ConfigurationFileLocationPath::what() const throw()

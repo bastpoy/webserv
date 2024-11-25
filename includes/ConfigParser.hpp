@@ -26,17 +26,16 @@ class ConfigParser
 		~ConfigParser(void);
 
 		std::vector<Server>	&getServers(void);
-		void				parseConfig(void);
+		void				parseConfig(std::vector<Server> &servers);
 		void				addServer(Server &server);
-		bool				isFileEmpty(const std::string &filePath);
-		void				addServer(Server &server);
-		std::vector<Server>	&getServers();
+		void				getServerAttributs(std::ifstream &file, Server &server);
+		void				printConfig(void);
+		
+		bool				isFileEmpty(const std::string &filePath); //TODO - Mettre dans utils :
 		static void			rmComments(std::string &line);
 		static void			checkSemicolon(std::string &line);
 		static void			parseLine(std::string &line);
 		void				checkServerAttributs(Server &server, std::vector<Server> &servers);
-		void				getServerAttributs(std::ifstream &file, Server &server);
-		void				printConfig(void);
 
 };
 

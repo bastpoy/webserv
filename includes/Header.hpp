@@ -1,6 +1,10 @@
 #ifndef HEADER_HPP
 # define HEADER_HPP
 
+/* ================ */
+/*	   INCLUDES 	*/
+/* ================ */
+
 // Bibliothèques standard C++
 #include <string>				// Manipulation de chaînes
 #include <vector>				// Conteneur vector
@@ -41,7 +45,10 @@
 #include "Response.hpp"			// Classe pour les réponses
 #include "Utils.hpp"
 
-/* ------------- COLORS ------------- */
+/* ================ */
+/*		COLORS		*/
+/* ================ */
+
 // Reset
 #define RESET   "\e[0m"
 
@@ -75,18 +82,23 @@
 #define ON_CYAN    "\e[46m"
 #define ON_WHITE   "\e[47m"
 
+/* ================ */
+/*		CLASS		*/
+/* ================ */
 
 // Class Prototypes
 class Client;
 class ConfigParser;
 class location;
-// class Logger;
 class Request;
 class RequestHandler;
 class Response;
 class Server;
-// class Socket;
-// class VirtualHost;
+class ServerParser;
+
+/* ================ */
+/*	  FUNCTIONS 	*/
+/* ================ */
 
 // autoindex.cpp Functions
 bool						isDirectory(const std::string& path);
@@ -95,8 +107,8 @@ std::string					generateAutoIndexPage(const std::string directory, const std::ve
 std::string					handleAutoIndex(const std::string& path);
 
 // get.cpp Functions
-void						getRequest(std::string &uri, t_serverData *data);
-void						redirRequest(std::map<std::string, std::string>::iterator redir, int fd);
+void		getRequest(std::string &uri, t_serverData *data);
+void		redirRequest(std::map<std::string, std::string>::iterator redir, int fd);
 
 // post.cpp Functions
 void		sendPostData(std::string code , std::string contentType, std::string content, t_serverData *data);
@@ -105,11 +117,11 @@ std::string	getFileName(std::string body);
 void		postRequest(std::string buffer, t_serverData *data);
 
 // error.cpp Functions
-void	errorCloseEpollFd(int &epoll_fd, int errCode);
-void	contentTooLarge(std::string size, t_serverData *data);
-// void	badRequest(t_serverData *data);
-// void	internalError(t_serverData *data);
-// void	forbidden(t_serverData *data);
-// void	notFound(t_serverData *data);
-void	errorPage(std::string error, t_serverData *data);
+void		errorCloseEpollFd(int &epoll_fd, int errCode);
+void		contentTooLarge(std::string size, t_serverData *data);
+void		errorPage(std::string error, t_serverData *data);
+
+// parsing_utils.cpp Functions
+void		checkLocationPath(Location &location, std::vector<Location> &locations);
+
 #endif /* HEADER_HPP */

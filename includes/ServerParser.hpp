@@ -14,6 +14,9 @@ Rôle :
 Accepter les connexions des clients et les rediriger vers un gestionnaire de requêtes.
 */
 
+extern std::string	locationKeywords[];
+extern const int	locKeywordsSize;
+
 /**
  * @brief	Class representing the main HTTP server.
  * @note	Responsible for listening on one or more ports for incoming connections.

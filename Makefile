@@ -33,6 +33,7 @@ SRCS		=	srcs/autoIndex.cpp \
 				srcs/ConfigParser.cpp \
 				srcs/Location.cpp \
 				srcs/main.cpp \
+				srcs/parsingUtils.cpp \
 				srcs/Response.cpp \
 				srcs/Utils.cpp \
 				srcs/Server.cpp \
@@ -49,6 +50,7 @@ TEST_CONFS	=	conf/test/conflict_location.conf \
 				conf/test/invalid_cgi_path.conf \
 				conf/test/invalid_ip.conf \
 				conf/test/invalid_port.conf \
+				conf/test/empty_location.conf \
 				conf/test/location_without_arg.conf \
 				conf/test/no_http_context.conf \
 				conf/test/no open_context.conf \
@@ -96,7 +98,7 @@ simple:
 	@clear
 	@make -j4 -s
 	@clear
-	./webserv conf/test/comments.conf
+	./webserv conf/test/config.conf
 
 test:
 	@clear

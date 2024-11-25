@@ -1,5 +1,25 @@
 #include "Header.hpp"
 
+std::string	locationKeywords[] = {
+	"root",
+	"client_max_body_size",
+	"autoindex",
+	"index",
+	"return",
+	"error_page"
+};
+
+void (Location::*locationFunctions[6])(std::string line) = {
+	&Location::fillRoot,
+	&Location::fillMaxBody,
+	&Location::fillAutoIndex,
+	&Location::fillIndex,
+	&Location::fillRedir,
+	&Location::fillErrorPage
+};
+
+const int	locKeywordsSize = 6;
+
 /* ================ */
 /*		SETTER		*/
 /* ================ */
@@ -43,7 +63,6 @@ void Server::setAutoIndex(std::string autoindex)
 
 void Server::setLocation(Location &location)
 {
-	// location.erase(std::remove(location.begin(), location.end(), ' '), location.end());
 	this->_location.push_back(location);
 }
 
@@ -203,7 +222,6 @@ void	Server::fillRedir(std::string line)
 	std::string domain = line.substr(pos + strlen("return") + 4, line.length() - (pos + strlen("return")));
 	this->setRedir(code, domain);
 }
-
 /**
  * @brief	Gonna Fill all Location data info detected in a location instance
  * 			It will get the path of the location first, and then get all the information.
@@ -215,31 +233,27 @@ void	Server::fillLocation(std::ifstream &file, std::string line, std::vector<Loc
 {
 	Location location;
 
-	location.fillPath(line, locations);
-	while(getline(file, line))
+	location.fillPath(line);
+
+	checkLocationPath(location, locations);
+	while(getline(file, line)) 
 	{
+		int i = 0;
+
 		if (line.find("{") != std::string::npos)
 			continue ;
-		ConfigParser::parseLine(line);
-		if (line.find("autoindex") != std::string::npos)
-			location.fillAutoIndex(line);
-		else if (line.find("client_max_body_size") != std::string::npos)
-			location.fillMaxBody(line);
-		else if (line.find("root") != std::string::npos)
-			location.fillRoot(line);
-		else if (line.find("index") != std::string::npos)
-			location.fillIndex(line);
-		else if (line.find("return") != std::string::npos)
-			location.fillRedir(line, this);
-		else if (line.find("error_page") != std::string::npos)
-			location.fillErrorPage(line, this);
-		else if (line.find("}") != std::string::npos)
+		ConfigParser::parseLine(line); //TODO - Retoucher mwttre dans utils
+		while (i < locKeywordsSize && line.find(locationKeywords[i]) == std::string::npos)
+			i++;
+		if (i < locKeywordsSize)
+			(location.*locationFunctions[i])(line);
+		else if (i > 5 && line.find("}") == std::string::npos && !line.empty())
+			throw Response::ConfigurationFileLocation("Unknown attribute: " + line);
+		if (line.find("}") != std::string::npos)
 		{
-			this->setLocation(location);
-			return;
+			location.checkNotEmptys();
+			return this->setLocation(location);
 		}
-		else
-			throw Response::ConfigurationFileLocation();
 	}
 }
 

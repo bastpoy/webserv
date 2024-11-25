@@ -34,8 +34,13 @@ class Response
 		};
 
 		class ConfigurationFileLocation : public std::exception{
+			private:
+				std::string _msg;
 			public:
+				explicit ConfigurationFileLocation(const std::string &msg):
+					_msg("Location configuration (222) : " + msg) {}
 				virtual const char* what() const throw();
+				virtual ~ConfigurationFileLocation() throw() {}
 		};
 
 		class ConfigurationFileLocationPath : public std::exception{
