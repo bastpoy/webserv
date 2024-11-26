@@ -53,7 +53,7 @@ TEST_CONFS	=	conf/test/conflict_location.conf \
 				conf/test/empty_location.conf \
 				conf/test/location_without_arg.conf \
 				conf/test/no_http_context.conf \
-				conf/test/no open_context.conf \
+				conf/test/no_open_context.conf \
 				conf/test/no_server.conf \
 				conf/test/single_line.conf \
 				conf/test/unclose_context.conf \

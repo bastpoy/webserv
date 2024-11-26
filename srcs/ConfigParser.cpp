@@ -30,7 +30,7 @@ ConfigParser::ConfigParser(void) {}
 
 ConfigParser::ConfigParser(char *path)
 {
-	this->_path = path;
+	_path = path;
 }
 
 ConfigParser::~ConfigParser(void) {}
@@ -42,13 +42,13 @@ ConfigParser::~ConfigParser(void) {}
 //Setter
 void ConfigParser::addServer(Server &server)
 {
-	this->_servers.push_back(server);
+	_servers.push_back(server);
 }
 
 //getter
 std::vector<Server>	&ConfigParser::getServers(void)
 {
-	return(this->_servers);
+	return(_servers);
 }
 
 /* ================ */
@@ -86,10 +86,11 @@ void checkTwoKeywordsSameLine(const std::string	line)
 void	ConfigParser::parseConfig(std::vector<Server> &servers)
 {
 	std::string		line;
-	std::ifstream	file(this->_path.c_str());
+	std::ifstream	file(_path.c_str());
+	bool			bracket = false;
 	bool			httpBlock = false;
 
-	if (isFileEmpty(this->_path))
+	if (isFileEmpty(_path))
 		throw Response::ErrorOpeningFile("File empty");
 	while (getline(file, line))
 	{
@@ -97,6 +98,8 @@ void	ConfigParser::parseConfig(std::vector<Server> &servers)
 		checkTwoKeywordsSameLine(line);
 		if (line.find("http") != std::string::npos)
 			httpBlock = true;
+		if (line.find("{") != std::string::npos)
+			bracket = true;
 		// fill new server block
 		if (line.find("server") != std::string::npos && httpBlock)
 		{
@@ -107,7 +110,14 @@ void	ConfigParser::parseConfig(std::vector<Server> &servers)
 		}
 		else if (line.find("server") != std::string::npos && !httpBlock)
 			throw Response::ConfigurationFileServer("http block is missing");
+		if (line.find("}") != std::string::npos)
+		{
+			if (bracket == false)
+				throw Response::ConfigurationFileServer("Missing '{' in http block");
+			return ;
+		}
 	}
+	throw Response::ConfigurationFileServer("Missing '}'");
 }
 
 void	ConfigParser::rmComments(std::string &line) //TODO - Mettre dans utils
@@ -121,21 +131,40 @@ void	ConfigParser::rmComments(std::string &line) //TODO - Mettre dans utils
 void	ConfigParser::checkSemicolon(std::string &line) //TODO - Mettre dans utils
 {
 	bool conditions = line.find("}") == std::string::npos && line.find("location") == std::string::npos && !line.empty();
+
 	if (conditions && line.find_last_of(';') == std::string::npos)
-		throw Response::ConfigurationFileServer("\';\' is missing");
+		throw Response::ConfigurationFileServer("';' is missing");
+	if (conditions && line.find(';') != line.size() - 1)
+		throw Response::ConfigurationFileServer("Unknown character after ';'");
 	if (conditions)
 		line.erase(line.size() - 1);
 }
 
 void ConfigParser::parseLine(std::string &line) //TODO - Mettre dans utils
 {
+	bool	present = line.find("{") != std::string::npos;
+
 	rmComments(line);
 
 	// Supprime les espaces inutiles au début et à la fin
 	line.erase(0, line.find_first_not_of(" \t")); // Trim début
 	line.erase(line.find_last_not_of(" \t") + 1); // Trim fin
 
+	if (present)
+	{
+		if (line.find("{") != line.size() - 1)
+			throw Response::ConfigurationFileServer("Unknown character after '{'");
+		return ;
+	}
+
 	checkSemicolon(line);
+
+	if (line.find(";") == std::string::npos
+		&& line.find("location") == std::string::npos
+		&& !line.empty()
+		&& line.find("}") != std::string::npos
+		&& line.find('}') != line.size() - 1)
+		throw Response::ConfigurationFileServer("Unknown character after '}'");
 }
 
 /**
@@ -146,15 +175,17 @@ void ConfigParser::parseLine(std::string &line) //TODO - Mettre dans utils
 void ConfigParser::getServerAttributs(std::ifstream& file, Server &server)
 {
 	std::string	line;
-	// void		(Server::*serverFunctions[8])(std::string line) = {&Server::fillPort, &Server::fillServerName, &Server::fillPath, &Server::fillMaxBody, &Server::fillAutoIndex, &Server::fillIndex, &Server::fillRedir, &Server::fillErrorPage};
-	int			i = -1;
+	bool		bracket = false;
 
 	while(getline(file, line))
 	{
-		i = 0;
-		if (line.find("{") != std::string::npos && line.find("location") == std::string::npos)
-			continue;
+		int i = 0;
 		parseLine(line);
+		if (line.find("{") != std::string::npos && line.find("location") == std::string::npos)
+		{
+			bracket = true;
+			continue;
+		}
 		if (line.find("location") != std::string::npos)
 		{
 			server.fillLocation(file, line, server.getLocation());
@@ -166,14 +197,15 @@ void ConfigParser::getServerAttributs(std::ifstream& file, Server &server)
 			(server.*serverFunctions[i])(line);
 		else if (i > 7 && line.find("}") == std::string::npos && !line.empty())
 			throw Response::ConfigurationFileServer("Unknown attribute: " + line);
-		// i = 0;
-		//check if they are not other attributes in the same line
-		// for (std::size_t i = 0; i < keywordsSize; ++i)
-		// 	if (line.find(keywords[i]) != std::string::npos)
-		// 		throw Response::ConfigurationFileServer("Two keywords on the same line.");
 		if (line.find("}") != std::string::npos)
-			return;
+		{
+			if (bracket == false)
+				throw Response::ConfigurationFileServer("Missing '{' in server block");
+			return ;
+		}
 	}
+	throw Response::ConfigurationFileServer("Missing '}'");
+
 }
 
 /* ================ */
@@ -182,8 +214,8 @@ void ConfigParser::getServerAttributs(std::ifstream& file, Server &server)
 
 void ConfigParser::printConfig(void)
 {
-	std::vector<Server>::iterator	itbeg = this->_servers.begin();
-	std::vector<Server>::iterator	itend = this->_servers.end();
+	std::vector<Server>::iterator	itbeg = _servers.begin();
+	std::vector<Server>::iterator	itend = _servers.end();
 
 	std::cout << "---------PRINTING CONF-----------\n\n";
 	for (int i = 1; itbeg != itend; ++itbeg, ++i)

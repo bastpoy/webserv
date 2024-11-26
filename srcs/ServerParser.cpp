@@ -27,43 +27,43 @@ const int	locKeywordsSize = 6;
 void Server::setPort(std::string port)
 {
 	port.erase(std::remove(port.begin(), port.end(), ' '), port.end());
-	this->_port = port;
+	_port = port;
 }
 
 void Server::setServerName(std::string server_name)
 {
 	server_name.erase(std::remove(server_name.begin(), server_name.end(), ' '), server_name.end());
-	this->_server_name = server_name;
+	_server_name = server_name;
 }
 
 void Server::setPath(std::string path)
 {
 	path.erase(std::remove(path.begin(), path.end(), ' '), path.end());
-	this->_path = path;
+	_path = path;
 }
 
 
 void Server::setMaxBody(std::string maxBody)
 {
 	// maxBody.erase(std::remove(maxBody.begin(), maxBody.end(), ' '), maxBody.end());
-	this->_maxBody = maxBody;
+	_maxBody = maxBody;
 }
 
 void Server::setIndex(std::string index)
 {
 	index.erase(std::remove(index.begin(), index.end(), ' '), index.end());
-	this->_index = index;
+	_index = index;
 }
 
 void Server::setAutoIndex(std::string autoindex)
 {
 	autoindex.erase(std::remove(autoindex.begin(), autoindex.end(), ' '), autoindex.end());
-	this->_autoindex = autoindex;
+	_autoindex = autoindex;
 }
 
 void Server::setLocation(Location &location)
 {
-	this->_location.push_back(location);
+	_location.push_back(location);
 }
 
 void Server::setRedir(std::string code, std::string domain)
@@ -71,18 +71,18 @@ void Server::setRedir(std::string code, std::string domain)
 	// code.erase(std::remove(code.begin(), code.end(), ' '), code.end());
 	domain.erase(std::remove(domain.begin(), domain.end(), ' '), domain.end());
 	code.erase(std::remove(code.begin(), code.end(), ' '), code.end());
-	this->_redir.insert(std::make_pair(code, domain));
+	_redir.insert(std::make_pair(code, domain));
 }
 
 void Server::setErrorPage(int code, std::string errorFile)
 {
 	errorFile.erase(std::remove(errorFile.begin(), errorFile.end(), ' '), errorFile.end());
-	this->_errorPage.insert(std::make_pair(code, errorFile));
+	_errorPage.insert(std::make_pair(code, errorFile));
 }
 
 void Server::setSocketFd(int sockfd)
 {
-	this->socketfd.insert(sockfd);
+	socketfd.insert(sockfd);
 }
 
 /* ================ */
@@ -91,47 +91,47 @@ void Server::setSocketFd(int sockfd)
 
 std::string	Server::getPort() const
 {
-	return (this->_port);
+	return (_port);
 }
 
 std::string	Server::getServerName() const
 {
-	return (this->_server_name);
+	return (_server_name);
 }
 
 std::string	Server::getPath() const
 {
-	return (this->_path);
+	return (_path);
 }
 
 std::string	Server::getMaxBody() const
 {
-	return (this->_maxBody);
+	return (_maxBody);
 }
 
 std::string	Server::getIndex() const
 {
-	return (this->_index);
+	return (_index);
 }
 
 std::string	Server::getAutoIndex() const
 {
-	return (this->_autoindex);
+	return (_autoindex);
 }
 
 std::map<std::string,std::string>	&Server::getRedir()
 {
-	return (this->_redir);
+	return (_redir);
 }
 
 std::map<int,std::string>	&Server::getErrorPage()
 {
-	return (this->_errorPage);
+	return (_errorPage);
 }
 
 std::vector<Location>	&Server::getLocation()
 {
-	return (this->_location);
+	return (_location);
 }
 
 /* ================ */
@@ -140,39 +140,55 @@ std::vector<Location>	&Server::getLocation()
 
 void	Server::fillPort(std::string line)
 {
-	size_t pos = line.find("listen");
-	//get the port and convert to int
-	this->setPort(line.substr(pos + strlen("listen"), line.length()).c_str());
-	// std::cout << "the port is: " << this->getPort() << std::endl;
+	size_t	pos = line.find("listen");
+	int		port = 0;
+
+	setPort(line.substr(pos + strlen("listen"), line.length()).c_str());
+	if (getPort().empty())
+		throw Response::ConfigurationFileServer("Port is empty");
+	if (!ft_stoi(getPort().c_str(), port))
+		throw Response::ConfigurationFileServer("Port is not a number");
+	if (port < 0 || port > 65535)
+		throw Response::ConfigurationFileServer("Port out of range");
 }
 
 void	Server::fillServerName(std::string line)
 {
-	size_t pos = line.find("server_name");
+	size_t	pos = line.find("server_name");
 
-	this->setServerName(line.substr(pos + strlen("server_name"), line.length() - (pos + strlen("server_name"))));
-	std::vector<std::string>	substr_ip = ft_split(_server_name, '.');
-
-	for (size_t i = 0; i < substr_ip.size(); i++)
+	setServerName(line.substr(pos + strlen("server_name"), line.length() - (pos + strlen("server_name"))));
+	bool	is_ip = _server_name.find_first_of("0123456789") != std::string::npos;
+	if (is_ip)
 	{
-		int result = 0;
-		if (!ft_stoi(substr_ip[i], result))
-			break ;
-		if (!(result >= 0 && result <= 255))
-			throw Response::ConfigurationFileServer("Wrong Server Name");
+		std::vector<std::string>	substr_ip = ft_split(_server_name, '.');
+
+		if (substr_ip.size() != 4
+			|| _server_name.find_first_not_of("0123456789.") != std::string::npos)
+			throw Response::ConfigurationFileServer("Wrong IP format");
+
+		for (size_t i = 0; i < substr_ip.size(); i++)
+		{
+			int result = 0;
+			if (!ft_stoi(substr_ip[i], result))
+				break ;
+			if (!(result >= 0 && result <= 255))
+				throw Response::ConfigurationFileServer("IP out of range");
+		}
+		return ;
 	}
+	
 }
 
 void	Server::fillPath(std::string line)
 {
 	size_t pos = line.find("root");
-	this->setPath(line.substr(pos + strlen("root"), line.length() - (pos + strlen("root"))));
+	setPath(line.substr(pos + strlen("root"), line.length() - (pos + strlen("root"))));
 	//if no "/" at the end add it
-	if(this->getPath().at(this->getPath().size() - 1) != '/')
-		this->setPath(this->getPath() + "/");
+	if(getPath().at(getPath().size() - 1) != '/')
+		setPath(getPath() + "/");
 	//if no . at the begining add it
-	if(this->getPath().at(0) != '.')
-		this->setPath("." + this->getPath());
+	if(getPath().at(0) != '.')
+		setPath("." + getPath());
 }
 
 void	Server::fillMaxBody(std::string line)
@@ -190,20 +206,20 @@ void	Server::fillMaxBody(std::string line)
 	maxBodyParsing("m", size);
 	maxBodyParsing("M", size);
 
-	this->setMaxBody(size);
+	setMaxBody(size);
 }
 
 void	Server::fillIndex(std::string line)
 {
 	size_t pos = line.find("index");
-	this->setIndex(line.substr(pos + strlen("index"), line.length() - (pos + strlen("index"))));
+	setIndex(line.substr(pos + strlen("index"), line.length() - (pos + strlen("index"))));
 }
 
 //TODO - Delete spaces
 void	Server::fillAutoIndex(std::string line)
 {
 	size_t pos = line.find("autoindex"); 
-	this->setAutoIndex(line.substr(pos + strlen("autoindex"), line.length() - (pos + strlen("autoindex"))));
+	setAutoIndex(line.substr(pos + strlen("autoindex"), line.length() - (pos + strlen("autoindex"))));
 }
 
 void	Server::fillErrorPage(std::string line)
@@ -212,7 +228,7 @@ void	Server::fillErrorPage(std::string line)
 	line.erase(std::remove(line.begin(), line.end(), ' '), line.end());
 	int code = atoi(line.substr(pos + strlen("error_page"), 3).c_str());
 	std::string domain = line.substr(pos + strlen("error_page") + 3, line.length());
-	this->setErrorPage(code, domain);
+	setErrorPage(code, domain);
 }
 
 void	Server::fillRedir(std::string line)
@@ -220,7 +236,7 @@ void	Server::fillRedir(std::string line)
 	size_t pos = line.find("return");
 	std::string code = line.substr(pos + strlen("return"), 4);
 	std::string domain = line.substr(pos + strlen("return") + 4, line.length() - (pos + strlen("return")));
-	this->setRedir(code, domain);
+	setRedir(code, domain);
 }
 /**
  * @brief	Gonna Fill all Location data info detected in a location instance
@@ -231,18 +247,20 @@ void	Server::fillRedir(std::string line)
 */
 void	Server::fillLocation(std::ifstream &file, std::string line, std::vector<Location> &locations)
 {
-	Location location;
+	Location	location;
+	bool		bracket = false;
 
 	location.fillPath(line);
-
 	checkLocationPath(location, locations);
-	while(getline(file, line)) 
+	while(getline(file, line))
 	{
 		int i = 0;
-
+		ConfigParser::parseLine(line); //TODO - Retoucher et mettre dans utils
 		if (line.find("{") != std::string::npos)
-			continue ;
-		ConfigParser::parseLine(line); //TODO - Retoucher mwttre dans utils
+		{
+			bracket = true;
+			continue;
+		}
 		while (i < locKeywordsSize && line.find(locationKeywords[i]) == std::string::npos)
 			i++;
 		if (i < locKeywordsSize)
@@ -251,10 +269,14 @@ void	Server::fillLocation(std::ifstream &file, std::string line, std::vector<Loc
 			throw Response::ConfigurationFileLocation("Unknown attribute: " + line);
 		if (line.find("}") != std::string::npos)
 		{
+			if (bracket == false)
+				throw Response::ConfigurationFileLocation("Missing '{' in location block");
 			location.checkNotEmptys();
-			return this->setLocation(location);
+			return setLocation(location);
 		}
 	}
+	throw Response::ConfigurationFileLocation("Missing '}'");
+
 }
 
 /* ================ */
@@ -263,26 +285,26 @@ void	Server::fillLocation(std::ifstream &file, std::string line, std::vector<Loc
 
 void	Server::printConfig()
 {
-	std::vector<Location>::iterator	itbeg = this->_location.begin();
-	std::vector<Location>::iterator	itend = this->_location.end();
+	std::vector<Location>::iterator	itbeg = _location.begin();
+	std::vector<Location>::iterator	itend = _location.end();
 	
 	//print all server attributs
-	if (!this->getPort().empty())
-		std::cout << "listen\t\t" YELLOW << this->getPort() << RESET << std::endl;
-	if (!this->getServerName().empty())
-		std::cout << "server_name\t" YELLOW << this->getServerName() << RESET << std::endl;
-	if (!this->getPath().empty())
-		std::cout << "root\t\t" YELLOW <<this->getPath() << RESET << std::endl;
-	if (!this->getMaxBody().empty())
-		std::cout << "maxBody\t\t" YELLOW << this->getMaxBody() << RESET << std::endl;
-	if (!this->getIndex().empty())
-		std::cout << "index\t\t" YELLOW << this->getIndex() << RESET << std::endl;
-	if (!this->getAutoIndex().empty())
-		std::cout << "autoindex\t" YELLOW << this->getAutoIndex() << RESET << std::endl;
-	if (this->getErrorPage().begin()->first) 
-		std::cout << "error_page\t" YELLOW << this->getErrorPage().begin()->first << " " << this->getErrorPage().begin()->second << RESET << std::endl;
-	if (this->getRedir().size()) 
-		std::cout << "return\t\t" YELLOW << this->getRedir().begin()->first << " " << this->getRedir().begin()->second << RESET << std::endl;
+	if (!getPort().empty())
+		std::cout << "listen\t\t" YELLOW << getPort() << RESET << std::endl;
+	if (!getServerName().empty())
+		std::cout << "server_name\t" YELLOW << getServerName() << RESET << std::endl;
+	if (!getPath().empty())
+		std::cout << "root\t\t" YELLOW <<getPath() << RESET << std::endl;
+	if (!getMaxBody().empty())
+		std::cout << "maxBody\t\t" YELLOW << getMaxBody() << RESET << std::endl;
+	if (!getIndex().empty())
+		std::cout << "index\t\t" YELLOW << getIndex() << RESET << std::endl;
+	if (!getAutoIndex().empty())
+		std::cout << "autoindex\t" YELLOW << getAutoIndex() << RESET << std::endl;
+	if (getErrorPage().begin()->first) 
+		std::cout << "error_page\t" YELLOW << getErrorPage().begin()->first << " " << getErrorPage().begin()->second << RESET << std::endl;
+	if (getRedir().size()) 
+		std::cout << "return\t\t" YELLOW << getRedir().begin()->first << " " << getRedir().begin()->second << RESET << std::endl;
 	std::cout << std::endl;
 	//print every location of my current server
 	for (int i = 1; itbeg != itend; ++itbeg, ++i)
