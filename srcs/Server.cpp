@@ -195,7 +195,7 @@ bool read_one_chunk(t_serverData *data)
     int bytes_read = recv(data->sockfd, buffer, BUFER_SIZE, 0);
     if (bytes_read < 0) 
     {
-        std::cout << "Error " << errno << " reading from socket" << data->sockfd << ": " << strerror(errno) << std::endl;
+        std::cout << "Error " << errno << " reading from socket " << data->sockfd << ": " << strerror(errno) << std::endl;
         errorPage("400", data);
     } 
     // if there is a deconnection
@@ -283,7 +283,7 @@ void Server::createListenAddr(ConfigParser &config)
         }
 		for (int i = 0; i < num_fds; ++i)
 		{
-            std::cout << "i is equal to " << i << std::endl; 
+            // std::cout << "i is equal to " << i << std::endl; 
 			t_serverData *info = static_cast<t_serverData*>(events[i].data.ptr);
 			int fd = info->sockfd;
 
@@ -308,21 +308,31 @@ void Server::createListenAddr(ConfigParser &config)
                 //i listen for some epollin event and possible data read
                 if(events[i].events & EPOLLIN)
                 {
+                    // if i read the content of a cgi
+                    if(info->cgi)
+                    {
+                        //i read my cgi which is finish
+                        char buffer[4096];
+                        int bytes_read;
+
+                        bytes_read = read(info->cgi->cgifd, buffer, 4096);
+                        if(bytes_read < 1)
+                        {
+                            std::cerr << RED "error reading the cgi: " << strerror(errno) << RESET << std::endl; 
+                            break;
+                        }
+                        //write into the parent socket fd which is the origin of the request
+                        if(write(info->cgi->parentsocket, buffer, bytes_read) < 0)
+                        {
+                            std::cerr << RED "error wrtiing the cgi: " << strerror(errno) << RESET << std::endl; 
+                            break;
+                        }
+                        std::cout << GREEN "reading from the cgi fd" << RESET << std::endl;
+                        //i put the content of the cgi response in the body
+                        info->body.append(buffer, bytes_read);
+                    }
                     if(read_one_chunk(info))
                     {
-                        // if i read the content of a cgi
-                        if(info->cgi)
-                        {
-                            char *buffer[4096];
-                            size_t bytes_read;
-                            bytes_read = read(info->cgi->cgifd, buffer, 4096);
-                            if(bytes_read < 1)
-                            {
-                                std::cerr << RED "error reading the cgi: " << strerror(errno) << RESET << std::endl; 
-                                break;
-                            }
-                            info->body.append(buffer, bytes_read);
-                        }
                         //if i finish read the request info i change the status of the socket
                         // std::cout << BLUE "switching to epoolout" RESET << std::endl;
                         
@@ -337,12 +347,6 @@ void Server::createListenAddr(ConfigParser &config)
                 {
                     try
                     {
-                        // if i have a cgi
-                        if(info->cgi)
-                        {
-                            
-                            break;
-                        }
                         // parse the data
                         parsing_buffer(info, cookie);
                         // if i finish sending the info I change the status of the socket

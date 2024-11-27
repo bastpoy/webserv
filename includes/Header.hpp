@@ -100,7 +100,8 @@ std::string					generateAutoIndexPage(const std::string directory, const std::ve
 
 // CGIHandler.cpp Functions
 std::string					execute(std::string uri, std::string &code, t_serverData *data);
-std::string                 cgiProtocol(std::string uri, std::string &code, t_serverData *data);
+// std::string                 cgiProtocol(std::string uri, std::string &code, t_serverData *data);
+std::string HandleCgiRequest(std::string uri, t_serverData *data);
 
 // get.cpp Functions
 void						redirRequest(std::string location, int fd, t_serverData *data);

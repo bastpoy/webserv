@@ -194,8 +194,6 @@ struct epoll_event fillDataCgi(t_serverData *importData, t_cgi *cgi)
 }
 
 
-
-
 //tfreydi functions
 
 pid_t    executeCGI(std::string uri, t_serverData *data)
@@ -240,7 +238,6 @@ pid_t    executeCGI(std::string uri, t_serverData *data)
     t_cgi *cgi = new t_cgi();
 
     //adding a cgi to my new fd
-    cgi->iscgi = true;
     cgi->cgifd = fd[0];
     cgi->cgipid = pid;
     cgi->cgiTimeout = time(NULL) + 5;
@@ -255,7 +252,7 @@ pid_t    executeCGI(std::string uri, t_serverData *data)
         errorPage("500", data);
     }
     //adding my cgi to my current socket;
-    // data->cgi = cgi;
+    data->cgi = cgi;
     return (pid);
 }
 
@@ -275,20 +272,20 @@ pid_t    executeCGI(std::string uri, t_serverData *data)
 // 	return (pidTimeOut);
 // }
 
-bool HandleCgiRequest(std::string uri, t_serverData *data)
+std::string HandleCgiRequest(std::string uri, t_serverData *data)
 {
     // pid_t first_child_pid;
-    int   status;
-    bool  cgi_success = true;
+    // int   status;
+    // bool  cgi_success = true;
 
     //A LOT OF PARSING WILL HAPPEN HERE TO SPLIT PATH INTO EXE AND PARAMETERS
     //Does path have to take into account what root is defined as ?
     std::cout << "hi whats up cgi handler here path is |" << uri << "|" << std::endl;
 
     //Execute the fucking cgi;
-    pid_t cgi_pid = executeCGI(uri, data); 
+    executeCGI(uri, data); 
     // pid_t timeout_pid = executeTimeOut();
-
+    throw Response::responseOk();
     // pid_t RaceWinnerPid = waitpid(-1, &status, WUNTRACED);
     // if (RaceWinnerPid == cgi_pid) 
     // {
@@ -307,8 +304,8 @@ bool HandleCgiRequest(std::string uri, t_serverData *data)
     // std::cout << "Waiting for the Process !" << std::endl;
     // waitpid(-1, NULL, WUNTRACED);
     // std::cout << "Waited for the Process ! Returning bool of : " << cgi_success << std::endl;
-    return cgi_success; //Returning void for now, I can potentially return the status of the process.
-
+    // return cgi_success; //Returning void for now, I can potentially return the status of the process.
+    return "";
 }
 
 std::string fileToString(const char *filePath)
@@ -323,24 +320,4 @@ std::string fileToString(const char *filePath)
     std::stringstream buffer;
     buffer << inputFile.rdbuf(); //gets all content of the file and puts it into buffer;
     return (buffer.str()); // sex
-}
-
-std::string    cgiProtocol(std::string uri, std::string &code, t_serverData *data)
-{
-    // std::string response;
-    
-    HandleCgiRequest(uri, data);
-    // if (HandleCgiRequest(uri, data) == false)
-    // {
-    //     errorPage("504", data);
-    // }
-    // else
-    // {
-    //     std::cout << GREEN "cgi ok" RESET << std::endl;
-    //     throw Response::responseOk();
-    //     // std::string cgi_output = fileToString(PATH_CGI_OUT);
-    //     // code = "200 OK";
-    //     // return(cgi_output);
-    // }
-    return "";
 }

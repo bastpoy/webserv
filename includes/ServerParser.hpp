@@ -30,11 +30,10 @@ Accepter les connexions des clients et les rediriger vers un gestionnaire de req
 
 typedef struct s_cgi
 {
-    bool    iscgi;
     int     cgifd;
     int     cgipid;
     int     parentsocket;
-    time_t  cgiTimeout;                          
+    time_t  cgiTimeout;
 }t_cgi;
 
 typedef struct s_serverData
