@@ -184,10 +184,8 @@ bool handleRequest(std::string buffer, t_serverData *data, Cookie &cookie)
 	return(false);
 }
 
-bool read_one_chunk(t_serverData *data, int epoll_fd, epoll_event *events) 
+bool read_one_chunk(t_serverData *data) 
 {
-    (void)epoll_fd;
-    (void)events;
     int bufferSize = 4096;
     char buffer[bufferSize];
     // Read data into the buffer
@@ -310,7 +308,7 @@ void Server::createListenAddr(ConfigParser &config)
                 //i listen for some epollin event and possible data read
                 if(events[i].events & EPOLLIN)
                 {
-                    if(read_one_chunk(info, epoll_fd, events))
+                    if(read_one_chunk(info))
                     {
                         //if i finish read the request info i change the status of the socket
                         // std::cout << BLUE "switching to epoolout" << RESET << std::endl;

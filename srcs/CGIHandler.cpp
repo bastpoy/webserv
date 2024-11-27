@@ -168,8 +168,27 @@ std::string execute(std::string uri, std::string &code, t_serverData *data) {
 
 //tfreydi functions
 
-pid_t    executeCGI(std::string uri)
+pid_t    executeCGI(std::string uri, t_serverData *data)
 {
+    struct epoll_event client_event;
+
+
+    int fd[2];
+    //pipe my new script created
+    if(pipe(fd) < 0)
+    {
+        std::cerr << "error creating pipe " << strerror(errno) << std::endl;
+        errorPage("500", data);
+    }
+    client_event.events = EPOLLIN;
+    client_event.data.fd = fd[0];
+    //i add new file descriptor to my actual epoll instance
+    if(epoll_ctl(3, EPOLL_CTL_ADD, fd[0], &client_event))
+    {
+        std::cerr << "error adding epoll ctl " << strerror(errno) << std::endl;
+        errorPage("500", data);
+    }
+
     int pid = fork();
     if (pid < 0)
     {
@@ -184,10 +203,15 @@ pid_t    executeCGI(std::string uri)
         script[0] = strdup("/usr/bin/python3");
         script[1] = strdup(uri.c_str());  // Creates a new C-string
         script[2] = NULL;
+        if(dup2(fd[1], STDOUT_FILENO) < 0)
+        {
+            std::cerr << "Error dup inside CGI" << strerror(errno) << std::endl;
+            errorPage("500", data);
+        }
         //Modern dup    
-        std::freopen(PATH_CGI_IN, "r", stdin);
-		std::freopen(PATH_CGI_OUT, "w", stdout);
-		std::freopen(PATH_CGI_ERR, "w", stderr);
+        // std::freopen(PATH_CGI_IN, "r", stdin);
+		// std::freopen(PATH_CGI_OUT, "w", stdout);
+		// std::freopen(PATH_CGI_ERR, "w", stderr);
         execve("/usr/bin/python3", script, NULL);
         std::cerr << "failed to execve, path was : " << uri << std::endl;
         perror("execve");
@@ -212,7 +236,7 @@ pid_t    executeTimeOut()
 	return (pidTimeOut);
 }
 
-bool HandleCgiRequest(std::string uri)
+bool HandleCgiRequest(std::string uri, t_serverData *data)
 {
     // pid_t first_child_pid;
     int   status;
@@ -223,7 +247,7 @@ bool HandleCgiRequest(std::string uri)
     std::cout << "hi whats up cgi handler here path is |" << uri << "|" << std::endl;
 
     //Execute the fucking cgi;
-    pid_t cgi_pid = executeCGI(uri); 
+    pid_t cgi_pid = executeCGI(uri, data); 
     // pid_t timeout_pid = executeTimeOut();
 
     pid_t RaceWinnerPid = waitpid(-1, &status, WUNTRACED);
@@ -266,7 +290,7 @@ std::string    cgiProtocol(std::string uri, std::string &code, t_serverData *dat
 {
     std::string response;
     
-    if (HandleCgiRequest(uri) == false)
+    if (HandleCgiRequest(uri, data) == false)
     {
         errorPage("504", data);
     }
