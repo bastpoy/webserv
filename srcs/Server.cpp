@@ -1,6 +1,7 @@
 #include "Header.hpp"
 
 #define TIMEOUT 5000
+#define BUFER_SIZE 4096
 
 //Fill data epoll with server iterator
 struct epoll_event fillEpoolDataIterator(int sockfd, std::vector<Server>::iterator itbeg)
@@ -54,7 +55,8 @@ struct epoll_event fillEpoolDataInfo(int &client_fd, t_serverData *info)
     data->buffer = "";
     data->header = "";
     data->body = "";
-    data->cgi = false;
+    data->cgi = NULL;
+
     // data->requestAllow.push_back("GET");
 
 	struct epoll_event client_event;
@@ -65,6 +67,7 @@ struct epoll_event fillEpoolDataInfo(int &client_fd, t_serverData *info)
 
 	return(client_event);
 }
+
 
 //IP managing, Binding, Listening
 void setupSocket(int &sockfd, struct sockaddr_in &addr, std::vector<Server>::iterator itbeg)
@@ -186,11 +189,10 @@ bool handleRequest(std::string buffer, t_serverData *data, Cookie &cookie)
 
 bool read_one_chunk(t_serverData *data) 
 {
-    int bufferSize = 4096;
-    char buffer[bufferSize];
+    char buffer[BUFER_SIZE];
     // Read data into the buffer
     // std::cout << "waiting before the buffer" << std::endl;
-    int bytes_read = recv(data->sockfd, buffer, bufferSize, 0);
+    int bytes_read = recv(data->sockfd, buffer, BUFER_SIZE, 0);
     if (bytes_read < 0) 
     {
         std::cout << "Error " << errno << " reading from socket" << data->sockfd << ": " << strerror(errno) << std::endl;
@@ -212,7 +214,7 @@ bool read_one_chunk(t_serverData *data)
     if(pos != std::string::npos)
     {
         data->header = data->buffer.substr(0, pos + 4);
-        // std::cout << GREEN << data->header <<  "\n size: " << data->buffer.size() - data->header.size() << RESET << std::endl;
+        std::cout << GREEN << data->header << RESET << std::endl;
     }
     //check if buffer size - header size = contentlength
     if(static_cast<int>(data->buffer.size() - data->header.size()) == getContentLength(data->buffer, data))
@@ -303,15 +305,27 @@ void Server::createListenAddr(ConfigParser &config)
 			//Connection already etablish 
 			else
 			{
-                // usleep(10);
-
                 //i listen for some epollin event and possible data read
                 if(events[i].events & EPOLLIN)
                 {
                     if(read_one_chunk(info))
                     {
+                        // if i read the content of a cgi
+                        if(info->cgi)
+                        {
+                            char *buffer[4096];
+                            size_t bytes_read;
+                            bytes_read = read(info->cgi->cgifd, buffer, 4096);
+                            if(bytes_read < 1)
+                            {
+                                std::cerr << RED "error reading the cgi: " << strerror(errno) << RESET << std::endl; 
+                                break;
+                            }
+                            info->body.append(buffer, bytes_read);
+                        }
                         //if i finish read the request info i change the status of the socket
-                        // std::cout << BLUE "switching to epoolout" << RESET << std::endl;
+                        // std::cout << BLUE "switching to epoolout" RESET << std::endl;
+                        
                         events[i].events = EPOLLOUT;
                         epoll_ctl(epoll_fd, EPOLL_CTL_MOD, info->sockfd, events);
                         // if the connection with the socket is over
@@ -323,10 +337,14 @@ void Server::createListenAddr(ConfigParser &config)
                 {
                     try
                     {
+                        // if i have a cgi
+                        if(info->cgi)
+                        {
+                            
+                            break;
+                        }
                         // parse the data
                         parsing_buffer(info, cookie);
-                        if(info->cgi)
-                            break;
                         // if i finish sending the info I change the status of the socket
                         // std::cout << BLUE "switching to epoolin" << RESET << std::endl;
                         events[i].events = EPOLLIN;
@@ -339,6 +357,11 @@ void Server::createListenAddr(ConfigParser &config)
                     catch(const std::exception& e)
                     {
                         std::cout << RED << "Error catch" << RESET << std::endl;
+                        if(info->cgi)
+                        {
+                            std::cout << GREEN "CGI EXIST BUT RETURN" RESET << std::endl;
+                            continue;
+                        }
                         // std::cout << BLUE "switching to epoolin" << RESET << std::endl;
                         events[i].events = EPOLLIN;
                         epoll_ctl(epoll_fd, EPOLL_CTL_MOD, info->sockfd, events);
@@ -353,5 +376,6 @@ void Server::createListenAddr(ConfigParser &config)
                 // usleep(10);
 			}
 		}
+
 	}
 }

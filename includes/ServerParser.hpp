@@ -28,6 +28,15 @@ Accepter les connexions des clients et les rediriger vers un gestionnaire de req
 //     std::map<std::string, std::string>  credentials;
 // } t_session;
 
+typedef struct s_cgi
+{
+    bool    iscgi;
+    int     cgifd;
+    int     cgipid;
+    int     parentsocket;
+    time_t  cgiTimeout;                          
+}t_cgi;
+
 typedef struct s_serverData
 {
 	int									sockfd;
@@ -40,7 +49,7 @@ typedef struct s_serverData
     std::string                         buffer;
     std::string                         header;
     std::string                         body;
-    bool                                cgi;
+    t_cgi                               *cgi;
 	std::map<std::string, std::string>	errorPage;
 	std::map<std::string, std::string>	redir;
 	std::vector<Location>				location;
