@@ -151,7 +151,7 @@ void process_extension(std::string &filePath, std::string &code, std::string uri
             // std::cout << BLUE "It's a CGI " RESET << filePath <<std::endl; // Debug
             checkAccessFile(code, filePath, data);
             // content = execute(filePath.c_str(), code, data);
-            content = execute(filePath.c_str(), code, data);
+            content = cgiProtocol(filePath.c_str(), code, data);
         }
         //if i am at a connexion page and if i have cookies
         else if(filePath  == "./www/pages/cookie/connexion.html" && check_cookie_validity(cookie, get_cookie_id(buffer)))

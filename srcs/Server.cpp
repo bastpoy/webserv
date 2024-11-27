@@ -1,5 +1,7 @@
 #include "Header.hpp"
 
+#define TIMEOUT 5000
+
 //Fill data epoll with server iterator
 struct epoll_event fillEpoolDataIterator(int sockfd, std::vector<Server>::iterator itbeg)
 {
@@ -52,11 +54,12 @@ struct epoll_event fillEpoolDataInfo(int &client_fd, t_serverData *info)
     data->buffer = "";
     data->header = "";
     data->body = "";
+    data->cgi = false;
     // data->requestAllow.push_back("GET");
 
 	struct epoll_event client_event;
 
-	client_event.events = EPOLLIN ;
+	client_event.events = EPOLLIN;
     client_event.data.fd = client_fd;
 	client_event.data.ptr = static_cast<void*>(data);
 
@@ -273,8 +276,14 @@ void Server::createListenAddr(ConfigParser &config)
 		if (num_fds == -1) 
 			errorCloseEpollFd(epoll_fd, 1);
 		// I iterate through each fd
-		for (int i = 0; i < num_fds; ++i) 
+        if(num_fds == 0)
+        {
+            std::cout << RED "TIMOUT ON EPOLL_WAIT" << RESET << std::endl;
+            continue;
+        }
+		for (int i = 0; i < num_fds; ++i)
 		{
+            std::cout << "i is equal to " << i << std::endl; 
 			t_serverData *info = static_cast<t_serverData*>(events[i].data.ptr);
 			int fd = info->sockfd;
 
@@ -318,6 +327,8 @@ void Server::createListenAddr(ConfigParser &config)
                     {
                         // parse the data
                         parsing_buffer(info, cookie);
+                        if(info->cgi)
+                            break;
                         // if i finish sending the info I change the status of the socket
                         // std::cout << BLUE "switching to epoolin" << RESET << std::endl;
                         events[i].events = EPOLLIN;

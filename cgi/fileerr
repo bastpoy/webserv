@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/media/bastpoy/DATA/project/webserv/./www/pages/cgi-bin/long.py", line 10, in <module>
+    time.sleep(5)
+KeyboardInterrupt

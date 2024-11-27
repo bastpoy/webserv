@@ -40,6 +40,7 @@ typedef struct s_serverData
     std::string                         buffer;
     std::string                         header;
     std::string                         body;
+    bool                                cgi;
 	std::map<std::string, std::string>	errorPage;
 	std::map<std::string, std::string>	redir;
 	std::vector<Location>				location;

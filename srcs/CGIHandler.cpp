@@ -1,67 +1,73 @@
 #include "Header.hpp"
 
-// std::string	CGIHandler::execute(std::string uri, std::string &code) {
-// 	pid_t pid;
-// 	int pipefd[2];
+#define PATH_CGI_IN "./cgi/filein"
+#define PATH_CGI_OUT "./cgi/fileout"
+#define PATH_CGI_ERR "./cgi/fileerr"
+#define TIME_OUT_CGI_MS 10000000
 
-// 	if (pipe(pipefd) == -1) {
-// 		perror("pipe");
-// 		close(pipefd[0]);
-// 		close(pipefd[1]);
-// 		return NULL;
-// 	}
 
-// 	if ((pid = fork()) == -1) {
-// 		perror("fork");
-// 		close(pipefd[0]);
-// 		close(pipefd[1]);
-// 		return NULL;
-// 	}
+std::string	execute1(std::string uri, std::string &code) {
+	pid_t pid;
+	int pipefd[2];
 
-// 	if (pid == 0) {
-// 		dup2(pipefd[1], STDOUT_FILENO);
-// 		close(pipefd[0]);
-// 		close(pipefd[1]);
+	if (pipe(pipefd) == -1) {
+		perror("pipe");
+		close(pipefd[0]);
+		close(pipefd[1]);
+		return NULL;
+	}
 
-// 		setenv("REQUEST_METHOD", "GET", 1);
-// 		setenv("SCRIPT_NAME", uri.c_str(), 1);
+	if ((pid = fork()) == -1) {
+		perror("fork");
+		close(pipefd[0]);
+		close(pipefd[1]);
+		return NULL;
+	}
 
-// 		execl("/usr/bin/python3", "python3", uri.c_str(), NULL);
-// 		perror("execl");
-// 		exit(1);
-// 	} else {
-// 		close(pipefd[1]);
-// 		char buffer[1024];
-// 		std::stringstream output;
-// 		ssize_t bytes_read;
+	if (pid == 0) {
+		dup2(pipefd[1], STDOUT_FILENO);
+		close(pipefd[0]);
+		close(pipefd[1]);
 
-// 		while ((bytes_read = read(pipefd[0], buffer, sizeof(buffer) - 1)) > 0) {
-// 			buffer[bytes_read] = '\0';
-// 			output << buffer;
-// 		}
+		setenv("REQUEST_METHOD", "GET", 1);
+		setenv("SCRIPT_NAME", uri.c_str(), 1);
 
-// 		close(pipefd[0]);
+		execl("/usr/bin/python3", "python3", uri.c_str(), NULL);
+		perror("execl");
+		exit(1);
+	} else {
+		close(pipefd[1]);
+		char buffer[1024];
+		std::stringstream output;
+		ssize_t bytes_read;
 
-// 		// struct sigaction sa;
-// 		// sa.sa_handler = SIG_DFL;
-// 		// sigemptyset(&sa.sa_mask);
-// 		// sa.sa_flags = 0;
+		while ((bytes_read = read(pipefd[0], buffer, sizeof(buffer) - 1)) > 0) {
+			buffer[bytes_read] = '\0';
+			output << buffer;
+		}
 
-// 		// sigaction(SIGCHLD, &sa, NULL);
+		close(pipefd[0]);
 
-// 		// if (waitpid(pid, NULL, WNOHANG) == -1)
-// 		// {
-// 		// 	perror("waitpid");
-// 		// 	code = "500 Internal Server Error";
-// 		// 	return NULL;
-// 		// }
+		// struct sigaction sa;
+		// sa.sa_handler = SIG_DFL;
+		// sigemptyset(&sa.sa_mask);
+		// sa.sa_flags = 0;
+
+		// sigaction(SIGCHLD, &sa, NULL);
+
+		// if (waitpid(pid, NULL, WNOHANG) == -1)
+		// {
+		// 	perror("waitpid");
+		// 	code = "500 Internal Server Error";
+		// 	return NULL;
+		// }
 		
-// 		// signal(SIGCHLD, SIG_IGN);
+		// signal(SIGCHLD, SIG_IGN);
 
-// 		code = "200 OK";
-// 		return (output.str());
-// 	}
-// }
+		code = "200 OK";
+		return (output.str());
+	}
+}
 
 std::string execute(std::string uri, std::string &code, t_serverData *data) {
 	pid_t pid;
@@ -103,7 +109,6 @@ std::string execute(std::string uri, std::string &code, t_serverData *data) {
 	} 
     else 
     {
-		// Processus parent
 		close(pipefd[1]);
 		char buffer[1024];  
 		std::stringstream output;
@@ -124,8 +129,8 @@ std::string execute(std::string uri, std::string &code, t_serverData *data) {
 			close(pipefd[0]);
 			errorPage("500", data);
 		}
-        else if (value == 0) {
-
+        else if (value == 0) 
+        {
             std::cerr << "here before error " << pipefd[0] << " " << pid <<  std::endl;
             if(kill(pid, SIGKILL) == -1)
             {
@@ -147,8 +152,129 @@ std::string execute(std::string uri, std::string &code, t_serverData *data) {
 		}
 
 		close(pipefd[0]);
+        if(kill(pid, SIGKILL) == -1)
+        {
+            std::cout << "error killing process: " << strerror(errno) << std::endl;
+        }
 
 		code = "200 OK";
 		return output.str();
 	}
+}
+
+
+
+
+
+//tfreydi functions
+
+pid_t    executeCGI(std::string uri)
+{
+    int pid = fork();
+    if (pid < 0)
+    {
+        std::cout << "Fork failed" << std::endl; //oh no !
+        return pid;
+        //this will be an error 500 !
+    }
+    else if (pid == 0)
+    {
+        char **script = (char **)malloc(sizeof(char*) * 3);
+        
+        script[0] = strdup("/usr/bin/python3");
+        script[1] = strdup(uri.c_str());  // Creates a new C-string
+        script[2] = NULL;
+        //Modern dup    
+        std::freopen(PATH_CGI_IN, "r", stdin);
+		std::freopen(PATH_CGI_OUT, "w", stdout);
+		std::freopen(PATH_CGI_ERR, "w", stderr);
+        execve("/usr/bin/python3", script, NULL);
+        std::cerr << "failed to execve, path was : " << uri << std::endl;
+        perror("execve");
+        std::exit(EXIT_FAILURE);
+    }
+    return (pid);
+}
+
+pid_t    executeTimeOut()
+{
+    pid_t pidTimeOut = fork();
+	if (pidTimeOut == -1) 
+    {
+		std::cout << "Fork failed" << std::endl; //oh no !
+		return pidTimeOut;
+	}
+	else if (pidTimeOut == 0) 
+    {
+	    usleep(TIME_OUT_CGI_MS);
+		std::exit(EXIT_SUCCESS);
+	}
+	return (pidTimeOut);
+}
+
+bool HandleCgiRequest(std::string uri)
+{
+    // pid_t first_child_pid;
+    int   status;
+    bool  cgi_success;
+
+    //A LOT OF PARSING WILL HAPPEN HERE TO SPLIT PATH INTO EXE AND PARAMETERS
+    //Does path have to take into account what root is defined as ?
+    std::cout << "hi whats up cgi handler here path is |" << uri << "|" << std::endl;
+
+    //Execute the fucking cgi;
+    pid_t cgi_pid = executeCGI(uri); 
+    // pid_t timeout_pid = executeTimeOut();
+
+    pid_t RaceWinnerPid = waitpid(-1, &status, WUNTRACED);
+    if (RaceWinnerPid == cgi_pid) 
+    {
+		std::cout << "process won" << std::endl;
+        // if (kill(timeout_pid,SIGKILL) == -1) 
+		// 	std::cerr << "Kill failed" << std::endl;
+        cgi_success = true;
+	}
+	else 
+    {
+		std::cout << "timeout won" << std::endl;
+        if (kill(cgi_pid, SIGKILL) == -1)
+            std::cerr << "Kill failed" << std::endl;
+        cgi_success = false;
+	}
+    std::cout << "Waiting for the Process !" << std::endl;
+    waitpid(-1, NULL, WUNTRACED);
+    std::cout << "Waited for the Process ! Returning bool of : " << cgi_success << std::endl;
+    return cgi_success; //Returning void for now, I can potentially return the status of the process.
+
+}
+
+std::string fileToString(const char *filePath)
+{
+    std::ifstream inputFile(filePath);
+
+    if (!inputFile.is_open())
+    {
+        throw std::runtime_error("Failed to open the file: " + std::string(filePath));
+    } // love
+
+    std::stringstream buffer;
+    buffer << inputFile.rdbuf(); //gets all content of the file and puts it into buffer;
+    return (buffer.str()); // sex
+}
+
+std::string    cgiProtocol(std::string uri, std::string &code, t_serverData *data)
+{
+    std::string response;
+    
+    if (HandleCgiRequest(uri) == false)
+    {
+        errorPage("504", data);
+    }
+    else
+    {
+        std::string cgi_output = fileToString(PATH_CGI_OUT);
+        code = "200 OK";
+        return(cgi_output);
+    }
+    return "";
 }
