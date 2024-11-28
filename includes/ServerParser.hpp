@@ -21,12 +21,6 @@ Accepter les connexions des clients et les rediriger vers un gestionnaire de req
  * @details	Responsible for server configuration and management of virtual hosts.
 */
 
-// typedef struct s_session {
-//     time_t expireDate;
-//     std::string id;
-//     int is_valid;
-//     std::map<std::string, std::string>  credentials;
-// } t_session;
 
 typedef struct s_cgi
 {
@@ -49,6 +43,8 @@ typedef struct s_serverData
     std::string                         header;
     std::string                         body;
     t_cgi                               *cgi;
+    std::map<int, s_serverData>         *fdEpollLink;
+    // std::map<int, struct epoll_event>   *fdEpollLink; // adding a map  which convert  
 	std::map<std::string, std::string>	errorPage;
 	std::map<std::string, std::string>	redir;
 	std::vector<Location>				location;
@@ -70,7 +66,6 @@ class Server
         std::map<std::string, std::string>	_errorPage;		// 404: /var/www/error/error404.html
 		std::map<std::string, std::string>	_redir;			// 302: http://127.0.0.3:8080
 		std::vector<Location>				_location;
-		// Server file descriptor
 		std::set<int>						socketfd;
 	
 	public:
@@ -113,7 +108,12 @@ class Server
 		// ServerAddr Fill
 		void	createListenAddr(ConfigParser &config);
 		void	configuringNetwork(std::vector<Server>::iterator &itbeg, ConfigParser &config, int &epoll_fd);
-		// Debug
+        struct epoll_event fillEpoolDataInfo(int &client_fd, t_serverData *info);
+        struct epoll_event fillEpoolDataIterator(int sockfd, std::vector<Server>::iterator itbeg, std::map<int, t_serverData> *fullData);
+        void setupSocket(int &sockfd, struct sockaddr_in &addr, std::vector<Server>::iterator itbeg);
+
+		
+        // Debug
 		void	printConfig();
 
 		// Amandine functions
@@ -124,6 +124,5 @@ class Server
 };
 
 void			maxBodyParsing(std::string caracter, std::string &size);
-std::ostream&	operator<<(std::ostream& os, const Server& server);
 
 # endif /* SERVER_HPP */

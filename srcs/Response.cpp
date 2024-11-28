@@ -21,7 +21,7 @@ std::string Response::sendResponse(std::string statusCode, std::string contentTy
 		std::cout << strerror(errno) << std::endl;
 		throw Response::ErrorSendingResponse(); 
 	}
-	throw Response::Error(); 
+	throw Response::responseOk(); 
 }
 
 std::string httpGetResponse(std::string code, std::string contentType, std::string content, t_serverData *data)

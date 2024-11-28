@@ -211,7 +211,7 @@ void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::strin
 		else if(!data->autoindex.empty() && data->autoindex == "on")
 		{
 			filePath = data->path + uri;
-
+            
 			std::vector<std::string> files = listDirectory(filePath);
 			content = generateAutoIndexPage(uri, files);
 		}

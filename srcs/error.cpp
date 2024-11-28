@@ -19,7 +19,7 @@ void errorCloseEpollFd(int &epoll_fd, int errCode)
 		std::cout << "Error accepting new client: ";
 	else if(errCode == 7) // error accept
 		std::cout << "Error creating epoll instance: ";
-	std::cout << strerror(errno) << std::endl;
+	std::cout << errno << " " <<strerror(errno) << std::endl;
 	throw Response::Error();
 }
 
