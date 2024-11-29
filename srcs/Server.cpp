@@ -260,35 +260,38 @@ void parsing_buffer(t_serverData *data, Cookie &cookie, std::map<int, t_serverDa
 
 void check_timeout_cgi(t_serverData *info, std::map<int, t_serverData*> &fdEpollLink)
 {
-    if(info && !info->cgi)
+    if(info)
     {
-        std::map<int, t_serverData*>::iterator it = fdEpollLink.begin();
-        //iterate through my corresponse map between fd and data struct
-        while (it != fdEpollLink.end()) 
+        if(!info->cgi)
         {
-            //if i have a cgi inside my struct
-            if(it->second->cgi)
+            std::map<int, t_serverData*>::iterator it = fdEpollLink.begin();
+            //iterate through my corresponse map between fd and data struct
+            while (it != fdEpollLink.end()) 
             {
-                //if my cgi is timeout
-                if(it->second->cgi->cgiTimeout < time(NULL))
+                //if i have a cgi inside my struct
+                if(it->second->cgi)
                 {
-                    std::cout << "a cgi is TIMEOUT" << std::endl;
-                    std::string response = httpGetResponse("200 Ok", "text/html", readFile("./www/error/error408.html", it->second), it->second);
-                    if(send(it->second->sockfd, response.c_str(), response.size(), 0) < 0)
+                    //if my cgi is timeout
+                    if(it->second->cgi->cgiTimeout < time(NULL))
                     {
-                        std::cout << RED "error send main "<< errno << " " << strerror(errno) << RESET << std::endl;
+                        std::cout << "a cgi is TIMEOUT" << std::endl;
+                        std::string response = httpGetResponse("200 Ok", "text/html", readFile("./www/error/error408.html", it->second), it->second);
+                        if(send(it->second->sockfd, response.c_str(), response.size(), 0) < 0)
+                        {
+                            std::cout << RED "error send main "<< errno << " " << strerror(errno) << RESET << std::endl;
+                        }
+                        close(it->second->cgi->cgifd);
+                        close(it->second->sockfd);
+                        delete it->second->cgi;
+                        it->second->cgi = NULL;
+                        std::map<int, t_serverData*>::iterator toErase = it;
+                        it++;
+                        fdEpollLink.erase(toErase);
+                        continue;
                     }
-                    close(it->second->cgi->cgifd);
-                    close(it->second->sockfd);
-                    delete it->second->cgi;
-                    it->second->cgi = NULL;
-                    std::map<int, t_serverData*>::iterator toErase = it;
-                    it++;
-                    fdEpollLink.erase(toErase);
-                    continue;
                 }
+                it++;
             }
-            it++;
         }
     }
 }
@@ -388,10 +391,8 @@ void Server::createListenAddr(ConfigParser &config)
                     {
                         //if i finish read the request info i change the status of the socket
                         // std::cout << BLUE "switching to epoolout" RESET << std::endl;
-                        
                         events[i].events = EPOLLOUT;
                         epoll_ctl(epoll_fd, EPOLL_CTL_MOD, info->sockfd, events);
-                        // if the connection with the socket is over
                     }
                 }
                 // if i can write to my socket
