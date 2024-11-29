@@ -134,7 +134,7 @@ void checkAccessDir(std::string &code, std::string &dirPath, t_serverData *data)
 		code = "200 OK";
 }
 
-void process_extension(std::string &filePath, std::string &code, std::string uri, std::string buffer, std::string &content, Cookie &cookie, t_serverData *data)
+void process_extension(std::string &filePath, std::string &code, std::string uri, std::string buffer, std::string &content, Cookie &cookie, t_serverData *data, std::map<int, t_serverData*> &fdEpollLink)
 {
     // if no root inside my server
     if(data->path.empty())
@@ -151,7 +151,7 @@ void process_extension(std::string &filePath, std::string &code, std::string uri
             // std::cout << BLUE "It's a CGI " RESET << filePath <<std::endl; // Debug
             checkAccessFile(code, filePath, data);
             // content = execute(filePath.c_str(), code, data);
-            content = HandleCgiRequest(filePath.c_str(), data);
+            content = HandleCgiRequest(filePath.c_str(), data, fdEpollLink);
         }
         //if i am at a connexion page and if i have cookies
         else if(filePath  == "./www/pages/cookie/connexion.html" && check_cookie_validity(cookie, get_cookie_id(buffer)))
@@ -165,7 +165,7 @@ void process_extension(std::string &filePath, std::string &code, std::string uri
     }
 }
 
-void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::string buffer)
+void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::string buffer, std::map<int, t_serverData*> &fdEpollLink)
 {
 	std::vector<Location>location = data->location;
 	std::string	content;
@@ -183,7 +183,7 @@ void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::strin
 			errorPage("403", data);
 		if(isExtension(uri))
 		{
-            process_extension(filePath, code, uri, buffer, content, cookie, data);
+            process_extension(filePath, code, uri, buffer, content, cookie, data, fdEpollLink);
 		}
         // if i have a file to download
         else if(isExtensionDownload(uri))
@@ -235,7 +235,7 @@ void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::strin
 }
 
 //parse the get request header and return the response with getrequest
-void parseAndGetRequest(std::string buffer, t_serverData *data, Cookie &cookie)
+void parseAndGetRequest(std::string buffer, t_serverData *data, Cookie &cookie, std::map<int, t_serverData*> &fdEpollLink)
 {
     //get the url of the request
     std::string path = buffer.substr(buffer.find('/') + 1, buffer.size() - buffer.find('/'));
@@ -255,6 +255,6 @@ void parseAndGetRequest(std::string buffer, t_serverData *data, Cookie &cookie)
         displayDeletePage(path, data);
     // return the data to the client
     else
-        getRequest(path, data, cookie, buffer);
+        getRequest(path, data, cookie, buffer, fdEpollLink);
 }
 

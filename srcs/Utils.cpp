@@ -146,18 +146,32 @@ bool isExtensionDownload(std::string path)
 	return (true);
 }
 
-std::string readFile(std::string path, t_serverData *data)
+std::string readFile(std::string filePath, t_serverData *data)
 {
-	std::ifstream file(path.c_str(), std::ios::binary);
-	if(!file.is_open())
-	{
+    std::ifstream inputFile(filePath.c_str(), std::ios::binary);
+
+    if (!inputFile.is_open())
+    {
         errorPage("404", data);
-	}
-	return std::string(
-		std::istreambuf_iterator<char>(file),
-		std::istreambuf_iterator<char>()
-	);
+    } // love
+
+    std::stringstream buffer;
+    buffer << inputFile.rdbuf(); //gets all content of the file and puts it into buffer;
+    return (buffer.str());
 }
+
+// std::string readFile(std::string path, t_serverData *data)
+// {
+// 	std::ifstream file(path.c_str(), std::ios::binary);
+// 	if(!file.is_open())
+// 	{
+//         errorPage("404", data);
+// 	}
+// 	return std::string(
+// 		std::istreambuf_iterator<char>(file),
+// 		std::istreambuf_iterator<char>()
+// 	);
+// }
 
 std::string read_error_file(std::string path, t_serverData *data)
 {

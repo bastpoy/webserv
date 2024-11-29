@@ -162,7 +162,7 @@ std::string execute(std::string uri, std::string &code, t_serverData *data) {
 	}
 }
 
-struct epoll_event fillDataCgi(t_serverData *importData, t_cgi *cgi)
+struct epoll_event fillDataCgi(t_serverData *importData, t_cgi *cgi, std::map<int, t_serverData*> &fdEpollLink)
 {
 	t_serverData *data = new t_serverData;
 
@@ -181,7 +181,6 @@ struct epoll_event fillDataCgi(t_serverData *importData, t_cgi *cgi)
     data->header = "";
     data->body = "";
     data->cgi = cgi;
-    data->fdEpollLink = importData->fdEpollLink;
     // data->requestAllow.push_back("GET");
 
 	struct epoll_event client_event;
@@ -191,15 +190,15 @@ struct epoll_event fillDataCgi(t_serverData *importData, t_cgi *cgi)
 	client_event.data.ptr = static_cast<void*>(data);
 
     //add new elements to the map structur
-    std::pair<int, t_serverData> pair(data->sockfd, *data);
-    data->fdEpollLink->insert(pair);
+    std::pair<int, t_serverData*> pair(data->sockfd, data);
+    fdEpollLink.insert(pair);
 	return(client_event);
 }
 
 
 //tfreydi functions
 
-pid_t    executeCGI(std::string uri, t_serverData *data)
+pid_t    executeCGI(std::string uri, t_serverData *data, std::map<int, t_serverData*> &fdEpollLink)
 {
     int fd[2];
     //pipe my new script created
@@ -246,7 +245,7 @@ pid_t    executeCGI(std::string uri, t_serverData *data)
     cgi->cgiTimeout = time(NULL) + 5;
     cgi->parentsocket = data->sockfd;
     //create a new client
-    client_event = fillDataCgi(data, cgi);
+    client_event = fillDataCgi(data, cgi, fdEpollLink);
     //deleting the previous fd which is my fd client
     // data->fdEpollLink->erase(data->sockfd);
     if(epoll_ctl(3, EPOLL_CTL_DEL, data->sockfd, NULL) < 0)
@@ -265,12 +264,12 @@ pid_t    executeCGI(std::string uri, t_serverData *data)
     return (pid);
 }
 
-std::string HandleCgiRequest(std::string uri, t_serverData *data)
+std::string HandleCgiRequest(std::string uri, t_serverData *data, std::map<int, t_serverData*> &fdEpollLink)
 {
     std::cout << "hi whats up cgi handler here path is |" << uri << "|" << std::endl;
 
     //Execute the fucking cgi;
-    executeCGI(uri, data); 
+    executeCGI(uri, data, fdEpollLink); 
     // pid_t timeout_pid = executeTimeOut();
     throw Response::responseOk();
     return "";
@@ -287,5 +286,5 @@ std::string fileToString(const char *filePath)
 
     std::stringstream buffer;
     buffer << inputFile.rdbuf(); //gets all content of the file and puts it into buffer;
-    return (buffer.str()); // sex
+    return (buffer.str());
 }

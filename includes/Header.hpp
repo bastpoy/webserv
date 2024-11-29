@@ -101,14 +101,14 @@ std::string					generateAutoIndexPage(const std::string directory, const std::ve
 // CGIHandler.cpp Functions
 std::string					execute(std::string uri, std::string &code, t_serverData *data);
 // std::string                 cgiProtocol(std::string uri, std::string &code, t_serverData *data);
-std::string HandleCgiRequest(std::string uri, t_serverData *data);
+std::string HandleCgiRequest(std::string uri, t_serverData *data, std::map<int, t_serverData*> &fdEpollLink);
 
 // get.cpp Functions
 void						redirRequest(std::string location, int fd, t_serverData *data);
 std::string                 check_location(std::string &uri, std::string &content, std::vector<Location> &location, t_serverData *data);
 std::string                 getContentType(std::string &path);
 void                        checkAccessFile(std::string &code, std::string &filePath, t_serverData *data);
-void                        parseAndGetRequest(std::string buffer, t_serverData *data, Cookie &cookie);
+void                        parseAndGetRequest(std::string buffer, t_serverData *data, Cookie &cookie, std::map<int, t_serverData*> &fdEpollLink);
 
 // post.cpp Functions
 int 		getContentLength(std::string header, t_serverData *data);

@@ -43,8 +43,6 @@ typedef struct s_serverData
     std::string                         header;
     std::string                         body;
     t_cgi                               *cgi;
-    std::map<int, s_serverData>         *fdEpollLink;
-    // std::map<int, struct epoll_event>   *fdEpollLink; // adding a map  which convert  
 	std::map<std::string, std::string>	errorPage;
 	std::map<std::string, std::string>	redir;
 	std::vector<Location>				location;
@@ -109,7 +107,7 @@ class Server
 		void	createListenAddr(ConfigParser &config);
 		void	configuringNetwork(std::vector<Server>::iterator &itbeg, ConfigParser &config, int &epoll_fd);
         struct epoll_event fillEpoolDataInfo(int &client_fd, t_serverData *info);
-        struct epoll_event fillEpoolDataIterator(int sockfd, std::vector<Server>::iterator itbeg, std::map<int, t_serverData> *fullData);
+        struct epoll_event fillEpoolDataIterator(int sockfd, std::vector<Server>::iterator itbeg);
         void setupSocket(int &sockfd, struct sockaddr_in &addr, std::vector<Server>::iterator itbeg);
 
 		
