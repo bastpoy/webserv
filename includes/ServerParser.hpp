@@ -47,6 +47,7 @@ typedef struct s_serverData
     std::string                         body;
     t_cgi                               *cgi;
 	std::map<std::string, std::string>	errorPage;
+	std::map<std::string, std::string>	cgiPath;
 	std::map<std::string, std::string>	redir;
 	std::vector<Location>				location;
     std::vector<std::string>            requestAllow;
@@ -65,6 +66,7 @@ class Server
 		std::string							_index;			// index.html
 		std::string							_autoindex;		// on/off
         std::map<std::string, std::string>	_errorPage;		// 404: /var/www/error/error404.html
+		std::map<std::string, std::string>	_cgiPath;
 		std::map<std::string, std::string>	_redir;			// 302: http://127.0.0.3:8080
 		std::vector<Location>				_location;
 		std::set<int>						socketfd;
@@ -79,6 +81,7 @@ class Server
 		void	setIndex(std::string index);
 		void	setAutoIndex(std::string autoindex);
 		void	setErrorPage(std::string code, std::string errorFile);
+		void 	setCgiPath(std::string language, std::string path);
 		void	setRedir(std::string code, std::string domain);
 		void	setLocation(Location &location);
 		// ServerAddr Setters
@@ -92,6 +95,7 @@ class Server
 		std::string							getIndex() const;
 		std::string							getAutoIndex() const;
         std::map<std::string,std::string>   &getErrorPage();
+		std::map<std::string,std::string>	&getCgiPath();
 		std::map<std::string,std::string>	&getRedir();
 		std::vector<Location>				&getLocation();
 
@@ -103,6 +107,7 @@ class Server
 		void	fillIndex(std::string line);
 		void	fillAutoIndex(std::string line);
 		void	fillErrorPage(std::string line);
+		void	fillCgiPath(std::string line);
 		void	fillRedir(std::string line);
 		void	fillLocation(std::ifstream &file, std::string line, std::vector<Location> &location);
 		

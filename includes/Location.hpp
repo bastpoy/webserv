@@ -14,6 +14,7 @@ class Location
 		std::string					        _maxBody;
 		std::string					        _autoindex;
 		std::map<std::string,std::string>	_redir;
+		std::map<std::string, std::string>	_cgi_path;
 		std::map<std::string, std::string>	_errorPage;
 
 	public:
@@ -37,6 +38,7 @@ class Location
 		std::string					getMaxBody() const;
 		std::string					getAutoIndex() const;
 		std::map<std::string, std::string>	&getRedir();
+		std::map<std::string,std::string>	&getCgiPath();
 		std::map<std::string,std::string>	&getErrorPage();
 
 		// Fill
@@ -45,6 +47,7 @@ class Location
 		void	fillIndex(std::string line);
 		void	fillMaxBody(std::string line);
 		void	fillAutoIndex(std::string line);
+		void	fillCgiPath(std::string line);
 		void	fillRedir(std::string line);
 		void	fillErrorPage(std::string line);
 

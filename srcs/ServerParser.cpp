@@ -84,7 +84,7 @@ void	Server::setRedir(std::string code, std::string domain)
 void Server::setErrorPage(std::string code, std::string errorFile)
 {
 	// errorFile.erase(std::remove(errorFile.begin(), errorFile.end(), ' '), errorFile.end());
-	_errorPage.insert(std::make_pair(code, errorFile));
+	this->_errorPage.insert(std::make_pair(code, errorFile));
 }
 
 void	Server::setSocketFd(int sockfd)
@@ -133,7 +133,7 @@ std::map<std::string,std::string>	&Server::getRedir()
 
 std::map<std::string,std::string>	&Server::getErrorPage()
 {
-	return (_errorPage);
+	return (this->_errorPage);
 }
 
 std::vector<Location>	&Server::getLocation()
@@ -226,16 +226,32 @@ void	Server::fillIndex(std::string line)
 void	Server::fillAutoIndex(std::string line)
 {
 	size_t pos = line.find("autoindex"); 
-	setAutoIndex(line.substr(pos + strlen("autoindex"), line.length() - (pos + strlen("autoindex"))));
+	this->setAutoIndex(line.substr(pos + strlen("autoindex"), line.length() - (pos + strlen("autoindex"))));
+	//print
+	// std::cout << "the autoindex is: " << this->getAutoIndex() << std::endl;
 }
 
 void	Server::fillErrorPage(std::string line)
 {
-	size_t pos = line.find("error_page");
-	line.erase(std::remove(line.begin(), line.end(), ' '), line.end());
-	std::string code = line.substr(pos + strlen("error_page"), 3).c_str();
-	std::string domain = line.substr(pos + strlen("error_page") + 3, line.length());
-	setErrorPage(code, domain);
+	size_t pos = line.find("error_page ");
+    // line.erase(std::remove(line.begin(), line.end(), ' '), line.end());
+    // std::cout << line << std::endl;
+	std::string code = line.substr(pos + strlen("error_page "), 3).c_str();
+	std::string domain = line.substr(pos + strlen("error_page ") + 4, line.length());
+	this->setErrorPage(code, domain);
+
+	//print
+	// std::map<int, std::string>::iterator it = this->getErrorPage().begin();
+	// std::cout << "the errorCode is: " << it->first << "\t the file is: " << it->second <<  std::endl;
+}
+
+void	Server::fillCgiPath(std::string line)
+{
+	size_t pos = line.find("cgi_path");
+	std::string language = line.substr(pos + strlen("cgi_path"), 4);
+	std::string path = line.substr(pos + strlen("cgi_path ") + 4, line.length());
+	this->setCgiPath(language, path);
+
 }
 
 void	Server::fillRedir(std::string line)

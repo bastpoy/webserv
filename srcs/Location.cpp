@@ -92,6 +92,11 @@ std::map<std::string,std::string> &Location::getRedir()
 	return (this->_redir);
 }
 
+std::map<std::string,std::string> &Location::getCgiPath()
+{
+	return (this->_cgi_path);
+}
+
 std::map<std::string,std::string> &Location::getErrorPage()
 {
 	return (this->_errorPage);
@@ -148,6 +153,7 @@ void	Location::fillAutoIndex(std::string line)
 }
 
 void	Location::fillRedir(std::string line)
+void	Location::fillRedir(std::string line)
 {
 	size_t pos = line.find("return ");
     if(pos == std::string::npos)
@@ -166,6 +172,18 @@ void	Location::fillErrorPage(std::string line)
 	std::string code = line.substr(pos + strlen("error_page"), 3).c_str();
 	std::string domain = line.substr(pos + strlen("error_page") + 3, line.length());
 	this->setErrorPage(code, domain);
+}
+
+void	Location::fillCgiPath(std::string line)
+{
+	size_t pos = line.find("error_page ");
+	std::string language = line.substr(pos + strlen("error_page "), 3).c_str();
+	std::string path = line.substr(pos + strlen("error_page ") + 3, line.length());
+	this->setErrorPage(language, path);
+
+	//print
+	// std::map<int, std::string>::iterator it = server->getErrorPage().begin();
+	// std::cout << "the errorCode is:\t" YELLOW << it->first << RESET " (" YELLOW << it->second << RESET ")" << std::endl;
 }
 
 /* ================ */
@@ -195,6 +213,8 @@ void	Location::printConfig()
 		std::cout << "\tclient_max_body_size\t\t" YELLOW << this->getMaxBody() << RESET << std::endl;
 	if(this->getErrorPage().size()) 
 		std::cout << "\terror_page\t" YELLOW << this->getErrorPage().begin()->first << " " << this->getErrorPage().begin()->second << RESET << std::endl;
+	if(this->getCgiPath().size()) 
+		std::cout << "\terror_page\t" YELLOW << this->getCgiPath().begin()->first << " " << this->getCgiPath().begin()->second << RESET << std::endl;
 	if(this->getRedir().size()) 
 		std::cout << "\treturn\t\t" YELLOW << this->getRedir().begin()->first << " " << this->getRedir().begin()->second << RESET << std::endl;
 	std::cout << std::endl;
