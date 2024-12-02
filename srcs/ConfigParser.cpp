@@ -8,9 +8,10 @@ std::string	keywords[] = {
 	"autoindex",
 	"index",
 	"return",
-	"error_page"
+	"error_page",
+	"cgi_path"
 };
-void (Server::*serverFunctions[8])(std::string line) = {
+void (Server::*serverFunctions[9])(std::string line) = {
 	&Server::fillPort,
 	&Server::fillServerName,
 	&Server::fillPath,
@@ -18,9 +19,10 @@ void (Server::*serverFunctions[8])(std::string line) = {
 	&Server::fillAutoIndex,
 	&Server::fillIndex,
 	&Server::fillRedir,
-	&Server::fillErrorPage
+	&Server::fillErrorPage,
+	&Server::fillCgiPath
 };
-const int	keywordsSize = 8;
+const int	keywordsSize = 9;
 
 /* ================ */
 /*	CANONICAL FORMS	*/
@@ -191,11 +193,11 @@ void ConfigParser::getServerAttributs(std::ifstream& file, Server &server)
 			server.fillLocation(file, line, server.getLocation());
 			continue ;
 		}
-		while (i < 8 && line.find(keywords[i]) == std::string::npos)
+		while (i < keywordsSize && line.find(keywords[i]) == std::string::npos)
 			i++;
-		if (i < 8)
+		if (i < keywordsSize)
 			(server.*serverFunctions[i])(line);
-		else if (i > 7 && line.find("}") == std::string::npos && !line.empty())
+		else if (i > (keywordsSize - 1) && line.find("}") == std::string::npos && !line.empty())
 			throw Response::ConfigurationFileServer("Unknown attribute: " + line);
 		if (line.find("}") != std::string::npos)
 		{

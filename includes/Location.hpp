@@ -14,8 +14,8 @@ class Location
 		std::string					        _maxBody;
 		std::string					        _autoindex;
 		std::map<std::string,std::string>	_redir;
-		std::map<std::string, std::string>	_cgi_path;
 		std::map<std::string, std::string>	_errorPage;
+		std::map<std::string, std::string>	_cgi_path;
 
 	public:
 		// Canonical form
@@ -30,6 +30,7 @@ class Location
 		void	setAutoIndex(std::string autoIndex);
 		void	setRedir(std::string code, std::string path);
 		void	setErrorPage(std::string errCode, std::string errorPage);
+		void	setCgiPath(std::string language, std::string path);
         
 		// Getter
 		std::string					getPath() const;

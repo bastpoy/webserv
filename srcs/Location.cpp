@@ -58,6 +58,11 @@ void	Location::setErrorPage(std::string code, std::string errorFile)
 	this->_errorPage.insert(std::make_pair(code, errorFile));
 }
 
+void	Location::setCgiPath(std::string language, std::string path)
+{
+	this->_cgi_path.insert(std::make_pair(language, path));
+}
+
 /* ================ */
 /*		GETTER		*/
 /* ================ */
@@ -153,7 +158,6 @@ void	Location::fillAutoIndex(std::string line)
 }
 
 void	Location::fillRedir(std::string line)
-void	Location::fillRedir(std::string line)
 {
 	size_t pos = line.find("return ");
     if(pos == std::string::npos)
@@ -176,10 +180,10 @@ void	Location::fillErrorPage(std::string line)
 
 void	Location::fillCgiPath(std::string line)
 {
-	size_t pos = line.find("error_page ");
-	std::string language = line.substr(pos + strlen("error_page "), 3).c_str();
-	std::string path = line.substr(pos + strlen("error_page ") + 3, line.length());
-	this->setErrorPage(language, path);
+	size_t pos = line.find("cgi_path");
+	std::string language = line.substr(pos + strlen("cgi_path"), 3).c_str();
+	std::string path = line.substr(pos + strlen("cgi_path") + 3, line.length());
+	this->setCgiPath(language, path);
 
 	//print
 	// std::map<int, std::string>::iterator it = server->getErrorPage().begin();
@@ -214,7 +218,7 @@ void	Location::printConfig()
 	if(this->getErrorPage().size()) 
 		std::cout << "\terror_page\t" YELLOW << this->getErrorPage().begin()->first << " " << this->getErrorPage().begin()->second << RESET << std::endl;
 	if(this->getCgiPath().size()) 
-		std::cout << "\terror_page\t" YELLOW << this->getCgiPath().begin()->first << " " << this->getCgiPath().begin()->second << RESET << std::endl;
+		std::cout << "\tcgi_path\t" YELLOW << this->getCgiPath().begin()->first << " " << this->getCgiPath().begin()->second << RESET << std::endl;
 	if(this->getRedir().size()) 
 		std::cout << "\treturn\t\t" YELLOW << this->getRedir().begin()->first << " " << this->getRedir().begin()->second << RESET << std::endl;
 	std::cout << std::endl;

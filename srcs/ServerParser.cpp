@@ -6,19 +6,21 @@ std::string	locationKeywords[] = {
 	"autoindex",
 	"index",
 	"return",
-	"error_page"
+	"error_page",
+	"cgi_path"
 };
 
-void (Location::*locationFunctions[6])(std::string line) = {
+void (Location::*locationFunctions[7])(std::string line) = {
 	&Location::fillRoot,
 	&Location::fillMaxBody,
 	&Location::fillAutoIndex,
 	&Location::fillIndex,
 	&Location::fillRedir,
-	&Location::fillErrorPage
+	&Location::fillErrorPage,
+	&Location::fillCgiPath
 };
 
-const int	locKeywordsSize = 6;
+const int	locKeywordsSize = 7;
 
 /* ================ */
 /*		SETTER		*/
@@ -87,6 +89,12 @@ void Server::setErrorPage(std::string code, std::string errorFile)
 	this->_errorPage.insert(std::make_pair(code, errorFile));
 }
 
+void Server::setCgiPath(std::string language, std::string path)
+{
+	// errorFile.erase(std::remove(errorFile.begin(), errorFile.end(), ' '), errorFile.end());
+	this->_cgiPath.insert(std::make_pair(language, path));
+}
+
 void	Server::setSocketFd(int sockfd)
 {
 	socketfd.insert(sockfd);
@@ -134,6 +142,11 @@ std::map<std::string,std::string>	&Server::getRedir()
 std::map<std::string,std::string>	&Server::getErrorPage()
 {
 	return (this->_errorPage);
+}
+
+std::map<std::string,std::string>	&Server::getCgiPath()
+{
+	return (this->_cgiPath);
 }
 
 std::vector<Location>	&Server::getLocation()
@@ -250,6 +263,7 @@ void	Server::fillCgiPath(std::string line)
 	size_t pos = line.find("cgi_path");
 	std::string language = line.substr(pos + strlen("cgi_path"), 4);
 	std::string path = line.substr(pos + strlen("cgi_path ") + 4, line.length());
+	std::cout << "language: " << language << ", path: " << path << std::endl;
 	this->setCgiPath(language, path);
 
 }
@@ -288,7 +302,7 @@ void	Server::fillLocation(std::ifstream &file, std::string line, std::vector<Loc
 			i++;
 		if (i < locKeywordsSize)
 			(location.*locationFunctions[i])(line);
-		else if (i > 5 && line.find("}") == std::string::npos && !line.empty())
+		else if (i > (locKeywordsSize - 1) && line.find("}") == std::string::npos && !line.empty())
 			throw Response::ConfigurationFileLocation("Unknown attribute: " + line);
 		if (line.find("}") != std::string::npos)
 		{
