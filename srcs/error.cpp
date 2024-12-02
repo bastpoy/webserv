@@ -1,5 +1,38 @@
 #include "Header.hpp"
 
+void closeAllFileDescriptors() 
+{
+    int i = 3;
+    while(i < 1024)
+    {
+        close(i);
+        i++;
+    }
+    return;
+    DIR *dir = opendir("/proc/self/fd");
+    if (dir == NULL) {
+        // Fallback to the previous method if /proc is not available
+        int maxFd = sysconf(_SC_OPEN_MAX);
+        for (int fd = 0; fd < maxFd; ++fd) {
+            close(fd);
+        }
+        return;
+    }
+
+    struct dirent *entry;
+    while ((entry = readdir(dir)) != NULL) {
+        if (entry->d_name[0] == '.') 
+            continue;  // Skip . and .. directories
+
+        int fd = atoi(entry->d_name);
+        if (fd > 2) {  // Avoid closing stdin, stdout, stderr
+            close(fd);
+        }
+    }
+    
+    closedir(dir);
+}
+
 //Error function and close epoll fd
 void errorCloseEpollFd(int &epoll_fd, int errCode)
 {
@@ -19,6 +52,7 @@ void errorCloseEpollFd(int &epoll_fd, int errCode)
 		std::cout << "Error accepting new client: ";
 	else if(errCode == 7) // error accept
 		std::cout << "Error creating epoll instance: ";
+    closeAllFileDescriptors();
 	std::cout << errno << " " <<strerror(errno) << std::endl;
 	throw Response::Error();
 }

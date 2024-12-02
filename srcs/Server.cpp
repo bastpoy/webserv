@@ -4,17 +4,21 @@
 #define BUFER_SIZE 4096
 #define FD_NUMBER 100
 
-int check_fd_valid(int fd) {
+int check_fd_valid(int fd) 
+{
     return fcntl(fd, F_GETFL) != -1;
 }
 
 //Fill data epoll with server iterator
-struct epoll_event Server::fillEpoolDataIterator(int sockfd, std::vector<Server>::iterator itbeg)
+struct epoll_event Server::fillEpoolDataIterator(int sockfd, std::vector<Server>::iterator itbeg, ConfigParser &config)
 {
 	t_serverData *data = new t_serverData;
 	struct epoll_event event;
 
 	singleton_data(data);
+    std::cout << "new data\n"; 
+    this->data = data;
+    config.setListData(data);
 
 	data->sockfd = sockfd;
 	data->port = itbeg->getPort();
@@ -79,29 +83,44 @@ struct epoll_event Server::fillEpoolDataInfo(int &client_fd, t_serverData *info)
 //IP managing, Binding, Listening
 void Server::setupSocket(int &sockfd, struct sockaddr_in &addr, std::vector<Server>::iterator itbeg)
 {
-	//translate my string ip address into a network adress
-	if(inet_pton(AF_INET, itbeg->getServerName().c_str(), &addr.sin_addr.s_addr) < 0)
-	{
-		std::cout << "wrong IP address: " << strerror(errno) << std::endl;
-		throw Response::Error();
-	}
+    struct addrinfo hints, *result;
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE;  // Use local IP
 
-	//bind my socket with the current fill sockaddr_in
-	if (bind(sockfd, (struct sockaddr*)&addr, sizeof(sockaddr)) < 0)
-	{
-        close(3);
-        close(4);
-        close(5);
-		std::cout << "\nBIND: " << sockfd << " " << strerror(errno) << " ";
+    std::string serverName = itbeg->getServerName();
+    std::string port = itbeg->getPort();  // Assuming you have a getPort() method
+
+    int status = getaddrinfo(serverName.c_str(), port.c_str(), &hints, &result);
+    if (status != 0) {
+        closeAllFileDescriptors();
+        freeaddrinfo(result);
+        std::cerr << "getaddrinfo error: " << gai_strerror(status) << std::endl;
+        throw Response::Error();
+    }
+    
+    // Convert the resolved address to sockaddr_in
+    struct sockaddr_in *resolved_addr = reinterpret_cast<struct sockaddr_in*>(result->ai_addr);
+    memcpy(&addr, resolved_addr, sizeof(struct sockaddr_in));
+
+	if (bind(sockfd, result->ai_addr, result->ai_addrlen) < 0) 
+    {
+        closeAllFileDescriptors();
+        freeaddrinfo(result);
+		std::cout << "\nBIND: ";
 		throw Response::ErrorCreatingSocket(strerror(errno));
 	}
 
 	//listen on the current socket created
 	if (listen(sockfd, 10) < 0)
 	{
-		std::cout << strerror(errno) << " ";
+        closeAllFileDescriptors();
+        freeaddrinfo(result);
+		std::cout <<"LISTEN: " << strerror(errno);
 		throw Response::Error();
 	}
+    freeaddrinfo(result);
 }
 
 // Configuration network
@@ -137,7 +156,7 @@ void Server::configuringNetwork(std::vector<Server>::iterator &itbeg, ConfigPars
 		setupSocket(sockfd, addr, itbeg);
 
 		//create a new instance of epool_event to stock info        
-		struct epoll_event event = this->fillEpoolDataIterator(sockfd, itbeg);
+		struct epoll_event event = this->fillEpoolDataIterator(sockfd, itbeg, config);
 
 		//add the epoll event to my epoll_fd instance
 		if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, sockfd, &event) == -1)
@@ -262,7 +281,7 @@ void check_timeout_cgi(t_serverData *info, std::map<int, t_serverData*> &fdEpoll
 {
     if(info)
     {
-        if(!info->cgi)
+        if(info->cgi == NULL)
         {
             std::map<int, t_serverData*>::iterator it = fdEpollLink.begin();
             //iterate through my corresponse map between fd and data struct
@@ -316,7 +335,7 @@ void read_cgi(t_serverData *data, struct epoll_event *events, int i, int epoll_f
     epoll_ctl(epoll_fd, EPOLL_CTL_MOD, data->sockfd, events);
 }
 
-void manage_tserver(t_serverData *data, struct epoll_event *events, int i, int epoll_fd)
+void manage_tserver(t_serverData *&data, struct epoll_event *events, int i, int epoll_fd)
 {
     std::cout << BLUE "switching to epoolin" << RESET << std::endl;
     events[i].events = EPOLLIN;
@@ -334,6 +353,7 @@ void Server::createListenAddr(ConfigParser &config)
 {
 	std::vector<Server>::iterator itbeg = config.getServers().begin();
     std::map<int, t_serverData*> fdEpollLink;
+
 	//creating the poll
 	int epoll_fd = epoll_create(50);
 	if (epoll_fd == -1)
@@ -350,7 +370,6 @@ void Server::createListenAddr(ConfigParser &config)
 
 	while (true) {
 		//epollwait return a number corresponding to all the files descriptor
-        // std::cout << "Waiting...\n";
 		int num_fds = epoll_wait(epoll_fd, events, MAX_EVENTS, -1);
 		if (num_fds == -1) 
 			errorCloseEpollFd(epoll_fd, 1);
@@ -408,7 +427,8 @@ void Server::createListenAddr(ConfigParser &config)
                             std::string response = httpGetResponse("200 Ok", "text/html", info->body, info);
                             if(send(info->sockfd, response.c_str(), response.size(), 0) < 0)
                             {
-                                std::cout << RED "error send main "<< errno << " " << strerror(errno) << RESET << std::endl;
+                                std::cout << "error sending CGI response\n";
+                                Response::sendResponse("500", "text/html", "<h1>500 Internal Server Error</h1>", info);
                             }
                             fdEpollLink.erase(info->sockfd);
                             close(info->cgi->cgifd);
@@ -435,10 +455,6 @@ void Server::createListenAddr(ConfigParser &config)
                 }
                 //check if i have a cgi running in all my fd open
                 check_timeout_cgi(info, fdEpollLink);
-
-                std::cout << YELLOW "end loop" RESET << std::endl;
-                // std::cout << "\n\n";
-                // usleep(10);
 			}
 		}
 	}

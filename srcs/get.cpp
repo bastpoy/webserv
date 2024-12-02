@@ -142,27 +142,27 @@ void process_extension(std::string &filePath, std::string &code, std::string uri
         errorPage("403", data);
     }
     //if i have an extension
-    if(isExtension(uri))
+    // if(isExtension(uri))
+    // {
+    filePath = data->path + uri;
+    //if its a python file
+    if (filePath.find(".py") != std::string::npos)
     {
-        filePath = data->path + uri;
-        //if its a python file
-        if (filePath.find(".py") != std::string::npos)
-        {
-            // std::cout << BLUE "It's a CGI " RESET << filePath <<std::endl; // Debug
-            checkAccessFile(code, filePath, data);
-            // content = execute(filePath.c_str(), code, data);
-            content = HandleCgiRequest(filePath.c_str(), data, fdEpollLink);
-        }
-        //if i am at a connexion page and if i have cookies
-        else if(filePath  == "./www/pages/cookie/connexion.html" && check_cookie_validity(cookie, get_cookie_id(buffer)))
-        {
-            std::cout << "no nead to reconnect cause user already exist\n";
-            redirRequest("/", data->sockfd, data);
-            throw Response::responseOk();
-        }
-        else
-            content = readFile(filePath, data);
+        // std::cout << BLUE "It's a CGI " RESET << filePath <<std::endl; // Debug
+        checkAccessFile(code, filePath, data);
+        // content = execute(filePath.c_str(), code, data);
+        content = HandleCgiRequest(filePath.c_str(), data, fdEpollLink);
     }
+    //if i am at a connexion page and if i have cookies
+    else if(filePath  == "./www/pages/cookie/connexion.html" && check_cookie_validity(cookie, get_cookie_id(buffer)))
+    {
+        std::cout << "no nead to reconnect cause user already exist\n";
+        redirRequest("/", data->sockfd, data);
+        throw Response::responseOk();
+    }
+    else
+        content = readFile(filePath, data);
+    // }
 }
 
 void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::string buffer, std::map<int, t_serverData*> &fdEpollLink)
@@ -181,17 +181,17 @@ void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::strin
 		// if no root inside my server
 		if(data->path.empty())
 			errorPage("403", data);
-		if(isExtension(uri))
-		{
-            process_extension(filePath, code, uri, buffer, content, cookie, data, fdEpollLink);
-		}
-        // if i have a file to download
-        else if(isExtensionDownload(uri))
+        if(isExtensionDownload(uri))
         {
             filePath= data->path + uri;
             // download = true;
             content = readFile(filePath, data);
         }
+		else if(isExtension(uri))
+		{
+            process_extension(filePath, code, uri, buffer, content, cookie, data, fdEpollLink);
+		}
+        // if i have a file to download
         //if i make a deconnexion
         else if(uri == "pages/deconnexion/")
         {

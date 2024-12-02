@@ -2,6 +2,7 @@
 
 void	SIGINT_handler(int signal)
 {
+    // Server::~Server();
 	(void)signal;
 	std::cout << "\nCTRL+C" << std::endl;
 	delete singleton_data(NULL);

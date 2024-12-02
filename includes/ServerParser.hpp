@@ -50,7 +50,6 @@ typedef struct s_serverData
 	std::map<std::string, std::string>	redir;
 	std::vector<Location>				location;
     std::vector<std::string>            requestAllow;
-    // t_session                           *session;
 }t_serverData;
 
 class Server
@@ -68,8 +67,12 @@ class Server
 		std::map<std::string, std::string>	_redir;			// 302: http://127.0.0.3:8080
 		std::vector<Location>				_location;
 		std::set<int>						socketfd;
+        t_serverData                        *data;
 	
-	public:
+    public:
+
+        // destructor
+        ~Server();
 
 		// Setter
 		void	setPort(std::string port);
@@ -81,7 +84,6 @@ class Server
 		void	setErrorPage(std::string code, std::string errorFile);
 		void	setRedir(std::string code, std::string domain);
 		void	setLocation(Location &location);
-		// ServerAddr Setters
 		void	setSocketFd(int sockfd);
 
 		// Getter
@@ -110,7 +112,7 @@ class Server
 		void	createListenAddr(ConfigParser &config);
 		void	configuringNetwork(std::vector<Server>::iterator &itbeg, ConfigParser &config, int &epoll_fd);
         struct epoll_event fillEpoolDataInfo(int &client_fd, t_serverData *info);
-        struct epoll_event fillEpoolDataIterator(int sockfd, std::vector<Server>::iterator itbeg);
+        struct epoll_event fillEpoolDataIterator(int sockfd, std::vector<Server>::iterator itbeg, ConfigParser &config);
         void setupSocket(int &sockfd, struct sockaddr_in &addr, std::vector<Server>::iterator itbeg);
 
 		

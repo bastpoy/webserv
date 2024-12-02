@@ -20,6 +20,12 @@ void (Location::*locationFunctions[6])(std::string line) = {
 
 const int	locKeywordsSize = 6;
 
+Server::~Server()
+{
+    std::cout << "server destructor" << std::endl;
+    delete data;
+}
+
 /* ================ */
 /*		SETTER		*/
 /* ================ */
