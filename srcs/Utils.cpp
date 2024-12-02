@@ -26,6 +26,28 @@ bool	ft_stoi(const std::string &str, int &result)
 	return true;
 }
 
+std::vector<std::string>	ft_split(const std::string& str, char delimiter)
+{
+	std::vector<std::string> result;
+	std::string tmp;
+
+	for (std::string::size_type i = 0; i < str.size(); ++i) {
+		if (str[i] == delimiter) {
+			result.push_back(tmp);
+			tmp.clear();
+		} else {
+			tmp += str[i];
+		}
+	}
+
+	// Ajouter la dernière partie (si elle existe)
+	if (!tmp.empty()) {
+		result.push_back(tmp);
+	}
+
+	return result;
+}
+
 std::string getContentType(std::string &path) 
 {
 	std::map<std::string, std::string> contentTypes;
