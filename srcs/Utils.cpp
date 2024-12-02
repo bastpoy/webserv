@@ -1,25 +1,29 @@
 #include "Header.hpp"
 
-int	ft_stoi(std::string str)
+bool	ft_stoi(const std::string &str, int &result)
 {
-	int			i;
-	long long	atoi;
-	int			sign;
+	bool isNegative = false;
+	size_t i = 0;
 
-	i = 0;
-	atoi = 0;
-	sign = 1;
-	while (str[i] == 32 || (str[i] >= 9 && str[i] <= 13))
-		i++;
-	if (str[i] == '+' || str[i] == '-')
-	{
-		if (str[i] == '-')
-			sign *= -1;
+	while (i < str.length() && (str[i] == ' ' || str[i] == '\t')) {
 		i++;
 	}
-	while (str[i] >= '0' && str[i] <= '9')
-		atoi = atoi * 10 + (str[i++] - '0');
-	return ((int)atoi * sign);
+	if (i < str.length() && (str[i] == '-' || str[i] == '+')) {
+		if (str[i] == '-') {
+			isNegative = true;
+		}
+		i++;
+	}
+	while (i < str.length() && str[i] >= '0' && str[i] <= '9') {
+		result = result * 10 + (str[i] - '0');
+		i++;
+	}
+	if (i < str.length() && (str[i] < '0' || str[i] > '9')) {
+		return false;
+	}
+
+	result = isNegative ? -result : result;
+	return true;
 }
 
 std::string getContentType(std::string &path) 

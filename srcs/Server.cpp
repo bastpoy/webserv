@@ -87,13 +87,13 @@ void Server::setupSocket(int &sockfd, struct sockaddr_in &addr, std::vector<Serv
 	}
 
 	//bind my socket with the current fill sockaddr_in
-	if (bind(sockfd, (struct sockaddr*)&addr, sizeof(sockaddr)) < 0) 
+	if (bind(sockfd, (struct sockaddr*)&addr, sizeof(sockaddr)) < 0)
 	{
         close(3);
         close(4);
         close(5);
 		std::cout << "\nBIND: " << sockfd << " " << strerror(errno) << " ";
-		throw Response::Error();
+		throw Response::ErrorCreatingSocket(strerror(errno));
 	}
 
 	//listen on the current socket created

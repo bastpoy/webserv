@@ -1,6 +1,10 @@
 #ifndef HEADER_HPP
 # define HEADER_HPP
 
+/* ================ */
+/*	   INCLUDES 	*/
+/* ================ */
+
 // Bibliothèques standard C++
 #include <string>				// Manipulation de chaînes
 #include <vector>				// Conteneur vector
@@ -43,7 +47,10 @@
 #include "delete.hpp"
 #include "cookie.hpp"
 
-/* ------------- COLORS ------------- */
+/* ================ */
+/*		COLORS		*/
+/* ================ */
+
 // Reset
 #define RESET		"\e[0m"
 
@@ -76,12 +83,14 @@
 #define ON_MAGENTA	"\e[45m"
 #define ON_CYAN		"\e[46m"
 #define ON_WHITE	"\e[47m"
+/* ================ */
+/*		CLASS		*/
+/* ================ */
 
 // Class Prototypes
 class Client;
 class ConfigParser;
-class Location;
-// class Logger;
+class location;
 class Request;
 class RequestHandler;
 class Response;
@@ -92,6 +101,11 @@ class Cookie;
 // main.cpp Functions
 int							main(int ac, char **av);
 t_serverData				*singleton_data(t_serverData *data);
+class ServerParser;
+
+/* ================ */
+/*	  FUNCTIONS 	*/
+/* ================ */
 
 // autoindex.cpp Functions
 bool						isDirectory(const std::string& path);

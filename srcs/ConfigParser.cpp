@@ -1,22 +1,39 @@
 #include "Header.hpp"
 
+std::string	keywords[] = {
+	"listen",
+	"server_name",
+	"root",
+	"client_max_body_size",
+	"autoindex",
+	"index",
+	"return",
+	"error_page"
+};
+void (Server::*serverFunctions[8])(std::string line) = {
+	&Server::fillPort,
+	&Server::fillServerName,
+	&Server::fillPath,
+	&Server::fillMaxBody,
+	&Server::fillAutoIndex,
+	&Server::fillIndex,
+	&Server::fillRedir,
+	&Server::fillErrorPage
+};
+const int	keywordsSize = 8;
+
 /* ================ */
 /*	CANONICAL FORMS	*/
 /* ================ */
 
-ConfigParser::ConfigParser(void)
-{
-	// std::cout << GREEN "Creating a ConfigParser " RESET << std::endl;
-}
+ConfigParser::ConfigParser(void) {}
 
 ConfigParser::ConfigParser(char *path)
 {
-	this->_path = path;
+	_path = path;
 }
 
-ConfigParser::~ConfigParser()
-{
-}
+ConfigParser::~ConfigParser(void) {}
 
 /* ================ */
 /*		SETTER		*/
@@ -25,102 +42,183 @@ ConfigParser::~ConfigParser()
 //Setter
 void ConfigParser::addServer(Server &server)
 {
-	this->_servers.push_back(server);
-	// std::cout << GREEN "Server added" RESET << std::endl;
+	_servers.push_back(server);
 }
 
 //getter
-std::vector<Server>	&ConfigParser::getServers()
+std::vector<Server>	&ConfigParser::getServers(void)
 {
-	return(this->_servers);
+	return(_servers);
 }
 
 /* ================ */
 /*		PARSING		*/
 /* ================ */
 
-
-void	ConfigParser::parseConfig( )
+void	ConfigParser::checkServerAttributs(Server &server, std::vector<Server> &servers) //TODO - Mettre dans utils
 {
-	// std::cout << "---------PARSING CONF-----------\n";
-
-	// ConfigParser *config;
-	std::string line;
-	// std::ifstream file("./conf/Bastien.conf");
-	std::ifstream file(this->_path.c_str());
-
-	if (!file.is_open())
+	for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); it++)
 	{
-		std::cout << strerror(errno) << std::endl;
-		throw Response::ErrorOpeningFile();
+		if (it->getServerName() == server.getServerName())
+			throw Response::ConfigurationFileServer("Server name already exist");
 	}
+}
+
+bool ConfigParser::isFileEmpty(const std::string &filePath) //TODO - Mettre dans utils
+{
+	std::ifstream file(filePath.c_str(), std::ios::ate);
+	if (!file.is_open())
+		throw Response::ErrorOpeningFile("Can't opening file.");
+	return file.tellg() == 0;
+}
+
+void checkTwoKeywordsSameLine(const std::string	line)
+{
+	int count = 0;
+
+	for (std::size_t i = 0; i < keywordsSize; ++i)
+		if (line.find(keywords[i]) != std::string::npos)
+			++count;
+	if (count >= 2)
+		throw std::runtime_error("Two keywords on the same line.");
+}
+
+void	ConfigParser::parseConfig(std::vector<Server> &servers)
+{
+	std::string		line;
+	std::ifstream	file(_path.c_str());
+	bool			bracket = false;
+	bool			httpBlock = false;
+
+	if (isFileEmpty(_path))
+		throw Response::ErrorOpeningFile("File empty");
 	while (getline(file, line))
 	{
-		// std::cout << YELLOW << line << RESET << std::endl;
+		rmComments(line);
+		checkTwoKeywordsSameLine(line);
+		if (line.find("http") != std::string::npos)
+			httpBlock = true;
+		if (line.find("{") != std::string::npos)
+			bracket = true;
 		// fill new server block
-		if (line.find("server") != std::string::npos)
+		if (line.find("server") != std::string::npos && httpBlock)
 		{
-			// std::cout << GREEN "\nNew Server detected" RESET << std::endl;
-			//create a server instance and add it to Server Class
 			Server server;
 			getServerAttributs(file, server);
+			checkServerAttributs(server, servers);
 			addServer(server);
 		}
+		else if (line.find("server") != std::string::npos && !httpBlock)
+			throw Response::ConfigurationFileServer("http block is missing");
+		if (line.find("}") != std::string::npos)
+		{
+			if (bracket == false)
+				throw Response::ConfigurationFileServer("Missing '{' in http block");
+			return ;
+		}
 	}
+	throw Response::ConfigurationFileServer("Missing '}'");
+}
+
+void	ConfigParser::rmComments(std::string &line) //TODO - Mettre dans utils
+{
+	size_t commentPos = line.find('#');
+
+	if (commentPos != std::string::npos)
+		line = line.substr(0, commentPos);
+}
+
+void	ConfigParser::checkSemicolon(std::string &line) //TODO - Mettre dans utils
+{
+	bool conditions = line.find("}") == std::string::npos && line.find("location") == std::string::npos && !line.empty();
+
+	if (conditions && line.find_last_of(';') == std::string::npos)
+		throw Response::ConfigurationFileServer("';' is missing");
+	if (conditions && line.find(';') != line.size() - 1)
+		throw Response::ConfigurationFileServer("Unknown character after ';'");
+	if (conditions)
+		line.erase(line.size() - 1);
+}
+
+void ConfigParser::parseLine(std::string &line) //TODO - Mettre dans utils
+{
+	bool	present = line.find("{") != std::string::npos;
+
+	rmComments(line);
+
+	// Supprime les espaces inutiles au début et à la fin
+	line.erase(0, line.find_first_not_of(" \t")); // Trim début
+	line.erase(line.find_last_not_of(" \t") + 1); // Trim fin
+
+	if (present)
+	{
+		if (line.find("{") != line.size() - 1)
+			throw Response::ConfigurationFileServer("Unknown character after '{'");
+		return ;
+	}
+
+	checkSemicolon(line);
+
+	if (line.find(";") == std::string::npos
+		&& line.find("location") == std::string::npos
+		&& !line.empty()
+		&& line.find("}") != std::string::npos
+		&& line.find('}') != line.size() - 1)
+		throw Response::ConfigurationFileServer("Unknown character after '}'");
 }
 
 /**
  * @brief	This function will find each attribute to parse and redirectto the good fill function.
  * @note	It will erase all spaces between key and value in the configuration file.ADJ_FREQUENCY
- * @author	Ozan
+ * @author	Amandine, Bastien, Ozan.
 */
 void ConfigParser::getServerAttributs(std::ifstream& file, Server &server)
 {
-	std::string line;
+	std::string	line;
+	bool		bracket = false;
 
 	while(getline(file, line))
 	{
-		if (line.find("listen") != std::string::npos)
-			server.fillPort(line);
-		else if(line.find("server_name") != std::string::npos)
-			server.fillServerName(line);
-		else if(line.find("root") != std::string::npos)
-			server.fillPath(line);
-		else if(line.find("client_max_body_size") != std::string::npos)
-			server.fillMaxBody(line);
-		else if(line.find("autoindex") != std::string::npos)
-			server.fillAutoIndex(line);
-		else if(line.find("index") != std::string::npos)
-			server.fillIndex(line);
-		else if(line.find("return") != std::string::npos)
-			server.fillRedir(line);
-		else if(line.find("error_page") != std::string::npos)
-			server.fillErrorPage(line);
-		else if(line.find("location") != std::string::npos)
-			server.fillLocation(file, line);
-		// getLocationAttributs(file, server, line);
-		else if(line.find("}") != std::string::npos)
+		int i = 0;
+		parseLine(line);
+		if (line.find("{") != std::string::npos && line.find("location") == std::string::npos)
+		{
+			bracket = true;
+			continue;
+		}
+		if (line.find("location") != std::string::npos)
+		{
+			server.fillLocation(file, line, server.getLocation());
+			continue ;
+		}
+		while (i < 8 && line.find(keywords[i]) == std::string::npos)
+			i++;
+		if (i < 8)
+			(server.*serverFunctions[i])(line);
+		else if (i > 7 && line.find("}") == std::string::npos && !line.empty())
+			throw Response::ConfigurationFileServer("Unknown attribute: " + line);
+		if (line.find("}") != std::string::npos)
+		{
+			if (bracket == false)
+				throw Response::ConfigurationFileServer("Missing '{' in server block");
 			return ;
+		}
 	}
+	throw Response::ConfigurationFileServer("Missing '}'");
+
 }
 
 /* ================ */
 /*		DEBUG		*/
 /* ================ */
 
-void ConfigParser::printConfig()
+void ConfigParser::printConfig(void)
 {
-	std::vector<Server>::iterator	itbeg = this->_servers.begin();
-	std::vector<Server>::iterator	itend = this->_servers.end();
-	int								i = 1;
+	std::vector<Server>::iterator	itbeg = _servers.begin();
+	std::vector<Server>::iterator	itend = _servers.end();
 
 	std::cout << "---------PRINTING CONF-----------\n\n";
-	while(itbeg != itend)
-	{
-		//print server config who call location config
-		std::cout << BWHITE "Server "  << i++ << RESET << std::endl;
-		(itbeg)->printConfig();
-		itbeg++;
-	}
+	for (int i = 1; itbeg != itend; ++itbeg, ++i)
+		std::cout << BWHITE "Server " << i << RESET << std::endl, (itbeg)->printConfig();
 	std::cout << "---------------------------------\n\n";
 }

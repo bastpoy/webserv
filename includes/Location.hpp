@@ -18,10 +18,8 @@ class Location
 
 	public:
 		// Canonical form
-		Location();
-		~Location();
-		// Location(const Location &other);
-		// Location	&operator=(const Location &other);
+		Location(void);
+		~Location(void);
 
 		// Setter
 		void	setPath(std::string path);
@@ -47,11 +45,12 @@ class Location
 		void	fillIndex(std::string line);
 		void	fillMaxBody(std::string line);
 		void	fillAutoIndex(std::string line);
-		void	fillRedir(std::string line, Server *server);
-		void	fillErrorPage(std::string line, Server *server);
+		void	fillRedir(std::string line);
+		void	fillErrorPage(std::string line);
 
 		// Debug
-		void	printConfig();
+		void	checkNotEmptys(void);
+		void	printConfig(void);
 		
 };
 

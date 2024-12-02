@@ -14,6 +14,9 @@ Rôle :
 Accepter les connexions des clients et les rediriger vers un gestionnaire de requêtes.
 */
 
+extern std::string	locationKeywords[];
+extern const int	locKeywordsSize;
+
 /**
  * @brief	Class representing the main HTTP server.
  * @note	Responsible for listening on one or more ports for incoming connections.
@@ -101,7 +104,7 @@ class Server
 		void	fillAutoIndex(std::string line);
 		void	fillErrorPage(std::string line);
 		void	fillRedir(std::string line);
-		void	fillLocation(std::ifstream &file, std::string line);
+		void	fillLocation(std::ifstream &file, std::string line, std::vector<Location> &location);
 		
 		// ServerAddr Fill
 		void	createListenAddr(ConfigParser &config);

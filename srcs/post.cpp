@@ -240,7 +240,7 @@ void postRequest(t_serverData *data, Cookie &cookie)
 			if(!output.is_open())
 			{
 				errorPage("500", data);
-				throw Response::ErrorOpeningFile();
+				throw Response::ErrorOpeningFile(NULL);
 			}
             //truncate the beginning and the end of my file and remove boundaries
             truncate_file(data->body, data);
