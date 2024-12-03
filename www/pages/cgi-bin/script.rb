@@ -1,6 +1,5 @@
 #!/usr/bin/ruby
 
-# Afficher le corps HTML
 puts "<html>"
 puts "<head><title>Test CGI - Ruby</title></head>"
 puts "<body style=\"text-align:center\">"
