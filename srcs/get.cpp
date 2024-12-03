@@ -142,13 +142,13 @@ void process_extension(std::string &filePath, std::string &code, std::string uri
         errorPage("403", data);
     }
     //if i have an extension
-    if(isExtension(uri))
+    if(isExtension(uri) || !CGIExtension(uri).empty())
     {
         filePath = data->path + uri;
         //if its a python file
-        if (filePath.find(".py") != std::string::npos)
+        if (!CGIExtension(filePath).empty())
         {
-            // std::cout << BLUE "It's a CGI " RESET << filePath <<std::endl; // Debug
+            std::cout << BLUE "It's a CGI " RESET << filePath << std::endl; // Debug
             checkAccessFile(code, filePath, data);
             // content = execute(filePath.c_str(), code, data);
             content = HandleCgiRequest(filePath.c_str(), data, fdEpollLink);
@@ -181,15 +181,12 @@ void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::strin
 		// if no root inside my server
 		if(data->path.empty())
 			errorPage("403", data);
-		if(isExtension(uri))
-		{
+		if(isExtension(uri) || !CGIExtension(uri).empty())
             process_extension(filePath, code, uri, buffer, content, cookie, data, fdEpollLink);
-		}
         // if i have a file to download
         else if(isExtensionDownload(uri))
         {
             filePath= data->path + uri;
-            // download = true;
             content = readFile(filePath, data);
         }
         //if i make a deconnexion
@@ -243,10 +240,7 @@ void parseAndGetRequest(std::string buffer, t_serverData *data, Cookie &cookie, 
 
     std::cout << "GET RESPONSE " << path <<  std::endl;
     if(path.find("favicon.ico") != std::string::npos)
-    {
-        notFoundFavicon(data);
-        return;
-    }
+        return notFoundFavicon(data);
     //if i have a ? inside my url which represent filtering
     else if(path.find("?") != std::string::npos)
         errorPage("501", data);

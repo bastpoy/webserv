@@ -175,6 +175,7 @@ struct epoll_event fillDataCgi(t_serverData *importData, t_cgi *cgi, std::map<in
 	data->autoindex = importData->autoindex;
 	data->index = importData->index;
 	data->errorPage = importData->errorPage;
+	data->cgiPath = importData->cgiPath;
 	data->redir = importData->redir;
 	data->location = importData->location;
     data->buffer = "";
@@ -194,7 +195,6 @@ struct epoll_event fillDataCgi(t_serverData *importData, t_cgi *cgi, std::map<in
     fdEpollLink.insert(pair);
 	return(client_event);
 }
-
 
 //tfreydi functions
 
@@ -219,7 +219,17 @@ pid_t    executeCGI(std::string uri, t_serverData *data, std::map<int, t_serverD
     {
         char **script = (char **)malloc(sizeof(char*) * 3);
         
-        script[0] = strdup("/usr/bin/python3");
+        std::string extension = CGIExtension(uri);
+        std::map<std::string, std::string>::const_iterator it = data->cgiPath.find(extension);
+        if (it == data->cgiPath.end())
+        {
+            std::cerr << "Error : can't find extension " << extension << std::endl;
+            free(script); // Libérer la mémoire
+            std::exit(EXIT_FAILURE);
+        }
+
+        // Préparer les arguments pour execve
+        script[0] = strdup(it->second.c_str());
         script[1] = strdup(uri.c_str());  // Creates a new C-string
         script[2] = NULL;
         if(dup2(fd[1], STDOUT_FILENO) < 0)
@@ -229,8 +239,9 @@ pid_t    executeCGI(std::string uri, t_serverData *data, std::map<int, t_serverD
         }
         close(fd[0]);
 		close(fd[1]);
-        execve("/usr/bin/python3", script, NULL);
+        execve(it->second.c_str(), script, NULL);
         std::cerr << "failed to execve, path was : " << uri << std::endl;
+        std::cout << MAGENTA << "it: " << it->first << RESET << std::endl;
         perror("execve");
         std::exit(EXIT_FAILURE);
     }

@@ -24,6 +24,7 @@ struct epoll_event Server::fillEpoolDataIterator(int sockfd, std::vector<Server>
 	data->autoindex = itbeg->getAutoIndex();
 	data->index = itbeg->getIndex();
 	data->errorPage = itbeg->getErrorPage();
+	data->cgiPath = itbeg->getCgiPath();
 	data->redir = itbeg->getRedir();
 	data->location = itbeg->getLocation();
     data->buffer = "";
@@ -56,6 +57,7 @@ struct epoll_event Server::fillEpoolDataInfo(int &client_fd, t_serverData *info)
 	data->autoindex = info->autoindex;
 	data->index = info->index;
 	data->errorPage = info->errorPage;
+	data->cgiPath = info->cgiPath;
 	data->redir = info->redir;
 	data->location = info->location;
     data->buffer = "";
@@ -175,9 +177,7 @@ bool handleRequest(std::string buffer, t_serverData *data, Cookie &cookie, std::
 		}
 		// else I respond 
 		else
-		{
             parseAndGetRequest(buffer, data, cookie, fdEpollLink);
-		}
 	}
     //if it is a post request
 	else if(typeRequest == "POST" && request_allowed("POST", data))
@@ -360,7 +360,7 @@ void Server::createListenAddr(ConfigParser &config)
 			t_serverData *info = static_cast<t_serverData*>(events[i].data.ptr);
 			int fd = info->sockfd;
 
-            std::cout << BLUE "actual fd: " << info->sockfd << " and number fd " << num_fds <<RESET << std::endl; 
+            // std::cout << BLUE "actual fd: " << info->sockfd << " and number fd " << num_fds <<RESET << std::endl; 
 			// check if my fd is equal to a socket for handcheck
 			if(this->socketfd.find(fd) != this->socketfd.end())
 			{
@@ -406,6 +406,7 @@ void Server::createListenAddr(ConfigParser &config)
                         {
                             std::cout << GREEN "sending cgi response\n" RESET;
                             std::string response = httpGetResponse("200 Ok", "text/html", info->body, info);
+                            std::cout << MAGENTA "Response: " << response << RESET << std::endl;
                             if(send(info->sockfd, response.c_str(), response.size(), 0) < 0)
                             {
                                 std::cout << RED "error send main "<< errno << " " << strerror(errno) << RESET << std::endl;
@@ -436,7 +437,7 @@ void Server::createListenAddr(ConfigParser &config)
                 //check if i have a cgi running in all my fd open
                 check_timeout_cgi(info, fdEpollLink);
 
-                std::cout << YELLOW "end loop" RESET << std::endl;
+                // std::cout << YELLOW "end loop" RESET << std::endl;
                 // std::cout << "\n\n";
                 // usleep(10);
 			}

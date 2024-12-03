@@ -1,5 +1,33 @@
 #include "Header.hpp"
 
+std::string	CGIExtensions[] = {
+	".py",
+	".php",
+	".pl",
+	".sh",
+	".rb",
+	".tcl",
+	".js"
+};
+
+int	nbCGIExtensions = 7;
+
+std::string CGIExtension(std::string path)
+{
+	//return false if there is not extension
+	int	i = 0;
+
+	while (i < nbCGIExtensions)
+	{
+		size_t	pos = path.find(CGIExtensions[i]);
+		std::string extension = &path[pos];
+		if (pos != std::string::npos)
+			return extension;
+		i++;
+	}
+	return ("");
+}
+
 bool	ft_stoi(const std::string &str, int &result)
 {
 	bool isNegative = false;
@@ -127,6 +155,7 @@ int getContentLength(std::string header, t_serverData *data)
 	}
 	return(intSize);
 }
+
 
 bool isExtension(std::string path)
 {

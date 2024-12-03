@@ -12,6 +12,7 @@ bool isExtensionDownload(std::string path);
 void truncate_file(std::string &file, t_serverData *data);
 bool is_keep_alive(std::string &header);
 bool request_allowed(std::string typeRequest, t_serverData *data);
+std::string CGIExtension(std::string path);
 
 template <typename T>
 std::string to_string(T value) {

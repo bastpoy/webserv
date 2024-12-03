@@ -260,11 +260,19 @@ void	Server::fillErrorPage(std::string line)
 
 void	Server::fillCgiPath(std::string line)
 {
-	size_t pos = line.find("cgi_path");
-	std::string language = line.substr(pos + strlen("cgi_path"), 4);
-	std::string path = line.substr(pos + strlen("cgi_path ") + 4, line.length());
-	std::cout << "language: " << language << ", path: " << path << std::endl;
-	this->setCgiPath(language, path);
+	size_t	pos = line.find("cgi_path ");
+	std::string trimLine = line.substr(pos + strlen("cgi_path "), line.length() - (pos + strlen("cgi_path ")));
+	std::vector<std::string>	substr = ft_split(trimLine, ' ');
+
+	for (size_t i = 0; i < substr.size(); i++)
+	{
+		std::vector<std::string>	map = ft_split(substr[i], ':');
+		std::string language = map[0];
+		std::string path = map[1];
+		std::cout << MAGENTA"Language: '" << language << "'\nPath: '" << path << "'" << RESET << std::endl;
+		this->setCgiPath(language, path);
+	}
+
 
 }
 

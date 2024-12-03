@@ -4,7 +4,7 @@ void	SIGINT_handler(int signal)
 {
 	(void)signal;
 	std::cout << "\nCTRL+C" << std::endl;
-	delete singleton_data(NULL);
+	// delete singleton_data(NULL);
 }
 
 void	SIGTERM_handler(int signal)
