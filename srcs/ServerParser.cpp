@@ -206,12 +206,6 @@ void Server::setErrorPage(std::string line)
 	_errorPage.insert(std::make_pair(code, errorFile));
 }
 
-// void Server::setCgiPath(std::string language, std::string path)
-// {
-// 	// errorFile.erase(std::remove(errorFile.begin(), errorFile.end(), ' '), errorFile.end());
-// 	this->_cgiPath.insert(std::make_pair(language, path));
-// }
-
 void Server::setCgiPath(std::string line)
 {
 	size_t		pos = line.find("cgi_path ");
@@ -227,7 +221,6 @@ void Server::setCgiPath(std::string line)
 		std::cout << MAGENTA"Language: '" << language << "'\nPath: '" << path << "'" << RESET << std::endl;
 		_cgiPath.insert(std::make_pair(language, path));
 	}
-	// errorFile.erase(std::remove(errorFile.begin(), errorFile.end(), ' '), errorFile.end());
 }
 
 void Server::setAllowedMethods(std::string line)
@@ -275,6 +268,8 @@ std::map<std::string,std::string>	&Server::getRedir() { return (_redir); }
 std::map<std::string,std::string>	&Server::getErrorPage() { return (this->_errorPage); }
 
 std::map<std::string,std::string>	&Server::getCgiPath() { return (this->_cgiPath); }
+
+std::vector<std::string>			&Server::getAllowedMethods() { return (_allowedMethods); }
 
 std::vector<Location>	&Server::getLocation() { return (_location); }
 
