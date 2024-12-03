@@ -27,32 +27,33 @@ extern const int	locKeywordsSize;
 
 typedef struct s_cgi
 {
-    int     cgifd;
-    int     cgipid;
-    int     parentsocket;
-    time_t  cgiTimeout;
+	int     cgifd;
+	int     cgipid;
+	int     parentsocket;
+	time_t  cgiTimeout;
 }t_cgi;
 
 typedef struct s_serverData
 {
 	int									sockfd;
 	std::string 						port;
+	std::string 						ip;
 	std::string							server_name;
 	std::string							path;
 	std::string							maxBody;
 	std::string							index;
 	std::string							autoindex;
-    std::string                         buffer;
-    std::string                         header;
-    std::string                         body;
-    t_cgi                               *cgi;
+	std::string							buffer;
+	std::string							header;
+	std::string							body;
+	t_cgi								*cgi;
 	std::map<std::string, std::string>	errorPage;
 	std::map<std::string, std::string>	cgiPath;
 	std::map<std::string, std::string>	redir;
 	std::vector<Location>				location;
-    std::vector<std::string>            requestAllow;
-    // t_session                           *session;
-}t_serverData;
+	std::vector<std::string>			requestAllow;
+	// t_session							*session;
+}	t_serverData;
 
 class Server
 {
@@ -60,12 +61,13 @@ class Server
 
 		// Server (config)									// Some example
 		std::string 						_port;			// 8080
-		std::string							_server_name;	// 127.0.0.3
+		std::string 						_ip;			// 127.0.0.1
+		std::string							_server_name;	// exemple.com
 		std::string							_path;			// ? root ?
 		std::string							_maxBody;		// 36M
 		std::string							_index;			// index.html
 		std::string							_autoindex;		// on/off
-        std::map<std::string, std::string>	_errorPage;		// 404: /var/www/error/error404.html
+		std::map<std::string, std::string>	_errorPage;		// 404: /var/www/error/error404.html
 		std::map<std::string, std::string>	_cgiPath;
 		std::map<std::string, std::string>	_redir;			// 302: http://127.0.0.3:8080
 		std::vector<Location>				_location;
@@ -74,61 +76,57 @@ class Server
 	public:
 
 		// Setter
-		void	setPort(std::string port);
+		// void	setPort(std::string port);
+		void	setIP(std::string port);
 		void	setServerName(std::string server_name);
-		void	setPath(std::string path);
-		void	setMaxBody(std::string maxBody);
-		void	setIndex(std::string index);
-		void	setAutoIndex(std::string autoindex);
-		void	setErrorPage(std::string code, std::string errorFile);
+		void	setListen(std::string line);
+		void	setRoot(std::string line);
+		void	setMaxBody(std::string line);
+		void	setIndex(std::string line);
+		void	setAutoIndex(std::string line);
+		void	setErrorPage(std::string line);
 		void 	setCgiPath(std::string language, std::string path);
-		void	setRedir(std::string code, std::string domain);
+		void	setRedir(std::string line);
 		void	setLocation(Location &location);
 		// ServerAddr Setters
 		void	setSocketFd(int sockfd);
 
 		// Getter
 		std::string							getPort() const;
+		std::string							getIP() const;
 		std::string							getServerName() const;
 		std::string							getPath() const;
 		std::string							getMaxBody() const;
 		std::string							getIndex() const;
 		std::string							getAutoIndex() const;
-        std::map<std::string,std::string>   &getErrorPage();
+		std::map<std::string,std::string>	&getErrorPage();
 		std::map<std::string,std::string>	&getCgiPath();
 		std::map<std::string,std::string>	&getRedir();
 		std::vector<Location>				&getLocation();
 
 		// Fill
-		void	fillPort(std::string line);
-		void	fillServerName(std::string line);
-		void	fillPath(std::string line);
-		void	fillMaxBody(std::string line);
-		void	fillIndex(std::string line);
-		void	fillAutoIndex(std::string line);
-		void	fillErrorPage(std::string line);
+		// void	fillPort(std::string line);
+		// void	fillListen(std::string line);
+		// void	fillServerName(std::string line);
+		// void	fillPath(std::string line);
+		// void	fillMaxBody(std::string line);
+		// void	fillIndex(std::string line);
+		// void	fillAutoIndex(std::string line);
+		// void	fillErrorPage(std::string line);
 		void	fillCgiPath(std::string line);
-		void	fillRedir(std::string line);
+		// void	fillRedir(std::string line);
 		void	fillLocation(std::ifstream &file, std::string line, std::vector<Location> &location);
 		
 		// ServerAddr Fill
-		void	createListenAddr(ConfigParser &config);
-		void	configuringNetwork(std::vector<Server>::iterator &itbeg, ConfigParser &config, int &epoll_fd);
-        struct epoll_event fillEpoolDataInfo(int &client_fd, t_serverData *info);
-        struct epoll_event fillEpoolDataIterator(int sockfd, std::vector<Server>::iterator itbeg);
-        void setupSocket(int &sockfd, struct sockaddr_in &addr, std::vector<Server>::iterator itbeg);
+		void				createListenAddr(ConfigParser &config);
+		void				configuringNetwork(std::vector<Server>::iterator &itbeg, ConfigParser &config, int &epoll_fd);
+		struct epoll_event	fillEpoolDataInfo(int &client_fd, t_serverData *info);
+		struct epoll_event	fillEpoolDataIterator(int sockfd, std::vector<Server>::iterator itbeg);
+		void				setupSocket(int &sockfd, struct sockaddr_in &addr, std::vector<Server>::iterator itbeg);
 
 		
-        // Debug
+		// Debug
 		void	printConfig();
-
-		// Amandine functions
-		// void	listen();			// pour écouter sur une adresse IP et un port spécifiés.
-		// void	acceptConnection();	// pour accepter les connexions entrantes.
-		// void	setup();			// pour la configuration du serveur avec les options données (par exemple, plusieurs configurations de serveur virtuel).
-
 };
-
-void			maxBodyParsing(std::string caracter, std::string &size);
 
 # endif /* SERVER_HPP */

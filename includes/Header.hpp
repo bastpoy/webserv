@@ -99,8 +99,8 @@ class Cookie;
 
 
 // main.cpp Functions
-int							main(int ac, char **av);
-t_serverData				*singleton_data(t_serverData *data);
+int				main(int ac, char **av);
+t_serverData	*singleton_data(t_serverData *data);
 class ServerParser;
 
 /* ================ */
@@ -113,44 +113,46 @@ std::vector<std::string>	listDirectory(const std::string& directory);
 std::string					generateAutoIndexPage(const std::string directory, const std::vector<std::string>& files);
 
 // ParsingUtils.cpp
-void	checkLocationPath(Location &location, std::vector<Location> &locations);
+void		checkLocationPath(Location &location, std::vector<Location> &locations);
+// void	maxBodyParsing(std::string caracter, std::string &size);
 
 
-// CGIHandler.cpp Functions
-std::string					execute(std::string uri, std::string &code, t_serverData *data);
-// std::string                 cgiProtocol(std::string uri, std::string &code, t_serverData *data);
+// CGIHandler.cpp
+std::string	execute(std::string uri, std::string &code, t_serverData *data);
+// std::string	cgiProtocol(std::string uri, std::string &code, t_serverData *data);
 std::string HandleCgiRequest(std::string uri, t_serverData *data, std::map<int, t_serverData*> &fdEpollLink);
 
-// get.cpp Functions
-void						redirRequest(std::string location, int fd, t_serverData *data);
-std::string                 check_location(std::string &uri, std::string &content, std::vector<Location> &location, t_serverData *data);
-std::string                 getContentType(std::string &path);
-void                        checkAccessFile(std::string &code, std::string &filePath, t_serverData *data);
-void                        parseAndGetRequest(std::string buffer, t_serverData *data, Cookie &cookie, std::map<int, t_serverData*> &fdEpollLink);
+// get.cpp
+void		redirRequest(std::string location, int fd, t_serverData *data);
+std::string	check_location(std::string &uri, std::string &content, std::vector<Location> &location, t_serverData *data);
+std::string	getContentType(std::string &path);
+void		checkAccessFile(std::string &code, std::string &filePath, t_serverData *data);
+void		parseAndGetRequest(std::string buffer, t_serverData *data, Cookie &cookie, std::map<int, t_serverData*> &fdEpollLink);
 
-// post.cpp Functions
+// post.cpp
 int 		getContentLength(std::string header, t_serverData *data);
 std::string	getFileName(std::string body);
 void		postRequest(t_serverData *data, Cookie &cookie);
 
-//Cookies
-std::string     newSessionCookie(std::map<std::string, std::string> values,Cookie &cookie, t_serverData *data);
-std::string     manageDate(time_t current_time);
-bool            check_cookie_validity(Cookie &cookie, std::string id);
-std::string     get_cookie_id(std::string buffer);
+// cookie.cpp
+std::string	newSessionCookie(std::map<std::string, std::string> values,Cookie &cookie, t_serverData *data);
+std::string	manageDate(time_t current_time);
+bool		check_cookie_validity(Cookie &cookie, std::string id);
+std::string	get_cookie_id(std::string buffer);
 
-//Response
-std::string     httpGetResponse(std::string code, std::string contentType, std::string content, t_serverData *data);
-std::string     httpGetResponseDownload(std::string code, std::string contentType, std::string content, t_serverData *data);
-void            httpPostResponse(std::string code , std::string contentType, std::string content, t_serverData *data, Cookie &cookie, std::string id);
+// Response.cpp
+std::string	httpGetResponse(std::string code, std::string contentType, std::string content, t_serverData *data);
+std::string	httpGetResponseDownload(std::string code, std::string contentType, std::string content, t_serverData *data);
+void		httpPostResponse(std::string code , std::string contentType, std::string content, t_serverData *data, Cookie &cookie, std::string id);
 
-// error.cpp Functions
+// error.cpp
 void	errorCloseEpollFd(int &epoll_fd, int errCode);
+void	forbidden(t_serverData *data); // not used
+void	notFound(t_serverData *data); // not used
+void	notFoundFavicon(t_serverData *data);
 void	errorPage(std::string error, t_serverData *data);
 
-// error.cpp Functions
+// signals.cpp
 void	configureSignals();
-void    notFoundFavicon(t_serverData *data);
-
 
 #endif /* HEADER_HPP */

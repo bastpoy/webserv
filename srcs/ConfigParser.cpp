@@ -1,39 +1,12 @@
 #include "Header.hpp"
 
-std::string	keywords[] = {
-	"listen",
-	"server_name",
-	"root",
-	"client_max_body_size",
-	"autoindex",
-	"index",
-	"return",
-	"error_page",
-	"cgi_path"
-};
-void (Server::*serverFunctions[9])(std::string line) = {
-	&Server::fillPort,
-	&Server::fillServerName,
-	&Server::fillPath,
-	&Server::fillMaxBody,
-	&Server::fillAutoIndex,
-	&Server::fillIndex,
-	&Server::fillRedir,
-	&Server::fillErrorPage,
-	&Server::fillCgiPath
-};
-const int	keywordsSize = 9;
-
 /* ================ */
 /*	CANONICAL FORMS	*/
 /* ================ */
 
 ConfigParser::ConfigParser(void) {}
 
-ConfigParser::ConfigParser(char *path)
-{
-	_path = path;
-}
+ConfigParser::ConfigParser(char *path): _path(path) {}
 
 ConfigParser::~ConfigParser(void) {}
 
@@ -41,21 +14,54 @@ ConfigParser::~ConfigParser(void) {}
 /*		SETTER		*/
 /* ================ */
 
-//Setter
 void ConfigParser::addServer(Server &server)
 {
 	_servers.push_back(server);
 }
 
-//getter
-std::vector<Server>	&ConfigParser::getServers(void)
+/* ================ */
+/*		GETTER		*/
+/* ================ */
+
+std::vector<Server>	&ConfigParser::getServers(void) { return(_servers); }
+
+std::vector<std::string>	ConfigParser::getKeywords(void)
 {
-	return(_servers);
+	std::vector<std::string>	keywords;
+
+	for (int i = 0; i < _keywordsSize; ++i)
+		keywords.push_back(_keywords[i][0]);
+	return (keywords);
 }
+
+int ConfigParser::getKeywordsSize(void) { return (_keywordsSize); }
 
 /* ================ */
 /*		PARSING		*/
 /* ================ */
+
+void	ConfigParser::functionConfig(void)
+{
+	_keywords[0].push_back("listen");
+	_keywords[1].push_back("server_name");
+	_keywords[2].push_back("root");
+	_keywords[3].push_back("client_max_body_size");
+	_keywords[4].push_back("autoindex");
+	_keywords[5].push_back("index");
+	_keywords[6].push_back("return");
+	_keywords[7].push_back("error_page");
+	_keywords[8].push_back("cgi_path");
+
+	_serverFunctions.push_back(&Server::setListen);
+	_serverFunctions.push_back(&Server::setServerName);
+	_serverFunctions.push_back(&Server::setRoot);
+	_serverFunctions.push_back(&Server::setMaxBody);
+	_serverFunctions.push_back(&Server::setAutoIndex);
+	_serverFunctions.push_back(&Server::setIndex);
+	_serverFunctions.push_back(&Server::setRedir);
+	_serverFunctions.push_back(&Server::setErrorPage);
+	_serverFunctions.push_back(&Server::fillCgiPath);
+}
 
 void	ConfigParser::checkServerAttributs(Server &server, std::vector<Server> &servers) //TODO - Mettre dans utils
 {
@@ -74,15 +80,15 @@ bool ConfigParser::isFileEmpty(const std::string &filePath) //TODO - Mettre dans
 	return file.tellg() == 0;
 }
 
-void checkTwoKeywordsSameLine(const std::string	line)
+void checkTwoKeywordsSameLine(const std::string	line, std::vector<std::string> keywords, const int keywordsSize)
 {
 	int count = 0;
 
-	for (std::size_t i = 0; i < keywordsSize; ++i)
+	for (int i = 0; i < keywordsSize; ++i)
 		if (line.find(keywords[i]) != std::string::npos)
 			++count;
 	if (count >= 2)
-		throw std::runtime_error("Two keywords on the same line.");
+		throw Response::ConfigurationFileServer("Two keywords on the same line.");
 }
 
 void	ConfigParser::parseConfig(std::vector<Server> &servers)
@@ -92,12 +98,13 @@ void	ConfigParser::parseConfig(std::vector<Server> &servers)
 	bool			bracket = false;
 	bool			httpBlock = false;
 
+	functionConfig();
 	if (isFileEmpty(_path))
 		throw Response::ErrorOpeningFile("File empty");
 	while (getline(file, line))
 	{
 		rmComments(line);
-		checkTwoKeywordsSameLine(line);
+		checkTwoKeywordsSameLine(line, getKeywords(), getKeywordsSize());
 		if (line.find("http") != std::string::npos)
 			httpBlock = true;
 		if (line.find("{") != std::string::npos)
@@ -106,7 +113,7 @@ void	ConfigParser::parseConfig(std::vector<Server> &servers)
 		if (line.find("server") != std::string::npos && httpBlock)
 		{
 			Server server;
-			getServerAttributs(file, server);
+			getServerAttributs(file, server, getKeywords(), _serverFunctions);
 			checkServerAttributs(server, servers);
 			addServer(server);
 		}
@@ -174,7 +181,7 @@ void ConfigParser::parseLine(std::string &line) //TODO - Mettre dans utils
  * @note	It will erase all spaces between key and value in the configuration file.ADJ_FREQUENCY
  * @author	Amandine, Bastien, Ozan.
 */
-void ConfigParser::getServerAttributs(std::ifstream& file, Server &server)
+void ConfigParser::getServerAttributs(std::ifstream& file, Server &server, std::vector<std::string> keywords, std::vector<void (Server::*)(std::string)> serverFunctions)
 {
 	std::string	line;
 	bool		bracket = false;
@@ -193,11 +200,11 @@ void ConfigParser::getServerAttributs(std::ifstream& file, Server &server)
 			server.fillLocation(file, line, server.getLocation());
 			continue ;
 		}
-		while (i < keywordsSize && line.find(keywords[i]) == std::string::npos)
+		while (i < getKeywordsSize() && line.find(keywords[i]) == std::string::npos)
 			i++;
-		if (i < keywordsSize)
+		if (i < getKeywordsSize())
 			(server.*serverFunctions[i])(line);
-		else if (i > (keywordsSize - 1) && line.find("}") == std::string::npos && !line.empty())
+		else if (i > (getKeywordsSize() - 1) && line.find("}") == std::string::npos && !line.empty())
 			throw Response::ConfigurationFileServer("Unknown attribute: " + line);
 		if (line.find("}") != std::string::npos)
 		{
