@@ -21,9 +21,9 @@ class ConfigParser
 		std::string			_path;
 		// std::vector<std::string>					_keywords[9];
 
-		std::vector<std::string>					_keywords[9];
+		std::vector<std::string>					_keywords[10];
 		std::vector<void (Server::*)(std::string)>	_serverFunctions;
-		static int const							_keywordsSize = 9;
+		static int const							_keywordsSize = 10;
 
 	public:
 		ConfigParser(void);

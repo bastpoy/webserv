@@ -60,16 +60,17 @@ class Server
 	private:
 
 		// Server (config)									// Some example
-		std::string 						_port;			// 8080
-		std::string 						_ip;			// 127.0.0.1
-		std::string							_server_name;	// exemple.com
-		std::string							_path;			// ? root ?
-		std::string							_maxBody;		// 36M
-		std::string							_index;			// index.html
-		std::string							_autoindex;		// on/off
-		std::map<std::string, std::string>	_errorPage;		// 404: /var/www/error/error404.html
-		std::map<std::string, std::string>	_cgiPath;
-		std::map<std::string, std::string>	_redir;			// 302: http://127.0.0.3:8080
+		std::string 						_port;				// 8080
+		std::string 						_ip;				// 127.0.0.1
+		std::string							_server_name;		// exemple.com
+		std::string							_path;				// ? root ?
+		std::string							_maxBody;			// 36M
+		std::string							_index;				// index.html
+		std::string							_autoindex;			// on/off
+		std::map<std::string, std::string>	_errorPage;			// 404: /var/www/error/error404.html
+		std::map<std::string, std::string>	_cgiPath;			// .php: /usr/bin/php-cgi
+		std::map<std::string, std::string>	_redir;				// 302: http://127.0.0.3:8080
+		std::vector<std::string>			_allowedMethods;	//GET POST PUT DELETE
 		std::vector<Location>				_location;
 		std::set<int>						socketfd;
 	
@@ -85,9 +86,11 @@ class Server
 		void	setIndex(std::string line);
 		void	setAutoIndex(std::string line);
 		void	setErrorPage(std::string line);
-		void 	setCgiPath(std::string language, std::string path);
 		void	setRedir(std::string line);
+		void 	setCgiPath(std::string line);
+		void	setAllowedMethods(std::string line);
 		void	setLocation(Location &location);
+		
 		// ServerAddr Setters
 		void	setSocketFd(int sockfd);
 
@@ -102,6 +105,7 @@ class Server
 		std::map<std::string,std::string>	&getErrorPage();
 		std::map<std::string,std::string>	&getCgiPath();
 		std::map<std::string,std::string>	&getRedir();
+		std::vector<std::string>			&getAllowedMethods();
 		std::vector<Location>				&getLocation();
 
 		// Fill
@@ -113,7 +117,7 @@ class Server
 		// void	fillIndex(std::string line);
 		// void	fillAutoIndex(std::string line);
 		// void	fillErrorPage(std::string line);
-		void	fillCgiPath(std::string line);
+		// void	fillCgiPath(std::string line);
 		// void	fillRedir(std::string line);
 		void	fillLocation(std::ifstream &file, std::string line, std::vector<Location> &location);
 		

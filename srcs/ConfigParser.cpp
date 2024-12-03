@@ -51,6 +51,7 @@ void	ConfigParser::functionConfig(void)
 	_keywords[6].push_back("return");
 	_keywords[7].push_back("error_page");
 	_keywords[8].push_back("cgi_path");
+	_keywords[9].push_back("allowed_methods");
 
 	_serverFunctions.push_back(&Server::setListen);
 	_serverFunctions.push_back(&Server::setServerName);
@@ -60,7 +61,8 @@ void	ConfigParser::functionConfig(void)
 	_serverFunctions.push_back(&Server::setIndex);
 	_serverFunctions.push_back(&Server::setRedir);
 	_serverFunctions.push_back(&Server::setErrorPage);
-	_serverFunctions.push_back(&Server::fillCgiPath);
+	_serverFunctions.push_back(&Server::setCgiPath);
+	_serverFunctions.push_back(&Server::setAllowedMethods);
 }
 
 void	ConfigParser::checkServerAttributs(Server &server, std::vector<Server> &servers) //TODO - Mettre dans utils

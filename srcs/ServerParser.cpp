@@ -206,10 +206,45 @@ void Server::setErrorPage(std::string line)
 	_errorPage.insert(std::make_pair(code, errorFile));
 }
 
-void Server::setCgiPath(std::string language, std::string path)
+// void Server::setCgiPath(std::string language, std::string path)
+// {
+// 	// errorFile.erase(std::remove(errorFile.begin(), errorFile.end(), ' '), errorFile.end());
+// 	this->_cgiPath.insert(std::make_pair(language, path));
+// }
+
+void Server::setCgiPath(std::string line)
 {
+	size_t		pos = line.find("cgi_path ");
+	size_t		len = strlen("cgi_path ");
+	std::string	trimLine = line.substr(pos + len, line.length() - (pos + len));
+	std::vector<std::string>	substr = ft_split(trimLine, ' ');
+
+	for (size_t i = 0; i < substr.size(); i++)
+	{
+		std::vector<std::string>	map = ft_split(substr[i], ':');
+		std::string					language = map[0];
+		std::string					path = map[1];
+		std::cout << MAGENTA"Language: '" << language << "'\nPath: '" << path << "'" << RESET << std::endl;
+		_cgiPath.insert(std::make_pair(language, path));
+	}
 	// errorFile.erase(std::remove(errorFile.begin(), errorFile.end(), ' '), errorFile.end());
-	this->_cgiPath.insert(std::make_pair(language, path));
+}
+
+void Server::setAllowedMethods(std::string line)
+{
+	size_t pos = line.find("allowed_methods");
+	size_t len = strlen("allowed_methods");
+	std::string methods = line.substr(pos + len, line.length() - (pos + len));
+
+	methods.erase(std::remove(methods.begin(), methods.end(), ' '), methods.end());
+	if (methods.find_first_not_of("GETPOSTDELETE") != std::string::npos)
+		throw Response::ConfigurationFileServer("Allowed methods are not GET, POST or DELETE");
+	if (methods.find("GET") != std::string::npos)
+		_allowedMethods.push_back("GET");
+	if (methods.find("POST") != std::string::npos)
+		_allowedMethods.push_back("POST");
+	if (methods.find("DELETE") != std::string::npos)
+		_allowedMethods.push_back("DELETE");
 }
 
 void	Server::setSocketFd(int sockfd)
@@ -360,23 +395,21 @@ std::vector<Location>	&Server::getLocation() { return (_location); }
 // 	(void)line;
 // }
 
-void	Server::fillCgiPath(std::string line)
-{
-	size_t	pos = line.find("cgi_path ");
-	std::string trimLine = line.substr(pos + strlen("cgi_path "), line.length() - (pos + strlen("cgi_path ")));
-	std::vector<std::string>	substr = ft_split(trimLine, ' ');
+// void	Server::fillCgiPath(std::string line)
+// {
+// 	size_t	pos = line.find("cgi_path ");
+// 	std::string trimLine = line.substr(pos + strlen("cgi_path "), line.length() - (pos + strlen("cgi_path ")));
+// 	std::vector<std::string>	substr = ft_split(trimLine, ' ');
 
-	for (size_t i = 0; i < substr.size(); i++)
-	{
-		std::vector<std::string>	map = ft_split(substr[i], ':');
-		std::string language = map[0];
-		std::string path = map[1];
-		std::cout << MAGENTA"Language: '" << language << "'\nPath: '" << path << "'" << RESET << std::endl;
-		this->setCgiPath(language, path);
-	}
-
-
-}
+// 	for (size_t i = 0; i < substr.size(); i++)
+// 	{
+// 		std::vector<std::string>	map = ft_split(substr[i], ':');
+// 		std::string language = map[0];
+// 		std::string path = map[1];
+// 		std::cout << MAGENTA"Language: '" << language << "'\nPath: '" << path << "'" << RESET << std::endl;
+// 		this->setCgiPath(language, path);
+// 	}
+// }
 
 // void	Server::fillRedir(std::string line)
 // {
@@ -440,6 +473,8 @@ void	Server::printConfig()
 	//print all server attributs
 	if (!getPort().empty())
 		std::cout << "listen\t\t" YELLOW << getPort() << RESET << std::endl;
+	if (!getIP().empty())
+		std::cout << "ip\t\t" YELLOW << getIP() << RESET << std::endl;
 	if (!getServerName().empty())
 		std::cout << "server_name\t" YELLOW << getServerName() << RESET << std::endl;
 	if (!getPath().empty())
@@ -452,8 +487,23 @@ void	Server::printConfig()
 		std::cout << "autoindex\t" YELLOW << getAutoIndex() << RESET << std::endl;
 	if (getErrorPage().size()) 
 		std::cout << "error_page\t" YELLOW << getErrorPage().begin()->first << " " << getErrorPage().begin()->second << RESET << std::endl;
+	if (getCgiPath().size())
+	{
+		std::map<std::string, std::string>::iterator it = getCgiPath().begin();
+		std::cout << "cgi_path\t" YELLOW;
+		for (; it != getCgiPath().end(); it++)
+			std::cout << it->first << ":" << it->second << " ";
+		std::cout << RESET << std::endl;
+	}
 	if (getRedir().size()) 
 		std::cout << "return\t\t" YELLOW << getRedir().begin()->first << " " << getRedir().begin()->second << RESET << std::endl;
+	if (_allowedMethods.size())
+	{
+		std::cout << "allowed_methods\t";
+		for (size_t i = 0; i < _allowedMethods.size(); i++)
+			std::cout << YELLOW << _allowedMethods[i] << " " << RESET;
+		std::cout << std::endl;
+	}
 	std::cout << std::endl;
 	//print every location of my current server
 	for (int i = 1; itbeg != itend; ++itbeg, ++i)
