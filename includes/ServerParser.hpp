@@ -51,9 +51,8 @@ typedef struct s_serverData
 	std::map<std::string, std::string>	cgiPath;
 	std::map<std::string, std::string>	redir;
 	std::vector<Location>				location;
-	std::vector<std::string>			requestAllow;
-	// t_session							*session;
-}	t_serverData;
+    std::vector<std::string>            requestAllow;
+}t_serverData;
 
 class Server
 {
@@ -73,8 +72,9 @@ class Server
 		std::vector<std::string>			_allowedMethods;	//GET POST PUT DELETE
 		std::vector<Location>				_location;
 		std::set<int>						socketfd;
+        t_serverData                        *data;
 	
-	public:
+    public:
 
 		// Setter
 		// void	setPort(std::string port);
@@ -90,8 +90,6 @@ class Server
 		void 	setCgiPath(std::string line);
 		void	setAllowedMethods(std::string line);
 		void	setLocation(Location &location);
-		
-		// ServerAddr Setters
 		void	setSocketFd(int sockfd);
 
 		// Getter

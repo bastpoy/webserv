@@ -189,6 +189,11 @@ void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::strin
             filePath= data->path + uri;
             content = readFile(filePath, data);
         }
+		else if(isExtension(uri))
+		{
+            process_extension(filePath, code, uri, buffer, content, cookie, data, fdEpollLink);
+		}
+        // if i have a file to download
         //if i make a deconnexion
         else if(uri == "pages/deconnexion/")
         {

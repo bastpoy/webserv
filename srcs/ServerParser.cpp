@@ -24,6 +24,7 @@ void (Location::*locationFunctions[7])(std::string line) = {
 
 const int	locKeywordsSize = 7;
 
+
 /* ================ */
 /*		SETTER		*/
 /* ================ */

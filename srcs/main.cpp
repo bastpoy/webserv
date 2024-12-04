@@ -1,5 +1,7 @@
 #include "Header.hpp"
 
+Node* GlobalLinkedList::head = NULL;
+Node* GlobalLinkedList::tail = NULL;
 
 t_serverData	*singleton_data(t_serverData *data)
 {

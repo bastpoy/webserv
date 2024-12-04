@@ -3,8 +3,15 @@
 void	SIGINT_handler(int signal)
 {
 	(void)signal;
+    GlobalLinkedList::cleanup();
 	std::cout << "\nCTRL+C" << std::endl;
-	// delete singleton_data(NULL);
+}
+
+void	SIGQUIT_handler(int signal)
+{
+	(void)signal;
+    GlobalLinkedList::cleanup();
+	std::cout << "\nCTRL+\\" << std::endl;
 }
 
 void	SIGTERM_handler(int signal)
@@ -13,7 +20,6 @@ void	SIGTERM_handler(int signal)
 		case SIGINT:
 		{
 			std::cout << "\nCTRL+D" << std::endl;
-			// delete singleton_data(NULL);
 		}
 	}
 }
@@ -37,9 +43,8 @@ void	SIGCHLD_handler(int signal)
 
 void	configureSignals()
 {
-    close(3);
-    close(4);
 	std::signal(SIGINT, SIGINT_handler);
 	std::signal(SIGTERM, SIGTERM_handler);
+	std::signal(SIGQUIT, SIGQUIT_handler);
 	// std::signal(SIGCHLD, SIGCHLD_handler);
 }

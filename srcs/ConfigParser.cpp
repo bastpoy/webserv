@@ -19,6 +19,11 @@ void ConfigParser::addServer(Server &server)
 	_servers.push_back(server);
 }
 
+void ConfigParser::setListData(t_serverData *data)
+{
+    this->listData.push_back(data);
+}
+
 /* ================ */
 /*		GETTER		*/
 /* ================ */
@@ -35,6 +40,11 @@ std::vector<std::string>	ConfigParser::getKeywords(void)
 }
 
 int ConfigParser::getKeywordsSize(void) { return (_keywordsSize); }
+
+std::vector<t_serverData *> ConfigParser::getListData(void) const
+{
+    return(this->listData);
+}
 
 /* ================ */
 /*		PARSING		*/
@@ -118,6 +128,7 @@ void	ConfigParser::parseConfig(std::vector<Server> &servers)
 			getServerAttributs(file, server, getKeywords(), _serverFunctions);
 			checkServerAttributs(server, servers);
 			addServer(server);
+            std::cout << "end parsing" << std::endl;
 		}
 		else if (line.find("server") != std::string::npos && !httpBlock)
 			throw Response::ConfigurationFileServer("http block is missing");

@@ -21,7 +21,8 @@
 #include <algorithm>			// Pour erase()
 
 // Bibliothèques système / C
-#include <dirent.h>				// For auto indexing
+#include <dirent.h>
+#include <limits.h>			// For auto indexing
 #include <sys/stat.h>			// For auto indexing
 #include <sys/socket.h>			// Pour les fonctions de socket
 #include <sys/wait.h>
@@ -34,6 +35,7 @@
 #include <arpa/inet.h>			// Pour inet_ntoa
 #include <sys/epoll.h>
 #include <fcntl.h>
+#include <netdb.h>
 
 // Fichiers d'en-tête spécifiques au projet
 #include "ServerParser.hpp"		// Classe pour le serveur
@@ -46,6 +48,7 @@
 #include "Utils.hpp"
 #include "delete.hpp"
 #include "cookie.hpp"
+#include "GlobalLinkList.hpp"
 
 /* ================ */
 /*		COLORS		*/
@@ -145,7 +148,8 @@ std::string	httpGetResponse(std::string code, std::string contentType, std::stri
 std::string	httpGetResponseDownload(std::string code, std::string contentType, std::string content, t_serverData *data);
 void		httpPostResponse(std::string code , std::string contentType, std::string content, t_serverData *data, Cookie &cookie, std::string id);
 
-// error.cpp
+// error.cpp Functions
+void    closeAllFileDescriptors(); 
 void	errorCloseEpollFd(int &epoll_fd, int errCode);
 void	forbidden(t_serverData *data); // not used
 void	notFound(t_serverData *data); // not used
