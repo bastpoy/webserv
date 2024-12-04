@@ -23,7 +23,7 @@ struct epoll_event Server::fillEpoolDataIterator(int sockfd, std::vector<Server>
 	data->sockfd = sockfd;
 	data->port = itbeg->getPort();
 	data->server_name = itbeg->getServerName();
-	data->path = itbeg->getPath();
+	data->path = itbeg->getRoot();
 	data->maxBody = itbeg->getMaxBody();
 	data->autoindex = itbeg->getAutoIndex();
 	data->index = itbeg->getIndex();
@@ -31,14 +31,14 @@ struct epoll_event Server::fillEpoolDataIterator(int sockfd, std::vector<Server>
 	data->cgiPath = itbeg->getCgiPath();
 	data->redir = itbeg->getRedir();
 	data->location = itbeg->getLocation();
-    data->buffer = "";
-    data->header = "";
-    data->body = "";
-    data->cgi = NULL;
+	data->buffer = "";
+	data->header = "";
+	data->body = "";
+	data->cgi = NULL;
 
 	event.events = EPOLLIN; // Monitor for input events
 	//I stock the info server on the event ptr data
-    event.data.fd = sockfd;
+	event.data.fd = sockfd;
 	event.data.ptr = static_cast<void*>(data);
 
 	return (event);
@@ -61,20 +61,20 @@ struct epoll_event Server::fillEpoolDataInfo(int &client_fd, t_serverData *info)
 	data->cgiPath = info->cgiPath;
 	data->redir = info->redir;
 	data->location = info->location;
-    data->buffer = "";
-    data->header = "";
-    data->body = "";
-    data->cgi = NULL;
-    // data->requestAllow.push_back("GET");
+	data->buffer = "";
+	data->header = "";
+	data->body = "";
+	data->cgi = NULL;
+	// data->requestAllow.push_back("GET");
 
 	struct epoll_event client_event;
 
 	client_event.events = EPOLLIN;
-    client_event.data.fd = client_fd;
+	client_event.data.fd = client_fd;
 	client_event.data.ptr = static_cast<void*>(data);
 
-    // std::pair<int, t_serverData> pair(client_fd, *data);
-    // data->fdEpollLink->insert(pair);
+	// std::pair<int, t_serverData> pair(client_fd, *data);
+	// data->fdEpollLink->insert(pair);
 
 	return(client_event);
 }
@@ -127,7 +127,7 @@ void Server::configuringNetwork(std::vector<Server>::iterator &itbeg, ConfigPars
 {
 	std::cout << "The socket server fd are:" << std::endl;
 
-    while(itbeg != config.getServers().end())
+	while(itbeg != config.getServers().end())
 	{
 		//creation addrinfo struc to stock my addrinfo informations
 		struct sockaddr_in addr;
@@ -135,10 +135,10 @@ void Server::configuringNetwork(std::vector<Server>::iterator &itbeg, ConfigPars
 		//I create my socket
 		int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 		if (sockfd == -1)
-        {
-            std::cout << "error creating socket" << std::endl;
-            errorCloseEpollFd(epoll_fd, 2);
-        }
+		{
+			std::cout << "error creating socket" << std::endl;
+			errorCloseEpollFd(epoll_fd, 2);
+		}
 
 		std::cout << sockfd << " and ";
 		//add properties to allow the socket to be reusable even if it is in time wait
@@ -188,23 +188,23 @@ bool handleRequest(std::string buffer, t_serverData *data, Cookie &cookie, std::
 		//if i have a redirection on the server or the location
 		if(data->redir.size())
 		{
-            std::cout << "REDIRECTION GET" << std::endl;
+			std::cout << "REDIRECTION GET" << std::endl;
 			redirRequest(data->redir.begin()->second, data->sockfd, data);
 		}
 		// else I respond 
 		else
-            parseAndGetRequest(buffer, data, cookie, fdEpollLink);
+			parseAndGetRequest(buffer, data, cookie, fdEpollLink);
 	}
-    //if it is a post request
+	//if it is a post request
 	else if(typeRequest == "POST" && request_allowed("POST", data))
 	{
 		postRequest(data, cookie);
 	}
-    //if its a delete request
+	//if its a delete request
 	else if(typeRequest == "DELETE" && request_allowed("DELETE", data))
 	{
-        parseAndDeleteRequest(buffer, data);
-    }
+		parseAndDeleteRequest(buffer, data);
+	}
 	//if its not get, post or delete request
 	else
 		std::cout << "404 not found" << std::endl;
@@ -213,65 +213,65 @@ bool handleRequest(std::string buffer, t_serverData *data, Cookie &cookie, std::
 
 bool read_one_chunk(t_serverData *data) 
 {
-    char buffer[BUFER_SIZE];
-    // Read data into the buffer
-    // std::cout << BLUE "waiting before the buffer" << data->sockfd << RESET << std::endl;
-    int bytes_read = recv(data->sockfd, buffer, BUFER_SIZE, 0);
-    if (bytes_read < 0) 
-    {
-        std::cout << "Error " << errno << " reading from socket " << data->sockfd << ": " << strerror(errno) << std::endl;
-        errorPage("400", data);
-    } 
-    // if there is a deconnection
-    else if (bytes_read == 0) 
-    {
-        std::cout << RED "Connection closed by the client. (recv = 0) " << data->sockfd << RESET << std::endl;
-        // epoll_ctl(epoll_fd, EPOLL_CTL_DEL, data->sockfd, events);
-        close(data->sockfd);
-        // close(data->sockfd);
-        return (false); 
-    }
-    data->buffer.append(buffer, bytes_read);
-    // std::cout << YELLOW << "size " << data->buffer.size() << " " << data->buffer << std::endl;
-    //retieve the header
-    size_t pos = data->buffer.find("\r\n\r\n");
-    if(pos != std::string::npos)
-    {
-        data->header = data->buffer.substr(0, pos + 4);
-        std::cout << GREEN << data->header << RESET << std::endl;
-    }
-    //check if buffer size - header size = contentlength
-    if(static_cast<int>(data->buffer.size() - data->header.size()) == getContentLength(data->buffer, data))
-    {
-        // std::cout << BLUE "finish reading data first" << RESET << std::endl;
-        return (true);
-    }
-    //if i finish reading everything
-    if(static_cast<int>(data->buffer.size()) == getContentLength(data->buffer, data))
-    {
-        // std::cout << BLUE "finish reading data second" << RESET << std::endl;
-        return true;
-    }
-    // std::cout << BLUE "bytes read " << bytes_read << " with sockfd "<< data->sockfd << " and sizebuffer" << data->buffer.size() << RESET <<std::endl;
-    return (false);
+	char buffer[BUFER_SIZE];
+	// Read data into the buffer
+	// std::cout << BLUE "waiting before the buffer" << data->sockfd << RESET << std::endl;
+	int bytes_read = recv(data->sockfd, buffer, BUFER_SIZE, 0);
+	if (bytes_read < 0) 
+	{
+		std::cout << "Error " << errno << " reading from socket " << data->sockfd << ": " << strerror(errno) << std::endl;
+		errorPage("400", data);
+	} 
+	// if there is a deconnection
+	else if (bytes_read == 0) 
+	{
+		std::cout << RED "Connection closed by the client. (recv = 0) " << data->sockfd << RESET << std::endl;
+		// epoll_ctl(epoll_fd, EPOLL_CTL_DEL, data->sockfd, events);
+		close(data->sockfd);
+		// close(data->sockfd);
+		return (false); 
+	}
+	data->buffer.append(buffer, bytes_read);
+	// std::cout << YELLOW << "size " << data->buffer.size() << " " << data->buffer << std::endl;
+	//retieve the header
+	size_t pos = data->buffer.find("\r\n\r\n");
+	if(pos != std::string::npos)
+	{
+		data->header = data->buffer.substr(0, pos + 4);
+		std::cout << GREEN << data->header << RESET << std::endl;
+	}
+	//check if buffer size - header size = contentlength
+	if(static_cast<int>(data->buffer.size() - data->header.size()) == getContentLength(data->buffer, data))
+	{
+		// std::cout << BLUE "finish reading data first" << RESET << std::endl;
+		return (true);
+	}
+	//if i finish reading everything
+	if(static_cast<int>(data->buffer.size()) == getContentLength(data->buffer, data))
+	{
+		// std::cout << BLUE "finish reading data second" << RESET << std::endl;
+		return true;
+	}
+	// std::cout << BLUE "bytes read " << bytes_read << " with sockfd "<< data->sockfd << " and sizebuffer" << data->buffer.size() << RESET <<std::endl;
+	return (false);
 }
 
 void parsing_buffer(t_serverData *data, Cookie &cookie, std::map<int, t_serverData*> &fdEpollLink)
 {
-    //if i have a buffer so a request 
-    if(!data->buffer.empty())
-    {
-        //i fill my header and my body of my request
-        size_t pos = data->buffer.find("\r\n\r\n");
-        data->header = data->buffer.substr(0, pos);
-        data->body = data->buffer.substr(pos + 4, data->buffer.size() - pos + 4);
-        // std::cout << MAGENTA "handling request\n" << data->header << RESET << std::endl;
-        handleRequest(data->buffer, data, cookie, fdEpollLink);
-    }
-    else
-    {
-        std::cout << "no data provide" << std::endl;
-    }
+	//if i have a buffer so a request 
+	if(!data->buffer.empty())
+	{
+		//i fill my header and my body of my request
+		size_t pos = data->buffer.find("\r\n\r\n");
+		data->header = data->buffer.substr(0, pos);
+		data->body = data->buffer.substr(pos + 4, data->buffer.size() - pos + 4);
+		// std::cout << MAGENTA "handling request\n" << data->header << RESET << std::endl;
+		handleRequest(data->buffer, data, cookie, fdEpollLink);
+	}
+	else
+	{
+		std::cout << "no data provide" << std::endl;
+	}
 }
 
 void check_timeout_cgi(t_serverData *info, std::map<int, t_serverData*> &fdEpollLink)
@@ -314,22 +314,22 @@ void check_timeout_cgi(t_serverData *info, std::map<int, t_serverData*> &fdEpoll
 
 void read_cgi(t_serverData *data, struct epoll_event *events, int i, int epoll_fd)
 {
-    //i read my cgi which is finish
-    char buffer[4096];
-    int bytes_read;
+	//i read my cgi which is finish
+	char buffer[4096];
+	int bytes_read;
 
-    std::cout << YELLOW "before reading cgi" << RESET << std::endl;
-    bytes_read = read(data->cgi->cgifd, buffer, 4096);
-    if(bytes_read < 1)
-    {
-        std::cerr << RED "error reading the cgi: " << strerror(errno) << RESET << std::endl; 
-    }
-    std::cout << GREEN "reading from the cgi fd" << RESET << std::endl;
-    //i put the content of the cgi response in the body
-    data->body.append(buffer, bytes_read);
-    //switching to epollout
-    events[i].events = EPOLLOUT;
-    epoll_ctl(epoll_fd, EPOLL_CTL_MOD, data->sockfd, events);
+	std::cout << YELLOW "before reading cgi" << RESET << std::endl;
+	bytes_read = read(data->cgi->cgifd, buffer, 4096);
+	if(bytes_read < 1)
+	{
+		std::cerr << RED "error reading the cgi: " << strerror(errno) << RESET << std::endl; 
+	}
+	std::cout << GREEN "reading from the cgi fd" << RESET << std::endl;
+	//i put the content of the cgi response in the body
+	data->body.append(buffer, bytes_read);
+	//switching to epollout
+	events[i].events = EPOLLOUT;
+	epoll_ctl(epoll_fd, EPOLL_CTL_MOD, data->sockfd, events);
 }
 
 void manage_tserver(t_serverData *&data, struct epoll_event *events, int i, int epoll_fd)
@@ -357,7 +357,7 @@ void Server::createListenAddr(ConfigParser &config)
 	if (epoll_fd == -1)
 		errorCloseEpollFd(epoll_fd, 7);
 
-    Cookie cookie;
+	Cookie cookie;
 	//iterate through every server and retrieve information
 	this->configuringNetwork(itbeg, config, epoll_fd);
 
@@ -373,11 +373,11 @@ void Server::createListenAddr(ConfigParser &config)
 			errorCloseEpollFd(epoll_fd, 1);
 		for (int i = 0; i < num_fds; ++i)
 		{
-            // std::cout << "i is equal to " << i << std::endl; 
+			// std::cout << "i is equal to " << i << std::endl; 
 			t_serverData *info = static_cast<t_serverData*>(events[i].data.ptr);
 			int fd = info->sockfd;
 
-            // std::cout << BLUE "actual fd: " << info->sockfd << " and number fd " << num_fds <<RESET << std::endl; 
+			// std::cout << BLUE "actual fd: " << info->sockfd << " and number fd " << num_fds <<RESET << std::endl; 
 			// check if my fd is equal to a socket for handcheck
 			if(this->socketfd.find(fd) != this->socketfd.end())
 			{

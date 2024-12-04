@@ -199,6 +199,7 @@ void ConfigParser::getServerAttributs(std::ifstream& file, Server &server, std::
 	std::string	line;
 	bool		bracket = false;
 
+
 	while(getline(file, line))
 	{
 		int i = 0;
@@ -210,6 +211,7 @@ void ConfigParser::getServerAttributs(std::ifstream& file, Server &server, std::
 		}
 		if (line.find("location") != std::string::npos)
 		{
+			server.functionConfig();
 			server.fillLocation(file, line, server.getLocation());
 			continue ;
 		}
