@@ -13,10 +13,10 @@ int check_fd_valid(int fd)
 struct epoll_event Server::fillEpoolDataIterator(int sockfd, std::vector<Server>::iterator itbeg, ConfigParser &config)
 {
 	t_serverData *data = new t_serverData;
+
+    GlobalLinkedList::insert(data);
 	struct epoll_event event;
 
-	singleton_data(data);
-    std::cout << "new data\n"; 
     this->data = data;
     config.setListData(data);
 
@@ -48,10 +48,7 @@ struct epoll_event Server::fillEpoolDataInfo(int &client_fd, t_serverData *info)
 {
 	t_serverData *data = new t_serverData();
 
-    // int flags = fcntl(client_fd, F_GETFL, 0);
-    // fcntl(client_fd, F_SETFL, flags | O_NONBLOCK);
-
-	// std::cout << RED "data: " << data << RESET << std::endl;
+    GlobalLinkedList::insert(data);
 	data->sockfd = client_fd;
 	data->port = info->port;
 	data->server_name = info->server_name;
@@ -345,6 +342,7 @@ void manage_tserver(t_serverData *&data, struct epoll_event *events, int i, int 
     }
     close(data->sockfd);
     delete data;
+    GlobalLinkedList::update_data(data);
     data = NULL;
 }
 

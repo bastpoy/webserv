@@ -71,9 +71,6 @@ class Server
 	
     public:
 
-        // destructor
-        ~Server();
-
 		// Setter
 		void	setPort(std::string port);
 		void	setServerName(std::string server_name);

@@ -26,11 +26,11 @@ class ConfigParser
 		ConfigParser(char *path);
 		~ConfigParser(void);
 
-		std::vector<Server>	&getServers(void);
-		void				parseConfig(std::vector<Server> &servers);
-		void				addServer(Server &server);
-		void				getServerAttributs(std::ifstream &file, Server &server);
-		void				printConfig(void);
+		std::vector<Server>	        &getServers(void);
+		void				        parseConfig(std::vector<Server> &servers);
+		void				        addServer(Server &server);
+		void				        getServerAttributs(std::ifstream &file, Server &server);
+		void				        printConfig(void);
         std::vector<t_serverData *> getListData(void) const;
 		
 		bool				isFileEmpty(const std::string &filePath); //TODO - Mettre dans utils :

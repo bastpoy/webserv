@@ -48,6 +48,7 @@
 #include "Utils.hpp"
 #include "delete.hpp"
 #include "cookie.hpp"
+#include "GlobalLinkList.hpp"
 
 /* ================ */
 /*		COLORS		*/
