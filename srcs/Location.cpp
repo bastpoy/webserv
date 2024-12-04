@@ -12,183 +12,158 @@ Location::~Location() {}
 /*		SETTER		*/
 /* ================ */
 
-void	Location::setPath(std::string path)
+void	Location::setPath(std::string line)
 {
+	size_t len = strlen("location");
+	size_t pos = line.find("location") + len;
+	size_t pos2 = line.find("{");
+
+	std::string path = line.substr(pos, pos2 - pos);
+
 	path.erase(std::remove(path.begin(), path.end(), ' '), path.end());
-	this->_path = path;
+	path.erase(std::remove(path.begin(), path.end(), '\t'), path.end());
+	if (path.empty())
+		throw Response::ConfigurationFileLocation("path is empty");
+	if (path.at(path.size() - 1) != '/')
+		path = path + "/";
+	_path = path;
 }
 
-void	Location::setRoot(std::string root)
+void	Location::setRoot(std::string line)
 {
-	root.erase(std::remove(root.begin(), root.end(), ' '), root.end());
-	this->_root = root;
+	size_t		pos = line.find("root");
+	size_t		len = strlen("root");
+	std::string	path = line.substr(pos + len, line.length() - (pos + len));
+
+	path.erase(std::remove(path.begin(), path.end(), ' '), path.end());
+	if(path.at(path.size() - 1) != '/')
+		path = path + "/";
+	if(path.at(0) != '.')
+		path = "." + path;
+	_path = path;
 }
 
-void	Location::setIndex(std::string index)
+void	Location::setMaxBody(std::string line)
 {
-	index.erase(std::remove(index.begin(), index.end(), ' '), index.end());
-	this->_index = index;
-}
+	size_t		pos = line.find("client_max_body_size");
+	size_t		len = strlen("client_max_body_size");
+	std::string	maxBody = line.substr(pos + len, line.length() - (pos + len));
 
-void	Location::setMaxBody(std::string maxBody)
-{
 	maxBody.erase(std::remove(maxBody.begin(), maxBody.end(), ' '), maxBody.end());
-	this->_maxBody = maxBody;
+	if(maxBody.find_first_not_of("0123456789kmKM") != std::string::npos)
+		throw Response::ConfigurationFileLocation("Error in client_max_body_size");
+	size_t pos_character = maxBody.find_first_of("kKmM");
+	if (pos_character != std::string::npos)
+	{
+		std::string caracter = maxBody.substr(pos_character, 1);
+		if(caracter == "k" || caracter == "K")
+			maxBody.replace(pos_character, 1, "000");
+		else
+			maxBody.replace(pos_character, 1, "000000");
+	}
+	_maxBody = maxBody;
 }
 
-void	Location::setAutoIndex(std::string autoIndex)
+void	Location::setAutoIndex(std::string line)
 {
-	autoIndex.erase(std::remove(autoIndex.begin(), autoIndex.end(), ' '), autoIndex.end());
-	this->_autoindex = autoIndex;
+	size_t		pos = line.find("autoindex");
+	size_t		len = strlen("autoindex");
+	std::string	autoindex = line.substr(pos + len, line.length() - (pos + len));
+
+	autoindex.erase(std::remove(autoindex.begin(), autoindex.end(), ' '), autoindex.end());
+	_autoindex = autoindex;
 }
 
-void	Location::setRedir(std::string code, std::string domain)
+void	Location::setIndex(std::string line)
 {
+	size_t		pos = line.find("index");
+	size_t		len = strlen("index");
+	std::string	index = line.substr(pos + len, line.length() - (pos + len));
+
+	index.erase(std::remove(index.begin(), index.end(), ' '), index.end());
+	_index = index;
+}
+
+void	Location::setRedir(std::string line)
+{
+	size_t		pos = line.find("return");
+	size_t		len = strlen("return");
+	std::string	code = line.substr(pos + len, 4);
+	std::string	domain = line.substr(pos + len + 4, line.length() - (pos + len));
+
 	domain.erase(std::remove(domain.begin(), domain.end(), ' '), domain.end());
-    //if i have already a redirection i delete it and replace it
-    if(this->getRedir().size())
-        this->_redir.erase(this->_redir.begin());
-    //add the new redirection
-    this->_redir.insert(std::make_pair(code, domain));
+	code.erase(std::remove(code.begin(), code.end(), ' '), code.end());
+	if(getRedir().size())
+		_redir.erase(this->_redir.begin());
+	_redir.insert(std::make_pair(code, domain));
 }
 
-void	Location::setErrorPage(std::string code, std::string errorFile)
+void	Location::setErrorPage(std::string line)
 {
-	errorFile.erase(std::remove(errorFile.begin(), errorFile.end(), ' '), errorFile.end());
-	this->_errorPage.insert(std::make_pair(code, errorFile));
+	line.erase(std::remove(line.begin(), line.end(), ' '), line.end());
+	size_t pos = line.find("error_page");
+	size_t len = strlen("error_page");
+	std::string code = line.substr(pos + len, 3).c_str();
+	std::string errorFile = line.substr(pos + len + 4, line.length());
+
+	_errorPage.insert(std::make_pair(code, errorFile));
 }
 
-void	Location::setCgiPath(std::string language, std::string path)
+void	Location::setCgiPath(std::string line)
 {
-	this->_cgi_path.insert(std::make_pair(language, path));
+	size_t		pos = line.find("cgi_path ");
+	size_t		len = strlen("cgi_path ");
+	std::string	trimLine = line.substr(pos + len, line.length() - (pos + len));
+	std::vector<std::string>	substr = ft_split(trimLine, ' ');
+
+	for (size_t i = 0; i < substr.size(); i++)
+	{
+		std::vector<std::string>	map = ft_split(substr[i], ':');
+		std::string					language = map[0];
+		std::string					path = map[1];
+		// std::cout << MAGENTA"Language: '" << language << "'\nPath: '" << path << "'" << RESET << std::endl;
+		_cgiPath.insert(std::make_pair(language, path));
+	}
+}
+
+void	Location::setAllowedMethods(std::string line)
+{
+	size_t		pos = line.find("allowed_methods");
+	size_t		len = strlen("allowed_methods");
+	std::string	methods = line.substr(pos + len, line.length() - (pos + len));
+
+	methods.erase(std::remove(methods.begin(), methods.end(), ' '), methods.end());
+	if (methods.find_first_not_of("GETPOSTDELETE") != std::string::npos)
+		throw Response::ConfigurationFileLocation("Allowed methods are not GET, POST or DELETE");
+	if (methods.find("GET") != std::string::npos)
+		_allowedMethods.push_back("GET");
+	if (methods.find("POST") != std::string::npos)
+		_allowedMethods.push_back("POST");
+	if (methods.find("DELETE") != std::string::npos)
+		_allowedMethods.push_back("DELETE");
 }
 
 /* ================ */
 /*		GETTER		*/
 /* ================ */
 
-std::string Location::getPath() const
-{
-	return (this->_path);
-}
+std::string Location::getPath() const { return (this->_path); }
 
-std::string Location::getRoot() const
-{
-	return(this->_root);
-}
+std::string Location::getRoot() const { return(this->_root); }
 
-std::string Location::getIndex() const
-{
-	return (this->_index);
-}
+std::string Location::getIndex() const { return (this->_index); }
 
-std::string Location::getMaxBody() const
-{
-	return (this->_maxBody);
-}
+std::string Location::getMaxBody() const { return (this->_maxBody); }
 
-std::string Location::getAutoIndex() const
-{
-	return (this->_autoindex);
-}
+std::string Location::getAutoIndex() const { return (this->_autoindex); }
 
-std::map<std::string,std::string> &Location::getRedir()
-{
-	return (this->_redir);
-}
+std::map<std::string,std::string> &Location::getRedir() { return (this->_redir); }
 
-std::map<std::string,std::string> &Location::getCgiPath()
-{
-	return (this->_cgi_path);
-}
+std::map<std::string,std::string> &Location::getCgiPath() { return (this->_cgiPath); }
 
-std::map<std::string,std::string> &Location::getErrorPage()
-{
-	return (this->_errorPage);
-}
+std::map<std::string,std::string> &Location::getErrorPage() { return (this->_errorPage); }
 
-/* ================ */
-/*		FILL		*/
-/* ================ */
-
-void	Location::fillPath(std::string line)
-{
-	size_t pos = line.find("location") + strlen("location");
-
-	size_t pos2 = line.find("{");
-	std::string path = line.substr(pos, pos2 - pos);
-
-	path.erase(std::remove(path.begin(), path.end(), ' '), path.end());
-	path.erase(std::remove(path.begin(), path.end(), '\t'), path.end());
-
-	if (path.empty())
-		throw Response::ConfigurationFileLocation("path is empty");
-
-	this->setPath(path);
-	if (this->getPath().at(this->getPath().size() - 1) != '/')
-		this->setPath(this->getPath() + "/");
-}
-
-void Location::fillRoot(std::string line)
-{
-	size_t pos = line.find("root ");
-	this->setRoot(line.substr(pos + strlen("root"), line.length() - (pos + strlen("root"))));
-	if(this->getRoot().at(this->getRoot().size() - 1) != '/')
-		this->setRoot(this->getRoot() + "/");
-	if(this->getRoot().at(0) != '.')
-		this->setRoot("." + this->getRoot());
-}
-
-void	Location::fillIndex(std::string line)
-{
-	size_t pos = line.find("index");
-	this->setIndex(line.substr(pos + strlen("index"), line.length() - (pos + strlen("index"))));
-}
-
-void	Location::fillMaxBody(std::string line)
-{
-	size_t pos = line.find("client_max_body_size");
-	this->setMaxBody(line.substr(pos + strlen("client_max_body_size"), line.length() - (pos + strlen("client_max_body_size"))));
-}
-
-void	Location::fillAutoIndex(std::string line)
-{
-	size_t pos = line.find("autoindex");
-	this->setAutoIndex(line.substr(pos + strlen("autoindex"), line.length() - (pos + strlen("autoindex"))));
-}
-
-void	Location::fillRedir(std::string line)
-{
-	size_t pos = line.find("return ");
-    if(pos == std::string::npos)
-    {
-        throw Response::ConfigurationFileLocation("'return' keyword not found");
-    }
-	std::string code = line.substr(pos + strlen("return "), 3);
-	std::string domain = line.substr(pos + strlen("return ") + 4, line.length() - (pos + strlen("return")));
-	this->setRedir(code, domain);
-}
-
-void	Location::fillErrorPage(std::string line)
-{
-	size_t pos = line.find("error_page");
-	line.erase(std::remove(line.begin(), line.end(), ' '), line.end());
-	std::string code = line.substr(pos + strlen("error_page"), 3).c_str();
-	std::string domain = line.substr(pos + strlen("error_page") + 3, line.length());
-	this->setErrorPage(code, domain);
-}
-
-void	Location::fillCgiPath(std::string line)
-{
-	size_t pos = line.find("cgi_path");
-	std::string language = line.substr(pos + strlen("cgi_path"), 3).c_str();
-	std::string path = line.substr(pos + strlen("cgi_path") + 3, line.length());
-	this->setCgiPath(language, path);
-
-	//print
-	// std::map<int, std::string>::iterator it = server->getErrorPage().begin();
-	// std::cout << "the errorCode is:\t" YELLOW << it->first << RESET " (" YELLOW << it->second << RESET ")" << std::endl;
-}
+std::vector<std::string> &Location::getAllowedMethods() { return (this->_allowedMethods); }
 
 /* ================ */
 /*		DEBUG		*/
@@ -196,30 +171,52 @@ void	Location::fillCgiPath(std::string line)
 
 void Location::checkNotEmptys(void)
 {
-	if (this->getRoot().empty()
-		&& this->getIndex().empty()
-		&& this->getMaxBody().empty()
-		&& this->getAutoIndex().empty()
-		&& this->getRedir().empty()
-		&& this->getErrorPage().empty())
+	if (getPath().empty()
+		&& getRoot().empty()
+		&& getMaxBody().empty()
+		&& getAutoIndex().empty()
+		&& getIndex().empty()
+		&& getRedir().empty()
+		&& getErrorPage().empty()
+		&& getCgiPath().empty()
+		&& getAllowedMethods().empty())
 		throw Response::ConfigurationFileLocation("Empty location");
 }
 
 void	Location::printConfig()
 {
-	if(!this->getPath().empty())
-		std::cout << "\tPath\t\t" YELLOW << this->getPath() << RESET << std::endl;
-	if(!this->getAutoIndex().empty())
-		std::cout << "\tautoindex\t" YELLOW << this->getAutoIndex() << RESET << std::endl;
-	if(!this->getIndex().empty())
-		std::cout << "\tindex\t\t" YELLOW << this->getIndex() << RESET << std::endl;
-	if(!this->getMaxBody().empty())
-		std::cout << "\tclient_max_body_size\t\t" YELLOW << this->getMaxBody() << RESET << std::endl;
-	if(this->getErrorPage().size()) 
-		std::cout << "\terror_page\t" YELLOW << this->getErrorPage().begin()->first << " " << this->getErrorPage().begin()->second << RESET << std::endl;
-	if(this->getCgiPath().size()) 
-		std::cout << "\tcgi_path\t" YELLOW << this->getCgiPath().begin()->first << " " << this->getCgiPath().begin()->second << RESET << std::endl;
-	if(this->getRedir().size()) 
-		std::cout << "\treturn\t\t" YELLOW << this->getRedir().begin()->first << " " << this->getRedir().begin()->second << RESET << std::endl;
+	if (!getPath().empty())
+		std::cout << "\tPath\t\t" YELLOW << getPath() << RESET << std::endl;
+	if (!getMaxBody().empty())
+		std::cout << "\tclient_max_body_size\t\t" YELLOW << getMaxBody() << RESET << std::endl;
+	if (!getAutoIndex().empty())
+		std::cout << "\tautoindex\t" YELLOW << getAutoIndex() << RESET << std::endl;
+	if (!getIndex().empty())
+		std::cout << "\tindex\t\t" YELLOW << getIndex() << RESET << std::endl;
+	if (getRedir().size())
+		std::cout << "\treturn\t\t" YELLOW << getRedir().begin()->first << " " << getRedir().begin()->second << RESET << std::endl;
+	if (getErrorPage().size())
+	{
+		std::map<std::string, std::string>::iterator it = getErrorPage().begin();
+		std::cout << "\terror_page\t" YELLOW;
+		for (; it != getErrorPage().end(); it++)
+			std::cout << it->first << " " << it->second << " ";
+		std::cout << RESET << std::endl;
+	}
+	if (getCgiPath().size())
+	{
+		std::map<std::string, std::string>::iterator it = getCgiPath().begin();
+		std::cout << "\tcgi_path\t" YELLOW;
+		for (; it != getCgiPath().end(); it++)
+			std::cout << it->first << ":" << it->second << " ";
+		std::cout << RESET << std::endl;
+	}
+	if (getAllowedMethods().size())
+	{
+		std::cout << "\tallowed_methods\t";
+		for (size_t i = 0; i < getAllowedMethods().size(); i++)
+			std::cout << YELLOW << getAllowedMethods()[i] << " " << RESET;
+		std::cout << std::endl;
+	}
 	std::cout << std::endl;
 }

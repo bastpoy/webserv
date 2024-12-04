@@ -1,48 +1,8 @@
 #include "Header.hpp"
 
-//TODO - ENUM
-std::string	locationKeywords[] = {
-	"root",
-	"client_max_body_size",
-	"autoindex",
-	"index",
-	"return",
-	"error_page",
-	"cgi_path"
-};
-
-//TODO - Trouver une solution plus propre
-void (Location::*locationFunctions[7])(std::string line) = {
-	&Location::fillRoot,
-	&Location::fillMaxBody,
-	&Location::fillAutoIndex,
-	&Location::fillIndex,
-	&Location::fillRedir,
-	&Location::fillErrorPage,
-	&Location::fillCgiPath
-};
-
-const int	locKeywordsSize = 7;
-
 /* ================ */
 /*		SETTER		*/
 /* ================ */
-
-// void	Server::setPort(std::string port)
-// {
-// 	// // size_t	pos = line.find("listen");
-// 	// int		int_port = 0;
-// 	// // setPort(line.substr(pos + strlen("listen"), line.length()).c_str());
-// 	// port.erase(std::remove(port.begin(), port.end(), ' '), port.end());
-// 	// _port = port;
-// 	// if (getPort().empty())
-// 	// 	throw Response::ConfigurationFileServer("Port is empty");
-// 	// if (!ft_stoi(getPort().c_str(), int_port))
-// 	// 	throw Response::ConfigurationFileServer("Port is not a number");
-// 	// if (int_port < 0 || int_port > 65535)
-// 	// 	throw Response::ConfigurationFileServer("Port out of range");
-// 	(void)port;
-// }
 
 void	Server::setIP(std::string ip)
 {
@@ -73,6 +33,7 @@ void	Server::setListen(std::string line)
 	size_t		len = strlen("listen");
 
 	line.erase(std::remove(line.begin(), line.end(), ' '), line.end());
+	line.erase(std::remove(line.begin(), line.end(), '\t'), line.end());
 	port = line.substr((pos2 != std::string::npos) ? pos2 : pos + len, line.length());
 	if (pos2 != std::string::npos)
 		setIP(line.substr(pos + len, pos2 - (pos + len)));
@@ -91,6 +52,7 @@ void	Server::setServerName(std::string line)
 	size_t		len = strlen("server_name");
 	std::string	server_name = line.substr(pos + len, line.length() - (pos + len));
 	server_name.erase(std::remove(server_name.begin(), server_name.end(), ' '), server_name.end());
+	server_name.erase(std::remove(server_name.begin(), server_name.end(), '\t'), server_name.end());
 	bool	is_ip = server_name.find_first_of("0123456789") != std::string::npos;
 	_server_name = server_name;
 
@@ -118,14 +80,15 @@ void	Server::setRoot(std::string line)
 {
 	size_t		pos = line.find("root");
 	size_t		len = strlen("root");
-	std::string	path = line.substr(pos + len, line.length() - (pos + len));
+	std::string	root = line.substr(pos + len, line.length() - (pos + len));
 
-	path.erase(std::remove(path.begin(), path.end(), ' '), path.end());
-	if(path.at(path.size() - 1) != '/')
-		path = path + "/";
-	if(path.at(0) != '.')
-		path = "." + path;
-	_path = path;
+	root.erase(std::remove(root.begin(), root.end(), ' '), root.end());
+	root.erase(std::remove(root.begin(), root.end(), '\t'), root.end());
+	if(root.at(root.size() - 1) != '/')
+		root = root + "/";
+	if(root.at(0) != '.')
+		root = "." + root;
+	_root = root;
 }
 
 void	Server::setMaxBody(std::string line)
@@ -135,13 +98,9 @@ void	Server::setMaxBody(std::string line)
 	std::string	maxBody = line.substr(pos + len, line.length() - (pos + len));
 
 	maxBody.erase(std::remove(maxBody.begin(), maxBody.end(), ' '), maxBody.end());
+	maxBody.erase(std::remove(maxBody.begin(), maxBody.end(), '\t'), maxBody.end());
 	if(maxBody.find_first_not_of("0123456789kmKM") != std::string::npos)
 		throw Response::ErrorMaxBody();
-	// Replace the k and m by real number and check for errors
-	// maxBodyParsing("k", maxBody);
-	// maxBodyParsing("K", maxBody);
-	// maxBodyParsing("m", maxBody);
-	// maxBodyParsing("M", maxBody);
 	size_t pos_character = maxBody.find_first_of("kKmM");
 	if (pos_character != std::string::npos)
 	{
@@ -161,6 +120,7 @@ void	Server::setIndex(std::string line)
 	std::string	index = line.substr(pos + len, line.length() - (pos + len));
 
 	index.erase(std::remove(index.begin(), index.end(), ' '), index.end());
+	index.erase(std::remove(index.begin(), index.end(), '\t'), index.end());
 	_index = index;
 }
 
@@ -171,12 +131,8 @@ void	Server::setAutoIndex(std::string line)
 	std::string	autoindex = line.substr(pos + len, line.length() - (pos + len));
 
 	autoindex.erase(std::remove(autoindex.begin(), autoindex.end(), ' '), autoindex.end());
+	autoindex.erase(std::remove(autoindex.begin(), autoindex.end(), '\t'), autoindex.end());
 	_autoindex = autoindex;
-}
-
-void	Server::setLocation(Location &location)
-{
-	_location.push_back(location);
 }
 
 void	Server::setRedir(std::string line)
@@ -187,17 +143,18 @@ void	Server::setRedir(std::string line)
 	std::string	domain = line.substr(pos + len + 4, line.length() - (pos + len));
 
 	domain.erase(std::remove(domain.begin(), domain.end(), ' '), domain.end());
+	domain.erase(std::remove(domain.begin(), domain.end(), '\t'), domain.end());
 	code.erase(std::remove(code.begin(), code.end(), ' '), code.end());
-	// If i have already a redirection i delete it and replace it
+	code.erase(std::remove(code.begin(), code.end(), '\t'), code.end());
 	if(getRedir().size())
 		_redir.erase(this->_redir.begin());
-	//add the new redirection
 	_redir.insert(std::make_pair(code, domain));
 }
 
 void Server::setErrorPage(std::string line)
 {
 	line.erase(std::remove(line.begin(), line.end(), ' '), line.end());
+	line.erase(std::remove(line.begin(), line.end(), '\t'), line.end());
 	size_t pos = line.find("error_page");
 	size_t len = strlen("error_page");
 	std::string code = line.substr(pos + len, 3).c_str();
@@ -218,7 +175,7 @@ void Server::setCgiPath(std::string line)
 		std::vector<std::string>	map = ft_split(substr[i], ':');
 		std::string					language = map[0];
 		std::string					path = map[1];
-		std::cout << MAGENTA"Language: '" << language << "'\nPath: '" << path << "'" << RESET << std::endl;
+		// std::cout << MAGENTA"Language: '" << language << "'\nPath: '" << path << "'" << RESET << std::endl;
 		_cgiPath.insert(std::make_pair(language, path));
 	}
 }
@@ -230,6 +187,7 @@ void Server::setAllowedMethods(std::string line)
 	std::string methods = line.substr(pos + len, line.length() - (pos + len));
 
 	methods.erase(std::remove(methods.begin(), methods.end(), ' '), methods.end());
+	methods.erase(std::remove(methods.begin(), methods.end(), '\t'), methods.end());
 	if (methods.find_first_not_of("GETPOSTDELETE") != std::string::npos)
 		throw Response::ConfigurationFileServer("Allowed methods are not GET, POST or DELETE");
 	if (methods.find("GET") != std::string::npos)
@@ -238,6 +196,11 @@ void Server::setAllowedMethods(std::string line)
 		_allowedMethods.push_back("POST");
 	if (methods.find("DELETE") != std::string::npos)
 		_allowedMethods.push_back("DELETE");
+}
+
+void	Server::setLocation(Location &location)
+{
+	_location.push_back(location);
 }
 
 void	Server::setSocketFd(int sockfd)
@@ -255,7 +218,7 @@ std::string	Server::getIP() const { return (_ip); }
 
 std::string	Server::getServerName() const { return (_server_name); }
 
-std::string	Server::getPath() const { return (_path); }
+std::string	Server::getRoot() const { return (_root); }
 
 std::string	Server::getMaxBody() const { return (_maxBody); }
 
@@ -273,147 +236,25 @@ std::vector<std::string>			&Server::getAllowedMethods() { return (_allowedMethod
 
 std::vector<Location>	&Server::getLocation() { return (_location); }
 
+std::vector<void (Location::*)(std::string)>	Server::getLocationFunctions(void)
+{
+	return (_locationFunctions);
+}
+
+std::vector<std::string>	Server::getKeywords(void)
+{
+	std::vector<std::string>	locKeywords;
+
+	for (int i = 0; i < _locKeywordsSize; i++)
+		locKeywords.push_back(_locKeywords[i][0]);
+	return (locKeywords);
+}
+
+int	Server::getKeywordsSize(void) { return (_locKeywordsSize); }
+
 /* ================ */
 /*		FILL		*/
 /* ================ */
-
-// void	Server::fillPort(std::string line)
-// {
-// 	size_t	pos = line.find("listen");
-// 	int		port = 0;
-// 	setPort(line.substr(pos + strlen("listen"), line.length()).c_str());
-// 	if (getPort().empty())
-// 		throw Response::ConfigurationFileServer("Port is empty");
-// 	if (!ft_stoi(getPort().c_str(), port))
-// 		throw Response::ConfigurationFileServer("Port is not a number");
-// 	if (port < 0 || port > 65535)
-// 		throw Response::ConfigurationFileServer("Port out of range");
-// }
-
-// void Server::fillListen(std::string line)
-// {
-// 	size_t	pos = line.find("listen");
-// 	size_t	pos2 = line.find(":");
-// 	size_t	len = strlen("listen");
-// 	if (pos2 != std::string::npos)
-// 	{
-// 		// fillPort(line.substr(pos2 + 1, line.length()));
-// 		setPort(line.substr(pos2 + 1, line.length()));
-// 		setIP(line.substr(pos + len, pos2 - (pos + len)));
-// 	}
-// 	else
-// 		throw Response::ConfigurationFileServer("Missing ':' in listen block");
-// }
-
-// void	Server::fillServerName(std::string line)
-// {
-// 	size_t	pos = line.find("server_name");
-// 	setServerName(line.substr(pos + strlen("server_name"), line.length() - (pos + strlen("server_name"))));
-// 	bool	is_ip = _server_name.find_first_of("0123456789") != std::string::npos;
-// 	if (is_ip)
-// 	{
-// 		std::vector<std::string>	substr_ip = ft_split(_server_name, '.');
-// 		if (substr_ip.size() != 4
-// 			|| _server_name.find_first_not_of("0123456789.") != std::string::npos)
-// 			throw Response::ConfigurationFileServer("Wrong IP format");
-// 		for (size_t i = 0; i < substr_ip.size(); i++)
-// 		{
-// 			int result = 0;
-// 			if (!ft_stoi(substr_ip[i], result))
-// 				break ;
-// 			if (!(result >= 0 && result <= 255))
-// 				throw Response::ConfigurationFileServer("IP out of range");
-// 		}
-// 		return ;
-// 	}
-// 	(void)line;
-// }
-
-// void	Server::fillPath(std::string line)
-// {
-	// size_t pos = line.find("root");
-	// setPath(line.substr(pos + strlen("root"), line.length() - (pos + strlen("root"))));
-	// //if no "/" at the end add it
-	// if(getPath().at(getPath().size() - 1) != '/')
-	// 	setPath(getPath() + "/");
-	// //if no . at the begining add it
-	// if(getPath().at(0) != '.')
-	// 	setPath("." + getPath());
-	// (void)line;
-// }
-
-// void	Server::fillMaxBody(std::string line)
-// {
-	// size_t pos = line.find("client_max_body_size");
-	// std::string size = line.substr(pos + strlen("client_max_body_size"), line.length() - (pos + strlen("client_max_body_size")));
-	// // Erase spaces
-	// size.erase(std::remove(size.begin(), size.end(), ' '), size.end());
-	// // Check autorize caracter
-	// if(size.find_first_not_of("0123456789kmKM") != std::string::npos)
-	// 	throw Response::ErrorMaxBody();
-	// // Replace the k and m by real number and check for errors
-	// maxBodyParsing("k", size);
-	// maxBodyParsing("K", size);
-	// maxBodyParsing("m", size);
-	// maxBodyParsing("M", size);
-	// setMaxBody(size);
-	// (void)line;
-// }
-
-// void	Server::fillIndex(std::string line)
-// {
-// 	// size_t pos = line.find("index");
-// 	// setIndex(line.substr(pos + strlen("index"), line.length() - (pos + strlen("index"))));
-// 	(void)line;
-// }
-
-// void	Server::fillAutoIndex(std::string line)
-// {
-// 	// size_t pos = line.find("autoindex"); 
-// 	// this->setAutoIndex(line.substr(pos + strlen("autoindex"), line.length() - (pos + strlen("autoindex"))));
-// 	//print
-// 	// std::cout << "the autoindex is: " << this->getAutoIndex() << std::endl;
-// 	(void)line;
-// }
-
-// void	Server::fillErrorPage(std::string line)
-// {
-// 	size_t pos = line.find("error_page ");
-// 	// line.erase(std::remove(line.begin(), line.end(), ' '), line.end());
-// 	// std::cout << line << std::endl;
-// 	std::string code = line.substr(pos + strlen("error_page "), 3).c_str();
-// 	std::string domain = line.substr(pos + strlen("error_page ") + 4, line.length());
-// 	this->setErrorPage(code, domain);
-// 	print
-// 	std::map<int, std::string>::iterator it = this->getErrorPage().begin();
-// 	std::cout << "the errorCode is: " << it->first << "\t the file is: " << it->second <<  std::endl;
-// 	(void)line;
-// }
-
-// void	Server::fillCgiPath(std::string line)
-// {
-// 	size_t	pos = line.find("cgi_path ");
-// 	std::string trimLine = line.substr(pos + strlen("cgi_path "), line.length() - (pos + strlen("cgi_path ")));
-// 	std::vector<std::string>	substr = ft_split(trimLine, ' ');
-
-// 	for (size_t i = 0; i < substr.size(); i++)
-// 	{
-// 		std::vector<std::string>	map = ft_split(substr[i], ':');
-// 		std::string language = map[0];
-// 		std::string path = map[1];
-// 		std::cout << MAGENTA"Language: '" << language << "'\nPath: '" << path << "'" << RESET << std::endl;
-// 		this->setCgiPath(language, path);
-// 	}
-// }
-
-// void	Server::fillRedir(std::string line)
-// {
-// 	// size_t pos = line.find("return");
-// 	// std::string code = line.substr(pos + strlen("return"), 4);
-// 	// std::string domain = line.substr(pos + strlen("return") + 4, line.length() - (pos + strlen("return")));
-// 	// setRedir(code, domain);
-// 	(void)line;
-// }
 
 /**
  * @brief	Gonna Fill all Location data info detected in a location instance
@@ -425,9 +266,11 @@ std::vector<Location>	&Server::getLocation() { return (_location); }
 void	Server::fillLocation(std::ifstream &file, std::string line, std::vector<Location> &locations)
 {
 	Location	location;
+	std::vector<std::string> _locKeywords = getKeywords();
+	std::vector<void (Location::*)(std::string)> locationFunctions = getLocationFunctions();
 	bool		bracket = false;
 
-	location.fillPath(line);
+	location.setPath(line);
 	checkLocationPath(location, locations);
 	while(getline(file, line))
 	{
@@ -438,11 +281,11 @@ void	Server::fillLocation(std::ifstream &file, std::string line, std::vector<Loc
 			bracket = true;
 			continue;
 		}
-		while (i < locKeywordsSize && line.find(locationKeywords[i]) == std::string::npos)
+		while (i < getKeywordsSize() && line.find(_locKeywords[i]) == std::string::npos)
 			i++;
-		if (i < locKeywordsSize)
+		if (i < getKeywordsSize())
 			(location.*locationFunctions[i])(line);
-		else if (i > (locKeywordsSize - 1) && line.find("}") == std::string::npos && !line.empty())
+		else if (i > (getKeywordsSize() - 1) && line.find("}") == std::string::npos && !line.empty())
 			throw Response::ConfigurationFileLocation("Unknown attribute: " + line);
 		if (line.find("}") != std::string::npos)
 		{
@@ -453,7 +296,27 @@ void	Server::fillLocation(std::ifstream &file, std::string line, std::vector<Loc
 		}
 	}
 	throw Response::ConfigurationFileLocation("Missing '}'");
+}
 
+void	Server::functionConfig(void)
+{
+	_locKeywords[0].push_back("root");
+	_locKeywords[1].push_back("client_max_body_size");
+	_locKeywords[2].push_back("autoindex");
+	_locKeywords[3].push_back("index");
+	_locKeywords[4].push_back("return");
+	_locKeywords[5].push_back("error_page");
+	_locKeywords[6].push_back("cgi_path");
+	_locKeywords[7].push_back("allowed_methods");
+
+	_locationFunctions.push_back(&Location::setRoot);
+	_locationFunctions.push_back(&Location::setMaxBody);
+	_locationFunctions.push_back(&Location::setAutoIndex);
+	_locationFunctions.push_back(&Location::setIndex);
+	_locationFunctions.push_back(&Location::setRedir);
+	_locationFunctions.push_back(&Location::setErrorPage);
+	_locationFunctions.push_back(&Location::setCgiPath);
+	_locationFunctions.push_back(&Location::setAllowedMethods);
 }
 
 /* ================ */
@@ -472,16 +335,22 @@ void	Server::printConfig()
 		std::cout << "ip\t\t" YELLOW << getIP() << RESET << std::endl;
 	if (!getServerName().empty())
 		std::cout << "server_name\t" YELLOW << getServerName() << RESET << std::endl;
-	if (!getPath().empty())
-		std::cout << "root\t\t" YELLOW <<getPath() << RESET << std::endl;
+	if (!getRoot().empty())
+		std::cout << "root\t\t" YELLOW <<getRoot() << RESET << std::endl;
 	if (!getMaxBody().empty())
 		std::cout << "maxBody\t\t" YELLOW << getMaxBody() << RESET << std::endl;
 	if (!getIndex().empty())
 		std::cout << "index\t\t" YELLOW << getIndex() << RESET << std::endl;
 	if (!getAutoIndex().empty())
 		std::cout << "autoindex\t" YELLOW << getAutoIndex() << RESET << std::endl;
-	if (getErrorPage().size()) 
-		std::cout << "error_page\t" YELLOW << getErrorPage().begin()->first << " " << getErrorPage().begin()->second << RESET << std::endl;
+	if (getErrorPage().size())
+	{
+		std::map<std::string, std::string>::iterator it = getErrorPage().begin();
+		std::cout << "error_page\t" YELLOW;
+		for (; it != getErrorPage().end(); it++)
+			std::cout << it->first << " " << it->second << " ";
+		std::cout << RESET << std::endl;
+	}
 	if (getCgiPath().size())
 	{
 		std::map<std::string, std::string>::iterator it = getCgiPath().begin();

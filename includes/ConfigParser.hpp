@@ -30,9 +30,9 @@ class ConfigParser
 		ConfigParser(char *path);
 		~ConfigParser(void);
 
-		std::vector<Server>	&getServers(void);
+		std::vector<Server>			&getServers(void);
 		std::vector<std::string>	getKeywords(void);
-		int 				getKeywordsSize(void);
+		int 						getKeywordsSize(void);
 
 
 		void				parseConfig(std::vector<Server> &servers);

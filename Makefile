@@ -101,7 +101,7 @@ simple:
 	@clear
 	@make -j4 -s
 	@clear
-	./webserv conf/Bastien.conf
+	./webserv conf/test/config.conf
 
 test:
 	@clear
