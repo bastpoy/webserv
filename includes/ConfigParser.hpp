@@ -3,10 +3,6 @@
 
 # include "Header.hpp"
 
-
-// extern std::string	keywords[];
-// extern const int	keywordsSize;
-
 /**
  * @brief	Class responsible for parsing the configuration file for the server.
  * @note	This class reads and stores configuration parameters such as server port, root directory,
@@ -19,7 +15,6 @@ class ConfigParser
 	private:
 		std::vector<Server>	_servers;
 		std::string			_path;
-		// std::vector<std::string>					_keywords[9];
 
 		std::vector<std::string>					_keywords[10];
 		std::vector<void (Server::*)(std::string)>	_serverFunctions;
@@ -38,7 +33,6 @@ class ConfigParser
 		void				parseConfig(std::vector<Server> &servers);
 		void				addServer(Server &server);
 		void				getServerAttributs(std::ifstream& file, Server &server, std::vector<std::string> keywords, std::vector<void (Server::*)(std::string)> serverFunctions);
-		// void				getServerAttributs(std::ifstream &file, Server &server);
 		void				printConfig(void);
 		
 		void				functionConfig(void);

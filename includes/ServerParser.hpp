@@ -7,30 +7,13 @@ class Location;
 class ConfigParser;
 
 #define MAX_EVENTS 100
-/*
-But : Représente le serveur HTTP principal.
-Rôle :
-Écouter sur un ou plusieurs ports pour les connexions entrantes.
-Accepter les connexions des clients et les rediriger vers un gestionnaire de requêtes.
-*/
-
-extern std::string	locationKeywords[];
-extern const int	locKeywordsSize;
-
-/**
- * @brief	Class representing the main HTTP server.
- * @note	Responsible for listening on one or more ports for incoming connections.
- * 			Accepts connections from clients and redirects them to a request handler.
- * @details	Responsible for server configuration and management of virtual hosts.
-*/
-
 
 typedef struct s_cgi
 {
-	int     cgifd;
-	int     cgipid;
-	int     parentsocket;
-	time_t  cgiTimeout;
+	int		cgifd;
+	int		cgipid;
+	int		parentsocket;
+	time_t	cgiTimeout;
 }t_cgi;
 
 typedef struct s_serverData
@@ -55,6 +38,12 @@ typedef struct s_serverData
 	// t_session							*session;
 }	t_serverData;
 
+/**
+ * @brief	Class representing the main HTTP server.
+ * @note	Responsible for listening on one or more ports for incoming connections.
+ * 			Accepts connections from clients and redirects them to a request handler.
+ * @details	Responsible for server configuration and management of virtual hosts.
+*/
 class Server
 {
 	private:
@@ -123,4 +112,4 @@ class Server
 		void	printConfig();
 };
 
-# endif /* SERVER_HPP */
+#endif /* SERVERPARSER_HPP */
