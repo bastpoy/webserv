@@ -123,7 +123,7 @@ class Server
 		void				createListenAddr(ConfigParser &config);
 		void				configuringNetwork(std::vector<Server>::iterator &itbeg, ConfigParser &config, int &epoll_fd);
 		struct epoll_event	fillEpoolDataInfo(int &client_fd, t_serverData *info);
-		struct epoll_event	fillEpoolDataIterator(int sockfd, std::vector<Server>::iterator itbeg);
+		struct epoll_event	fillEpoolDataIterator(int sockfd, std::vector<Server>::iterator itbeg, ConfigParser &config);
 		void				setupSocket(int &sockfd, struct sockaddr_in &addr, std::vector<Server>::iterator itbeg);
 
 		

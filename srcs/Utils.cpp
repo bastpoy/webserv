@@ -12,6 +12,22 @@ std::string	CGIExtensions[] = {
 
 int	nbCGIExtensions = 7;
 
+bool is_cgi_extension(std::string path)
+{
+	int	i = 0;
+
+	while (i < nbCGIExtensions)
+	{
+		size_t	pos = path.find(CGIExtensions[i]);
+		// std::string extension = &path[pos];
+        std::string extension = CGIExtensions[i];
+		if (pos != std::string::npos)
+			return (true);
+		i++;
+	}
+    return (false);
+}
+
 std::string CGIExtension(std::string path)
 {
 	//return false if there is not extension
@@ -20,11 +36,13 @@ std::string CGIExtension(std::string path)
 	while (i < nbCGIExtensions)
 	{
 		size_t	pos = path.find(CGIExtensions[i]);
-		std::string extension = &path[pos];
+		// std::string extension = &path[pos];
+        std::string extension = CGIExtensions[i];
 		if (pos != std::string::npos)
 			return extension;
 		i++;
 	}
+    // throw Response::Error();
 	return ("");
 }
 

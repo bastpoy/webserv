@@ -50,6 +50,16 @@ t_cgi * new_cgi(int fd, int pid, time_t time, int parentSocket)
 pid_t    executeCGI(std::string uri, t_serverData *data, std::map<int, t_serverData*> &fdEpollLink)
 {
     int fd[2];
+    std::string extension = CGIExtension(uri);
+    std::map<std::string, std::string>::const_iterator it = data->cgiPath.find(extension);
+    if (it == data->cgiPath.end())
+    {
+        std::cerr << "Error : can't find extension " << extension << std::endl;
+        // free(script); // Libérer la mémoire
+        errorPage("501", data);
+        throw Response::Error();
+        // std::exit(EXIT_FAILURE);
+    }
     //pipe my new script created
     if(pipe(fd) < 0)
     {
@@ -68,15 +78,6 @@ pid_t    executeCGI(std::string uri, t_serverData *data, std::map<int, t_serverD
     {
         char **script = (char **)malloc(sizeof(char*) * 3);
         
-        std::string extension = CGIExtension(uri);
-        std::map<std::string, std::string>::const_iterator it = data->cgiPath.find(extension);
-        if (it == data->cgiPath.end())
-        {
-            std::cerr << "Error : can't find extension " << extension << std::endl;
-            free(script); // Libérer la mémoire
-            std::exit(EXIT_FAILURE);
-        }
-
         // Préparer les arguments pour execve
         script[0] = strdup(it->second.c_str());
         script[1] = strdup(uri.c_str());  // Creates a new C-string

@@ -136,17 +136,18 @@ void checkAccessDir(std::string &code, std::string &dirPath, t_serverData *data)
 
 void process_extension(std::string &filePath, std::string &code, std::string uri, std::string buffer, std::string &content, Cookie &cookie, t_serverData *data, std::map<int, t_serverData*> &fdEpollLink)
 {
+    // std::cout << RED << "inside process extension" << RESET << std::endl;
     // if no root inside my server
     if(data->path.empty())
     {
         errorPage("403", data);
     }
     //if i have an extension
-    if(isExtension(uri) || !CGIExtension(uri).empty())
+    if(isExtension(uri) || is_cgi_extension(uri))
     {
         filePath = data->path + uri;
         //if its a python file
-        if (!CGIExtension(filePath).empty())
+        if (is_cgi_extension(filePath))
         {
             std::cout << BLUE "It's a CGI " RESET << filePath << std::endl; // Debug
             checkAccessFile(code, filePath, data);
@@ -181,18 +182,18 @@ void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::strin
 		// if no root inside my server
 		if(data->path.empty())
 			errorPage("403", data);
-		if(isExtension(uri) || !CGIExtension(uri).empty())
-            process_extension(filePath, code, uri, buffer, content, cookie, data, fdEpollLink);
         // if i have a file to download
         else if(isExtensionDownload(uri))
         {
             filePath= data->path + uri;
             content = readFile(filePath, data);
         }
-		else if(isExtension(uri))
-		{
+		else if(isExtension(uri) || is_cgi_extension(uri))
             process_extension(filePath, code, uri, buffer, content, cookie, data, fdEpollLink);
-		}
+		// else if(isExtension(uri))
+		// {
+        //     process_extension(filePath, code, uri, buffer, content, cookie, data, fdEpollLink);
+		// }
         // if i have a file to download
         //if i make a deconnexion
         else if(uri == "pages/deconnexion/")
