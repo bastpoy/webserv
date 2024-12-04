@@ -88,13 +88,12 @@ void Server::setupSocket(int &sockfd, struct sockaddr_in &addr, std::vector<Serv
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;  // Use local IP
 
-    std::string serverName = itbeg->getServerName();
+    std::string ip = itbeg->getIP();
     std::string port = itbeg->getPort();  // Assuming you have a getPort() method
 
-    int status = getaddrinfo(serverName.c_str(), port.c_str(), &hints, &result);
+    int status = getaddrinfo(ip.c_str(), port.c_str(), &hints, &result);
     if (status != 0) {
         closeAllFileDescriptors();
-        freeaddrinfo(result);
         std::cerr << "getaddrinfo error: " << gai_strerror(status) << std::endl;
         throw Response::Error();
     }

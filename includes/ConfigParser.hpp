@@ -35,10 +35,6 @@ class ConfigParser
 		void				        addServer(Server &server);
 		void				        getServerAttributs(std::ifstream& file, Server &server, std::vector<std::string> keywords, std::vector<void (Server::*)(std::string)> serverFunctions);
 		void				        printConfig(void);
-		void				        parseConfig(std::vector<Server> &servers);
-		void				        addServer(Server &server);
-		void				        getServerAttributs(std::ifstream& file, Server &server, std::vector<std::string> keywords, std::vector<void (Server::*)(std::string)> serverFunctions);
-		void				        printConfig(void);
 		std::vector<t_serverData *> getListData(void) const;
 		
 		void				functionConfig(void);
