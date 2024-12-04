@@ -4,10 +4,6 @@
 #define BUFER_SIZE 4096
 #define FD_NUMBER 100
 
-int check_fd_valid(int fd) 
-{
-    return fcntl(fd, F_GETFL) != -1;
-}
 
 //Fill data epoll with server iterator
 struct epoll_event Server::fillEpoolDataIterator(int sockfd, std::vector<Server>::iterator itbeg, ConfigParser &config)
@@ -31,6 +27,7 @@ struct epoll_event Server::fillEpoolDataIterator(int sockfd, std::vector<Server>
 	data->cgiPath = itbeg->getCgiPath();
 	data->redir = itbeg->getRedir();
 	data->location = itbeg->getLocation();
+    data->requestAllow = itbeg->getAllowedMethods();
 	data->buffer = "";
 	data->header = "";
 	data->body = "";
@@ -61,11 +58,11 @@ struct epoll_event Server::fillEpoolDataInfo(int &client_fd, t_serverData *info)
 	data->cgiPath = info->cgiPath;
 	data->redir = info->redir;
 	data->location = info->location;
+    data->requestAllow = info->requestAllow;
 	data->buffer = "";
 	data->header = "";
 	data->body = "";
 	data->cgi = NULL;
-	// data->requestAllow.push_back("GET");
 
 	struct epoll_event client_event;
 
@@ -88,9 +85,12 @@ void Server::setupSocket(int &sockfd, struct sockaddr_in &addr, std::vector<Serv
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;  // Use local IP
 
-    std::string ip = itbeg->getIP();
+    // std::string ip = itbeg->getIP();
+    std::string ip = itbeg->getServerName();
     std::string port = itbeg->getPort();  // Assuming you have a getPort() method
-
+    
+    std::cout << "IP: " << ip << " and port: " << port << std::endl;
+    
     int status = getaddrinfo(ip.c_str(), port.c_str(), &hints, &result);
     if (status != 0) {
         closeAllFileDescriptors();
@@ -124,8 +124,6 @@ void Server::setupSocket(int &sockfd, struct sockaddr_in &addr, std::vector<Serv
 // Configuration network
 void Server::configuringNetwork(std::vector<Server>::iterator &itbeg, ConfigParser &config, int &epoll_fd)
 {
-	std::cout << "The socket server fd are:" << std::endl;
-
 	while(itbeg != config.getServers().end())
 	{
 		//creation addrinfo struc to stock my addrinfo informations
@@ -139,7 +137,6 @@ void Server::configuringNetwork(std::vector<Server>::iterator &itbeg, ConfigPars
 			errorCloseEpollFd(epoll_fd, 2);
 		}
 
-		std::cout << sockfd << " and ";
 		//add properties to allow the socket to be reusable even if it is in time wait
 		int opt = 1;
 		if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
@@ -181,6 +178,8 @@ bool handleRequest(std::string buffer, t_serverData *data, Cookie &cookie, std::
 {
 	std::string firstLine = data->header.substr(0, data->header.find("\n"));
 	std::string typeRequest = firstLine.substr(0, data->header.find(" "));
+
+    request_allowed(typeRequest, data);
 
 	if(typeRequest == "GET" && request_allowed("GET", data))
 	{

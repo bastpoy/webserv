@@ -174,7 +174,6 @@ void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::strin
 	std::string contentType = getContentType(uri);
 	//check if I have a location block that match the query
 	std::string filePath = check_location(uri, content, data->location, data);
-	// bool download = false;
 
 	//check if i dont have a location
 	if(filePath.empty())
@@ -188,13 +187,9 @@ void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::strin
             filePath= data->path + uri;
             content = readFile(filePath, data);
         }
+        // if i have a file to download or uri
 		else if(isExtension(uri) || is_cgi_extension(uri))
             process_extension(filePath, code, uri, buffer, content, cookie, data, fdEpollLink);
-		// else if(isExtension(uri))
-		// {
-        //     process_extension(filePath, code, uri, buffer, content, cookie, data, fdEpollLink);
-		// }
-        // if i have a file to download
         //if i make a deconnexion
         else if(uri == "pages/deconnexion/")
         {
