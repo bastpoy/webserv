@@ -107,9 +107,6 @@ std::string newSessionCookie(std::map<std::string, std::string> values, Cookie &
     newSession.second.expireDate = time(NULL) + 15;
     std::cout << newSession.second.expireDate << std::endl;
 
-    //set the validity to valid
-    newSession.second.is_valid = 1;
-
     //adding email and password to the client session
     std::map<std::string, std::string>::iterator it = values.begin();
     if(it == values.end())

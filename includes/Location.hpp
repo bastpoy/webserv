@@ -24,6 +24,7 @@ class Location
 		~Location(void);
 
 		void	setPath(std::string line);
+        void	setPath1(std::string path);
 		void	setRoot(std::string line);
 		void	setMaxBody(std::string line);
 		void	setAutoIndex(std::string line);

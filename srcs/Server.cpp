@@ -33,7 +33,7 @@ struct epoll_event Server::fillEpoolDataIterator(int sockfd, std::vector<Server>
 	data->body = "";
 	data->cgi = NULL;
 
-	event.events = EPOLLIN; // Monitor for input events
+	event.events = EPOLLIN | EPOLLOUT; // Monitor for input events
 	//I stock the info server on the event ptr data
 	event.data.fd = sockfd;
 	event.data.ptr = static_cast<void*>(data);
@@ -89,7 +89,7 @@ void Server::setupSocket(int &sockfd, struct sockaddr_in &addr, std::vector<Serv
     std::string ip = itbeg->getServerName();
     std::string port = itbeg->getPort();  // Assuming you have a getPort() method
     
-    std::cout << "IP: " << ip << " and port: " << port << std::endl;
+    std::cout << "IP: |" << ip << "| and port: |" << port << "|" << std::endl;
     
     int status = getaddrinfo(ip.c_str(), port.c_str(), &hints, &result);
     if (status != 0) {
@@ -97,9 +97,9 @@ void Server::setupSocket(int &sockfd, struct sockaddr_in &addr, std::vector<Serv
         std::cerr << "getaddrinfo error: " << gai_strerror(status) << std::endl;
         throw Response::Error();
     }
-    
     // Convert the resolved address to sockaddr_in
     struct sockaddr_in *resolved_addr = reinterpret_cast<struct sockaddr_in*>(result->ai_addr);
+    // resolved_addr->sin_addr.s_addr
     memcpy(&addr, resolved_addr, sizeof(struct sockaddr_in));
 
 	if (bind(sockfd, result->ai_addr, result->ai_addrlen) < 0) 
@@ -130,7 +130,7 @@ void Server::configuringNetwork(std::vector<Server>::iterator &itbeg, ConfigPars
 		struct sockaddr_in addr;
 		
 		//I create my socket
-		int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+		int sockfd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
 		if (sockfd == -1)
 		{
 			std::cout << "error creating socket" << std::endl;
@@ -142,8 +142,6 @@ void Server::configuringNetwork(std::vector<Server>::iterator &itbeg, ConfigPars
 		if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
 			errorCloseEpollFd(epoll_fd, 3);
 		
-		// std::cout << itbeg->getPort() << "-" << itbeg->getServerName() << "-" << std::endl;
-
 		//fill my sockaddr_in addr with the result of getaddrinfo
 		addr.sin_family = AF_INET;
 		addr.sin_port = htons(atoi(itbeg->getPort().c_str()));
@@ -169,8 +167,13 @@ int acceptConnection(int &fd, int &epoll_fd, struct sockaddr_in &client_addr)
 	socklen_t client_addr_len = sizeof(client_addr);
 	//accept the connection
 	int client_fd = accept(fd, (struct sockaddr*)&client_addr, &client_addr_len);
+    std::cout << "client fd " << client_fd << std::endl; 
 	if (client_fd == -1)
+    {
+        std::cout << "listen: " << errno << std::endl;
+        // exit(0);
 		errorCloseEpollFd(epoll_fd, 6);
+    }
 	return(client_fd);
 }
 
@@ -226,7 +229,6 @@ bool read_one_chunk(t_serverData *data)
 		std::cout << RED "Connection closed by the client. (recv = 0) " << data->sockfd << RESET << std::endl;
 		// epoll_ctl(epoll_fd, EPOLL_CTL_DEL, data->sockfd, events);
 		close(data->sockfd);
-		// close(data->sockfd);
 		return (false); 
 	}
 	data->buffer.append(buffer, bytes_read);
@@ -327,21 +329,30 @@ void read_cgi(t_serverData *data, struct epoll_event *events, int i, int epoll_f
 	data->body.append(buffer, bytes_read);
 	//switching to epollout
 	events[i].events = EPOLLOUT;
-	epoll_ctl(epoll_fd, EPOLL_CTL_MOD, data->sockfd, events);
+	if(epoll_ctl(epoll_fd, EPOLL_CTL_MOD, data->sockfd, events) < 0)
+    {
+        std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
+    }
 }
 
 void manage_tserver(t_serverData *&data, struct epoll_event *events, int i, int epoll_fd)
 {
+    (void)events;
+    (void)i;
+    (void)epoll_fd;
     std::cout << BLUE "switching to epoolin" << RESET << std::endl;
     events[i].events = EPOLLIN;
     if(epoll_ctl(epoll_fd, EPOLL_CTL_MOD, data->sockfd, events) < 0)
     {
         std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
     }
-    close(data->sockfd);
-    delete data;
-    GlobalLinkedList::update_data(data);
-    data = NULL;
+    // close(data->sockfd);
+    // delete data;
+    // GlobalLinkedList::update_data(data);
+    data->body.erase();
+    data->buffer.erase();
+    data->header.erase();
+    // data = NULL;
 }
 
 // Fill from ServerAddr
@@ -371,29 +382,36 @@ void Server::createListenAddr(ConfigParser &config)
 			errorCloseEpollFd(epoll_fd, 1);
 		for (int i = 0; i < num_fds; ++i)
 		{
-			// std::cout << "i is equal to " << i << std::endl; 
+			std::cout << "i " << i << " num " << num_fds << " event " << events[i].events << std::endl; 
 			t_serverData *info = static_cast<t_serverData*>(events[i].data.ptr);
 			int fd = info->sockfd;
 
-			// std::cout << BLUE "actual fd: " << info->sockfd << " and number fd " << num_fds <<RESET << std::endl; 
 			// check if my fd is equal to a socket for handcheck
 			if(this->socketfd.find(fd) != this->socketfd.end())
 			{
+                std::cout << "entering here before\n" << std::endl;
 				// listen to add new fd to my epoll structure
 				struct sockaddr_in client_addr;
 				//new fd_client for communication
 				int client_fd = acceptConnection(fd, epoll_fd, client_addr);
 				
+                std::cout << "entering here\n" << std::endl;
 				// add new fd to my epoll instance
 				struct epoll_event client_event = this->fillEpoolDataInfo(client_fd, info);
 				// add the new fd to be control by my epoll instance
 				if(epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &client_event) == -1)
+                {
+                    std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
 					errorCloseEpollFd(epoll_fd, 4);
+                }
 				std::cout << "New connection established with new fd: " << client_fd << std::endl;
 			}
 			// Connection already etablish 
 			else
 			{
+                std::cout << "je suis la " << events[i].events << std::endl;
+                if(events[i].events & (EPOLLRDHUP | EPOLLHUP | EPOLLERR))
+                    std::cout << RED "inside rdhup" << RESET << std::endl;
                 //i listen for some epollin event and possible data read
                 if(events[i].events & EPOLLIN)
                 {
@@ -405,9 +423,12 @@ void Server::createListenAddr(ConfigParser &config)
                     else if(read_one_chunk(info))
                     {
                         //if i finish read the request info i change the status of the socket
-                        // std::cout << BLUE "switching to epoolout" RESET << std::endl;
+                        std::cout << BLUE "switching to epoolout" RESET << std::endl;
                         events[i].events = EPOLLOUT;
-                        epoll_ctl(epoll_fd, EPOLL_CTL_MOD, info->sockfd, events);
+                        if(epoll_ctl(epoll_fd, EPOLL_CTL_MOD, info->sockfd, events) < 0)
+                        {
+                            std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
+                        }
                     }
                 }
                 // if i can write to my socket
@@ -452,7 +473,8 @@ void Server::createListenAddr(ConfigParser &config)
                 }
                 //check if i have a cgi running in all my fd open
                 check_timeout_cgi(info, fdEpollLink);
-			}
+                std::cout << "-----------------------------------" << std::endl;
+            }
 		}
 	}
 }

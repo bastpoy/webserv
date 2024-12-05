@@ -5,7 +5,6 @@
 
 typedef struct s_session {
     time_t expireDate;
-    int is_valid;
     std::pair<std::string, std::string>  credentials;
 } t_session;
 

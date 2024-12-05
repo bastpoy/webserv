@@ -48,9 +48,8 @@ std::string check_location(std::string &uri, std::string &content, std::vector<L
 	std::vector<Location>::iterator it = location.begin();
 	if(it == location.end())
 		return("");
-
 	//modify locationPath to remove the first '/' 
-	it->setPath(it->getPath().substr(1, it->getPath().size() - 1));
+	it->setPath1(it->getPath().substr(1, it->getPath().size() - 1));
 	//iterate throught my different server location
 	while(it != location.end())
 	{
@@ -69,6 +68,7 @@ std::string check_location(std::string &uri, std::string &content, std::vector<L
 			//if file in my request
 			if(isExtension(uri))
 			{
+                std::cout << "inside location extension" << std::endl;
 				// if i have a root in my location
 				if(!it->getRoot().empty())
 				{
@@ -88,6 +88,7 @@ std::string check_location(std::string &uri, std::string &content, std::vector<L
 			// if no file in URI
 			else
 			{
+                std::cout << "inside location no file" << std::endl;
 				// if i have a root in the location
 				if(!it->getRoot().empty())
 					return pathLocation(content, uri, it, data, it->getRoot());
@@ -136,7 +137,6 @@ void checkAccessDir(std::string &code, std::string &dirPath, t_serverData *data)
 
 void process_extension(std::string &filePath, std::string &code, std::string uri, std::string buffer, std::string &content, Cookie &cookie, t_serverData *data, std::map<int, t_serverData*> &fdEpollLink)
 {
-    // std::cout << RED << "inside process extension" << RESET << std::endl;
     // if no root inside my server
     if(data->path.empty())
     {
@@ -216,7 +216,7 @@ void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::strin
 		else
 			errorPage("403", data);
 	}
-	// std::cout << "the filePath is: " << filePath << " uri : " << uri << std::endl;
+	std::cout << YELLOW "the filePath is: " << filePath << " uri : " << uri << RESET << std::endl;
 
     //check if i am a directory and if i can enter inside
 	if (isDirectory(filePath))

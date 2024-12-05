@@ -222,9 +222,6 @@ void postRequest(t_serverData *data, Cookie &cookie)
 	// If i have a body in the post request
 	if(pos != std::string::npos)
 	{
-		// retrieve the body and remove the \r\n\r\n before by adding + 4
-		// std::string body = buffer.substr(pos + 4, buffer.size());
-		// std::string header = buffer.substr(0, pos);
 		// If I have an upload
 		if(data->header.find("multipart/form-data") != std::string::npos)
 		{
