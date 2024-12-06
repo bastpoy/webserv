@@ -101,8 +101,8 @@ void	notFoundFavicon(t_serverData *data)
 	std::string response = "HTTP/1.1 404 Not Found\r\n"
 							"Content-Type: text/html\r\n"
 							"Content-Length: " + to_string(contentFile.size()) + "\r\n"
-							"Connection: keep-alive\r\n"
-							"\r\n" + contentFile;
+							"Connection: keep-alive\r\n\r\n"
+							+ contentFile;
 	//send response
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 	{

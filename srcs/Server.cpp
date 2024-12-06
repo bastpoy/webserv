@@ -11,7 +11,6 @@ struct epoll_event Server::fillEpoolDataIterator(int sockfd, std::vector<Server>
 	t_serverData *data = new t_serverData;
 
     GlobalLinkedList::insert(data);
-	struct epoll_event event;
 
     this->data = data;
     config.setListData(data);
@@ -33,7 +32,8 @@ struct epoll_event Server::fillEpoolDataIterator(int sockfd, std::vector<Server>
 	data->body = "";
 	data->cgi = NULL;
 
-	event.events = EPOLLIN | EPOLLOUT; // Monitor for input events
+	struct epoll_event event;
+	event.events = EPOLLIN; // Monitor for input events
 	//I stock the info server on the event ptr data
 	event.data.ptr = static_cast<void*>(data);
 
@@ -64,7 +64,7 @@ struct epoll_event Server::fillEpoolDataInfo(int &client_fd, t_serverData *info)
 	data->cgi = NULL;
 
     struct epoll_event client_event;
-	client_event.events = EPOLLIN;
+	client_event.events = EPOLLIN | EPOLLRDHUP | EPOLLET ;
 	client_event.data.ptr = static_cast<void*>(data);
 
 	return(client_event);
@@ -124,7 +124,7 @@ void Server::configuringNetwork(std::vector<Server>::iterator &itbeg, ConfigPars
 		struct sockaddr_in addr;
 		
 		//I create my socket
-		int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+		int sockfd = socket(AF_INET, SOCK_STREAM  | O_NONBLOCK, 0);
 		if (sockfd == -1)
 		{
             std::cout << "error creating socket" << std::endl;
@@ -156,14 +156,17 @@ void Server::configuringNetwork(std::vector<Server>::iterator &itbeg, ConfigPars
 	std::cout << std::endl;
 }
 
-int acceptConnection(int &fd, int &epoll_fd, struct sockaddr_in &client_addr, t_serverData *data)
+int acceptConnection(int &fd, int &epoll_fd, struct sockaddr_in &client_addr)
 {
 	socklen_t client_addr_len = sizeof(client_addr);
-    std::cout << "buffer: " << data->buffer << std::endl; 
 	//accept the connection
 	int client_fd = accept(fd, (struct sockaddr*)&client_addr, &client_addr_len);
 	if (client_fd == -1)
     {
+        if(errno == EAGAIN)
+        {
+            return(-1);
+        }
         std::cout << "listen: " << errno << std::endl;
         errorCloseEpollFd(epoll_fd, 6);
     }
@@ -205,11 +208,10 @@ bool handleRequest(std::string buffer, t_serverData *data, Cookie &cookie, std::
 	return(false);
 }
 
-bool read_one_chunk(t_serverData *data) 
+bool read_one_chunk(t_serverData *data, struct epoll_event ev, int epoll_fd) 
 {
 	char buffer[BUFER_SIZE];
 	// Read data into the buffer
-	// std::cout << BLUE "waiting before the buffer" << data->sockfd << RESET << std::endl;
 	int bytes_read = recv(data->sockfd, buffer, BUFER_SIZE, 0);
 	if (bytes_read < 0) 
 	{
@@ -220,7 +222,10 @@ bool read_one_chunk(t_serverData *data)
 	else if (bytes_read == 0) 
 	{
 		std::cout << RED "Connection closed by the client. (recv = 0) " << data->sockfd << RESET << std::endl;
-		// epoll_ctl(epoll_fd, EPOLL_CTL_DEL, data->sockfd, events);
+		if(epoll_ctl(epoll_fd, EPOLL_CTL_DEL, data->sockfd, &ev) < 0)
+        {
+            std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
+        }
 		close(data->sockfd);
 		return (false); 
 	}
@@ -242,7 +247,7 @@ bool read_one_chunk(t_serverData *data)
 	//if i finish reading everything
 	if(static_cast<int>(data->buffer.size()) == getContentLength(data->buffer, data))
 	{
-		// std::cout << BLUE "finish reading data second" << RESET << std::endl;
+		std::cout << BLUE "finish reading data second" << RESET << std::endl;
 		return true;
 	}
 	// std::cout << BLUE "bytes read " << bytes_read << " with sockfd "<< data->sockfd << " and sizebuffer" << data->buffer.size() << RESET <<std::endl;
@@ -263,7 +268,7 @@ void parsing_buffer(t_serverData *data, Cookie &cookie, std::map<int, t_serverDa
 	}
 	else
 	{
-		std::cout << "no data provide" << std::endl;
+		// std::cout << "no data provide" << std::endl;
 	}
 }
 
@@ -312,22 +317,40 @@ void Server::createListenAddr(ConfigParser &config)
 		int num_fds = epoll_wait(epoll_fd, events, MAX_EVENTS, -1);
 		if (num_fds == -1) 
 			errorCloseEpollFd(epoll_fd, 1);
+        if(num_fds == 0)
+        {
+            std::cout << BCYAN " TIMEOUT DETECTED" << RESET << std::endl; 
+        }
 		for (int i = 0; i < num_fds; ++i)
 		{
 			t_serverData *info = static_cast<t_serverData*>(events[i].data.ptr);
 			int fd = info->sockfd;
-			std::cout << "i " << i << " num " << num_fds << " poll fd " << events[i].data.fd << " fd " << fd << "status: " << events[i].events << std::endl; 
-			// check if my fd is equal to a socket for handcheck
-			if(this->socketfd.find(fd) != this->socketfd.end())
+			std::cout << YELLOW "i " << i << " num " << num_fds << " poll fd " << events[i].data.fd << " fd " << fd << " status: " << events[i].events << RESET << std::endl; 
+            if(events[i].events & (EPOLLRDHUP | EPOLLHUP | EPOLLERR))
+            {
+                if(epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, &events[i]) == -1)
+                {
+                    std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
+					errorCloseEpollFd(epoll_fd, 4);
+                }
+                close(fd);
+                std::cout << RED "client disconnection" << RESET << std::endl;
+            }
+            // check if my fd is equal to a socket for handcheck
+			else if(this->socketfd.find(fd) != this->socketfd.end())
 			{
 				// listen to add new fd to my epoll structure
 				struct sockaddr_in client_addr;
 				//new fd_client for communication
-				int client_fd = acceptConnection(fd, epoll_fd, client_addr, info);
+				int client_fd = acceptConnection(fd, epoll_fd, client_addr);
+                if(client_fd == -1)
+                {
+                    continue;
+                }
 				// std::cout << "New connection established with new fd: " << client_fd << std::endl;
 				// add new fd to my epoll instance
 				struct epoll_event client_event = this->fillEpoolDataInfo(client_fd, info);
-                std::cout << "after fd epoll: " << client_event.data.fd << " and fd " << static_cast<t_serverData*>(client_event.data.ptr)->sockfd << std::endl;
+                std::cout << "New client fd epoll: " << client_event.data.fd << " and fd " << static_cast<t_serverData*>(client_event.data.ptr)->sockfd << std::endl;
 				// add the new fd to be control by my epoll instance
 				if(epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &client_event) == -1)
                 {
@@ -338,8 +361,6 @@ void Server::createListenAddr(ConfigParser &config)
 			// Connection already etablish 
 			else
 			{
-                if(events[i].events & (EPOLLRDHUP | EPOLLHUP | EPOLLERR))
-                    std::cout << RED "inside rdhup" << RESET << std::endl;
                 //i listen for some epollin event and possible data read
                 if(events[i].events & EPOLLIN)
                 {
@@ -348,7 +369,7 @@ void Server::createListenAddr(ConfigParser &config)
                     {
                         read_cgi(info, events, i, epoll_fd);
                     }
-                    else if(read_one_chunk(info))
+                    else if(read_one_chunk(info, events[i], epoll_fd))
                     {
                         //if i finish read the request info i change the status of the socket
                         std::cout << BLUE "switching to epoolout" RESET << std::endl;
@@ -364,7 +385,7 @@ void Server::createListenAddr(ConfigParser &config)
                 {
                     try
                     {
-                        std::cout << BMAGENTA "Inside epollout" RESET << std::endl;
+                        // std::cout << BMAGENTA "Inside epollout" RESET << std::endl;
                         //if I have already a cgi and ready to return information
                         if(info->cgi)
                         {
@@ -386,6 +407,7 @@ void Server::createListenAddr(ConfigParser &config)
                             parsing_buffer(info, cookie, fdEpollLink);
                         // if i finish sending the info I change the status of the socket
                         manage_tserver(info, events, i, epoll_fd);
+                        // std::cout << YELLOW "status " << events[i].events << RESET << std::endl;
                     }
                     catch(const std::exception& e)
                     {

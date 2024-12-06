@@ -241,7 +241,9 @@ void parseAndGetRequest(std::string buffer, t_serverData *data, Cookie &cookie, 
 
     std::cout << "GET RESPONSE " << path <<  std::endl;
     if(path.find("favicon.ico") != std::string::npos)
+    {
         return notFoundFavicon(data);
+    }
     //if i have a ? inside my url which represent filtering
     else if(path.find("?") != std::string::npos)
         errorPage("501", data);
