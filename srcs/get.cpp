@@ -216,7 +216,7 @@ void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::strin
 		else
 			errorPage("403", data);
 	}
-	std::cout << YELLOW "the filePath is: " << filePath << " uri : " << uri << RESET << std::endl;
+	// std::cout << YELLOW "the filePath is: " << filePath << " uri : " << uri << RESET << std::endl;
 
     //check if i am a directory and if i can enter inside
 	if (isDirectory(filePath))

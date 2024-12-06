@@ -121,7 +121,9 @@ void		checkLocationPath(Location &location, std::vector<Location> &locations);
 
 
 // CGIHandler.cpp
-std::string	execute(std::string uri, std::string &code, t_serverData *data);
+void check_timeout_cgi(t_serverData *info, std::map<int, t_serverData*> &fdEpollLink);
+void read_cgi(t_serverData *data, struct epoll_event *events, int i, int epoll_fd);
+
 // std::string	cgiProtocol(std::string uri, std::string &code, t_serverData *data);
 std::string HandleCgiRequest(std::string uri, t_serverData *data, std::map<int, t_serverData*> &fdEpollLink);
 

@@ -35,7 +35,6 @@ struct epoll_event Server::fillEpoolDataIterator(int sockfd, std::vector<Server>
 
 	event.events = EPOLLIN | EPOLLOUT; // Monitor for input events
 	//I stock the info server on the event ptr data
-	event.data.fd = sockfd;
 	event.data.ptr = static_cast<void*>(data);
 
 	return (event);
@@ -64,14 +63,9 @@ struct epoll_event Server::fillEpoolDataInfo(int &client_fd, t_serverData *info)
 	data->body = "";
 	data->cgi = NULL;
 
-	struct epoll_event client_event;
-
+    struct epoll_event client_event;
 	client_event.events = EPOLLIN;
-	client_event.data.fd = client_fd;
 	client_event.data.ptr = static_cast<void*>(data);
-
-	// std::pair<int, t_serverData> pair(client_fd, *data);
-	// data->fdEpollLink->insert(pair);
 
 	return(client_event);
 }
@@ -130,11 +124,11 @@ void Server::configuringNetwork(std::vector<Server>::iterator &itbeg, ConfigPars
 		struct sockaddr_in addr;
 		
 		//I create my socket
-		int sockfd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
+		int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 		if (sockfd == -1)
 		{
-			std::cout << "error creating socket" << std::endl;
-			errorCloseEpollFd(epoll_fd, 2);
+            std::cout << "error creating socket" << std::endl;
+            errorCloseEpollFd(epoll_fd, 2);
 		}
 
 		//add properties to allow the socket to be reusable even if it is in time wait
@@ -162,17 +156,16 @@ void Server::configuringNetwork(std::vector<Server>::iterator &itbeg, ConfigPars
 	std::cout << std::endl;
 }
 
-int acceptConnection(int &fd, int &epoll_fd, struct sockaddr_in &client_addr)
+int acceptConnection(int &fd, int &epoll_fd, struct sockaddr_in &client_addr, t_serverData *data)
 {
 	socklen_t client_addr_len = sizeof(client_addr);
+    std::cout << "buffer: " << data->buffer << std::endl; 
 	//accept the connection
 	int client_fd = accept(fd, (struct sockaddr*)&client_addr, &client_addr_len);
-    std::cout << "client fd " << client_fd << std::endl; 
 	if (client_fd == -1)
     {
         std::cout << "listen: " << errno << std::endl;
-        // exit(0);
-		errorCloseEpollFd(epoll_fd, 6);
+        errorCloseEpollFd(epoll_fd, 6);
     }
 	return(client_fd);
 }
@@ -274,67 +267,6 @@ void parsing_buffer(t_serverData *data, Cookie &cookie, std::map<int, t_serverDa
 	}
 }
 
-void check_timeout_cgi(t_serverData *info, std::map<int, t_serverData*> &fdEpollLink)
-{
-    if(info)
-    {
-        if(info->cgi == NULL)
-        {
-            std::map<int, t_serverData*>::iterator it = fdEpollLink.begin();
-            //iterate through my corresponse map between fd and data struct
-            while (it != fdEpollLink.end()) 
-            {
-                //if i have a cgi inside my struct
-                if(it->second->cgi)
-                {
-                    //if my cgi is timeout
-                    if(it->second->cgi->cgiTimeout < time(NULL))
-                    {
-                        std::cout << "a cgi is TIMEOUT" << std::endl;
-                        std::string response = httpGetResponse("200 Ok", "text/html", readFile("./www/error/error408.html", it->second), it->second);
-                        if(send(it->second->sockfd, response.c_str(), response.size(), 0) < 0)
-                        {
-                            std::cout << RED "error send main "<< errno << " " << strerror(errno) << RESET << std::endl;
-                        }
-                        close(it->second->cgi->cgifd);
-                        close(it->second->sockfd);
-                        delete it->second->cgi;
-                        it->second->cgi = NULL;
-                        std::map<int, t_serverData*>::iterator toErase = it;
-                        it++;
-                        fdEpollLink.erase(toErase);
-                        continue;
-                    }
-                }
-                it++;
-            }
-        }
-    }
-}
-
-void read_cgi(t_serverData *data, struct epoll_event *events, int i, int epoll_fd)
-{
-	//i read my cgi which is finish
-	char buffer[4096];
-	int bytes_read;
-
-	std::cout << YELLOW "before reading cgi" << RESET << std::endl;
-	bytes_read = read(data->cgi->cgifd, buffer, 4096);
-	if(bytes_read < 1)
-	{
-		std::cerr << RED "error reading the cgi: " << strerror(errno) << RESET << std::endl; 
-	}
-	std::cout << GREEN "reading from the cgi fd" << RESET << std::endl;
-	//i put the content of the cgi response in the body
-	data->body.append(buffer, bytes_read);
-	//switching to epollout
-	events[i].events = EPOLLOUT;
-	if(epoll_ctl(epoll_fd, EPOLL_CTL_MOD, data->sockfd, events) < 0)
-    {
-        std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
-    }
-}
-
 void manage_tserver(t_serverData *&data, struct epoll_event *events, int i, int epoll_fd)
 {
     (void)events;
@@ -382,34 +314,30 @@ void Server::createListenAddr(ConfigParser &config)
 			errorCloseEpollFd(epoll_fd, 1);
 		for (int i = 0; i < num_fds; ++i)
 		{
-			std::cout << "i " << i << " num " << num_fds << " event " << events[i].events << std::endl; 
 			t_serverData *info = static_cast<t_serverData*>(events[i].data.ptr);
 			int fd = info->sockfd;
-
+			std::cout << "i " << i << " num " << num_fds << " poll fd " << events[i].data.fd << " fd " << fd << "status: " << events[i].events << std::endl; 
 			// check if my fd is equal to a socket for handcheck
 			if(this->socketfd.find(fd) != this->socketfd.end())
 			{
-                std::cout << "entering here before\n" << std::endl;
 				// listen to add new fd to my epoll structure
 				struct sockaddr_in client_addr;
 				//new fd_client for communication
-				int client_fd = acceptConnection(fd, epoll_fd, client_addr);
-				
-                std::cout << "entering here\n" << std::endl;
+				int client_fd = acceptConnection(fd, epoll_fd, client_addr, info);
+				// std::cout << "New connection established with new fd: " << client_fd << std::endl;
 				// add new fd to my epoll instance
 				struct epoll_event client_event = this->fillEpoolDataInfo(client_fd, info);
+                std::cout << "after fd epoll: " << client_event.data.fd << " and fd " << static_cast<t_serverData*>(client_event.data.ptr)->sockfd << std::endl;
 				// add the new fd to be control by my epoll instance
 				if(epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &client_event) == -1)
                 {
                     std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
 					errorCloseEpollFd(epoll_fd, 4);
                 }
-				std::cout << "New connection established with new fd: " << client_fd << std::endl;
 			}
 			// Connection already etablish 
 			else
 			{
-                std::cout << "je suis la " << events[i].events << std::endl;
                 if(events[i].events & (EPOLLRDHUP | EPOLLHUP | EPOLLERR))
                     std::cout << RED "inside rdhup" << RESET << std::endl;
                 //i listen for some epollin event and possible data read
@@ -476,5 +404,6 @@ void Server::createListenAddr(ConfigParser &config)
                 std::cout << "-----------------------------------" << std::endl;
             }
 		}
+        usleep(100000);
 	}
 }

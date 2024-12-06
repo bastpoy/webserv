@@ -12,6 +12,16 @@ std::string	CGIExtensions[] = {
 
 int	nbCGIExtensions = 7;
 
+void print_vector(std::set<int>	socketfd)
+{
+    std::set<int>::iterator it = socketfd.begin();
+    while(it != socketfd.end())
+    {
+        std::cout << "set fd: " << *it << std::endl;
+        it++;
+    }
+}
+
 bool is_cgi_extension(std::string path)
 {
 	int	i = 0;

@@ -142,3 +142,64 @@ std::string fileToString(const char *filePath)
     buffer << inputFile.rdbuf(); //gets all content of the file and puts it into buffer;
     return (buffer.str());
 }
+
+void check_timeout_cgi(t_serverData *info, std::map<int, t_serverData*> &fdEpollLink)
+{
+    if(info)
+    {
+        if(info->cgi == NULL)
+        {
+            std::map<int, t_serverData*>::iterator it = fdEpollLink.begin();
+            //iterate through my corresponse map between fd and data struct
+            while (it != fdEpollLink.end()) 
+            {
+                //if i have a cgi inside my struct
+                if(it->second->cgi)
+                {
+                    //if my cgi is timeout
+                    if(it->second->cgi->cgiTimeout < time(NULL))
+                    {
+                        std::cout << "a cgi is TIMEOUT" << std::endl;
+                        std::string response = httpGetResponse("200 Ok", "text/html", readFile("./www/error/error408.html", it->second), it->second);
+                        if(send(it->second->sockfd, response.c_str(), response.size(), 0) < 0)
+                        {
+                            std::cout << RED "error send main "<< errno << " " << strerror(errno) << RESET << std::endl;
+                        }
+                        close(it->second->cgi->cgifd);
+                        close(it->second->sockfd);
+                        delete it->second->cgi;
+                        it->second->cgi = NULL;
+                        std::map<int, t_serverData*>::iterator toErase = it;
+                        it++;
+                        fdEpollLink.erase(toErase);
+                        continue;
+                    }
+                }
+                it++;
+            }
+        }
+    }
+}
+
+void read_cgi(t_serverData *data, struct epoll_event *events, int i, int epoll_fd)
+{
+	//i read my cgi which is finish
+	char buffer[4096];
+	int bytes_read;
+
+	std::cout << YELLOW "before reading cgi" << RESET << std::endl;
+	bytes_read = read(data->cgi->cgifd, buffer, 4096);
+	if(bytes_read < 1)
+	{
+		std::cerr << RED "error reading the cgi: " << strerror(errno) << RESET << std::endl; 
+	}
+	std::cout << GREEN "reading from the cgi fd" << RESET << std::endl;
+	//i put the content of the cgi response in the body
+	data->body.append(buffer, bytes_read);
+	//switching to epollout
+	events[i].events = EPOLLOUT;
+	if(epoll_ctl(epoll_fd, EPOLL_CTL_MOD, data->sockfd, events) < 0)
+    {
+        std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
+    }
+}
