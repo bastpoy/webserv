@@ -271,6 +271,8 @@ void	Server::fillLocation(std::ifstream &file, std::string line, std::vector<Loc
 	std::vector<void (Location::*)(std::string)> locationFunctions = getLocationFunctions();
 	bool		bracket = false;
 
+	if (line.find("{") != std::string::npos)
+		bracket = true;
 	location.setPath(line);
 	checkLocationPath(location, locations);
 	while(getline(file, line))

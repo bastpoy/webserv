@@ -115,7 +115,7 @@ void	ConfigParser::parseConfig(std::vector<Server> &servers)
 		if (line.find("server") != std::string::npos && httpBlock)
 		{
 			Server server;
-			getServerAttributs(file, server, getKeywords(), _serverFunctions);
+			getServerAttributs(file, server, getKeywords(), _serverFunctions, line.find("{") != std::string::npos);
 			checkServerAttributs(server, servers);
 			addServer(server);
 		}
@@ -179,14 +179,13 @@ void ConfigParser::parseLine(std::string &line) //TODO - Mettre dans utils
 }
 
 /**
- * @brief	This function will find each attribute to parse and redirectto the good fill function.
- * @note	It will erase all spaces between key and value in the configuration file.ADJ_FREQUENCY
- * @author	Amandine, Bastien, Ozan.
+ * @brief	This function will find each attribute to parse and redirect to the good fill function.
+ * @note	It will erase all spaces between key and value in the configuration file.
 */
-void ConfigParser::getServerAttributs(std::ifstream& file, Server &server, std::vector<std::string> keywords, std::vector<void (Server::*)(std::string)> serverFunctions)
+void ConfigParser::getServerAttributs(std::ifstream& file, Server &server, std::vector<std::string> keywords, std::vector<void (Server::*)(std::string)> serverFunctions, bool bracket)
 {
 	std::string	line;
-	bool		bracket = false;
+	// bool		bracket = false;
 
 
 	while(getline(file, line))
