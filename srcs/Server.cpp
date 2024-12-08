@@ -94,7 +94,7 @@ void Server::setupSocket(int &sockfd, struct sockaddr_in &addr, std::vector<Serv
 		close(3);
 		close(4);
 		close(5);
-		std::cout << "\nBIND: " << sockfd << " " << strerror(errno) << " ";
+		std::cout << "\nBIND: " << sockfd << " " << strerror(errno) << std::endl;
 		throw Response::ErrorCreatingSocket(strerror(errno));
 	}
 

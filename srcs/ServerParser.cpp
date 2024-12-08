@@ -72,6 +72,7 @@ void	Server::setServerName(std::string line)
 			if (!(result >= 0 && result <= 255))
 				throw Response::ConfigurationFileServer("IP out of range");
 		}
+		_ip = _server_name;
 		return ;
 	}
 }
