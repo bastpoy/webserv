@@ -64,7 +64,7 @@ struct epoll_event Server::fillEpoolDataInfo(int &client_fd, t_serverData *info)
 	data->cgi = NULL;
 
     struct epoll_event client_event;
-	client_event.events = EPOLLIN | EPOLLRDHUP | EPOLLET ;
+	client_event.events = EPOLLIN;
 	client_event.data.ptr = static_cast<void*>(data);
 
 	return(client_event);
@@ -80,7 +80,7 @@ void Server::setupSocket(int &sockfd, struct sockaddr_in &addr, std::vector<Serv
     hints.ai_flags = AI_PASSIVE;  // Use local IP
 
     // std::string ip = itbeg->getIP();
-    std::string ip = itbeg->getServerName();
+    std::string ip = itbeg->getIP();
     std::string port = itbeg->getPort();  // Assuming you have a getPort() method
     
     std::cout << "IP: |" << ip << "| and port: |" << port << "|" << std::endl;
@@ -103,7 +103,6 @@ void Server::setupSocket(int &sockfd, struct sockaddr_in &addr, std::vector<Serv
 		std::cout << "\nBIND: ";
 		throw Response::ErrorCreatingSocket(strerror(errno));
 	}
-
 	//listen on the current socket created
 	if (listen(sockfd, 10) < 0)
 	{
@@ -122,9 +121,9 @@ void Server::configuringNetwork(std::vector<Server>::iterator &itbeg, ConfigPars
 	{
 		//creation addrinfo struc to stock my addrinfo informations
 		struct sockaddr_in addr;
-		
+        
 		//I create my socket
-		int sockfd = socket(AF_INET, SOCK_STREAM  | O_NONBLOCK, 0);
+		int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 		if (sockfd == -1)
 		{
             std::cout << "error creating socket" << std::endl;
@@ -163,13 +162,9 @@ int acceptConnection(int &fd, int &epoll_fd, struct sockaddr_in &client_addr)
 	int client_fd = accept(fd, (struct sockaddr*)&client_addr, &client_addr_len);
 	if (client_fd == -1)
     {
-        if(errno == EAGAIN)
-        {
-            return(-1);
-        }
-        std::cout << "listen: " << errno << std::endl;
         errorCloseEpollFd(epoll_fd, 6);
     }
+
 	return(client_fd);
 }
 
@@ -180,7 +175,7 @@ bool handleRequest(std::string buffer, t_serverData *data, Cookie &cookie, std::
 
     request_allowed(typeRequest, data);
 
-	if(typeRequest == "GET" && request_allowed("GET", data))
+	if(typeRequest == "GET")
 	{
 		//if i have a redirection on the server or the location
 		if(data->redir.size())
@@ -192,15 +187,13 @@ bool handleRequest(std::string buffer, t_serverData *data, Cookie &cookie, std::
 		else
 			parseAndGetRequest(buffer, data, cookie, fdEpollLink);
 	}
-	//if it is a post request
-	else if(typeRequest == "POST" && request_allowed("POST", data))
+	else if(typeRequest == "POST")
 	{
 		postRequest(data, cookie);
 	}
-	//if its a delete request
-	else if(typeRequest == "DELETE" && request_allowed("DELETE", data))
+	else if(typeRequest == "DELETE")
 	{
-		parseAndDeleteRequest(buffer, data);
+		parseAndDeleteRequest(buffer, data, typeRequest);
 	}
 	//if its not get, post or delete request
 	else
@@ -215,8 +208,17 @@ bool read_one_chunk(t_serverData *data, struct epoll_event ev, int epoll_fd)
 	int bytes_read = recv(data->sockfd, buffer, BUFER_SIZE, 0);
 	if (bytes_read < 0) 
 	{
-		std::cout << "Error " << errno << " reading from socket " << data->sockfd << ": " << strerror(errno) << std::endl;
-		errorPage("400", data);
+        if(errno == EAGAIN)
+        {
+            std::cout << RED "EAGAIN ON RECV\n" << RESET;
+            return(false);
+        }
+        else
+        {
+            std::cout << "Error " << errno << " reading from socket " << data->sockfd << ": " << strerror(errno) << std::endl;
+            errorPage("400", data);
+
+        }
 	} 
 	// if there is a deconnection
 	else if (bytes_read == 0) 
@@ -247,14 +249,14 @@ bool read_one_chunk(t_serverData *data, struct epoll_event ev, int epoll_fd)
 	//if i finish reading everything
 	if(static_cast<int>(data->buffer.size()) == getContentLength(data->buffer, data))
 	{
-		std::cout << BLUE "finish reading data second" << RESET << std::endl;
+		std::cout << CYAN "finish reading data second" << RESET << std::endl;
 		return true;
 	}
 	// std::cout << BLUE "bytes read " << bytes_read << " with sockfd "<< data->sockfd << " and sizebuffer" << data->buffer.size() << RESET <<std::endl;
 	return (false);
 }
 
-void parsing_buffer(t_serverData *data, Cookie &cookie, std::map<int, t_serverData*> &fdEpollLink)
+void proceed_response(t_serverData *data, Cookie &cookie, std::map<int, t_serverData*> &fdEpollLink)
 {
 	//if i have a buffer so a request 
 	if(!data->buffer.empty())
@@ -263,12 +265,7 @@ void parsing_buffer(t_serverData *data, Cookie &cookie, std::map<int, t_serverDa
 		size_t pos = data->buffer.find("\r\n\r\n");
 		data->header = data->buffer.substr(0, pos);
 		data->body = data->buffer.substr(pos + 4, data->buffer.size() - pos + 4);
-		// std::cout << MAGENTA "handling request\n" << data->header << RESET << std::endl;
 		handleRequest(data->buffer, data, cookie, fdEpollLink);
-	}
-	else
-	{
-		// std::cout << "no data provide" << std::endl;
 	}
 }
 
@@ -283,13 +280,13 @@ void manage_tserver(t_serverData *&data, struct epoll_event *events, int i, int 
     {
         std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
     }
-    // close(data->sockfd);
-    // delete data;
-    // GlobalLinkedList::update_data(data);
+    close(data->sockfd);
+    GlobalLinkedList::update_data(data);
     data->body.erase();
     data->buffer.erase();
     data->header.erase();
-    // data = NULL;
+    delete data;
+    data = NULL;
 }
 
 // Fill from ServerAddr
@@ -326,7 +323,7 @@ void Server::createListenAddr(ConfigParser &config)
 			t_serverData *info = static_cast<t_serverData*>(events[i].data.ptr);
 			int fd = info->sockfd;
 			std::cout << YELLOW "i " << i << " num " << num_fds << " poll fd " << events[i].data.fd << " fd " << fd << " status: " << events[i].events << RESET << std::endl; 
-            if(events[i].events & (EPOLLRDHUP | EPOLLHUP | EPOLLERR))
+            if((events[i].events & EPOLLERR) || (events[i].events & EPOLLHUP) || (!(events[i].events & EPOLLIN)))
             {
                 if(epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, &events[i]) == -1)
                 {
@@ -343,10 +340,6 @@ void Server::createListenAddr(ConfigParser &config)
 				struct sockaddr_in client_addr;
 				//new fd_client for communication
 				int client_fd = acceptConnection(fd, epoll_fd, client_addr);
-                if(client_fd == -1)
-                {
-                    continue;
-                }
 				// std::cout << "New connection established with new fd: " << client_fd << std::endl;
 				// add new fd to my epoll instance
 				struct epoll_event client_event = this->fillEpoolDataInfo(client_fd, info);
@@ -404,7 +397,7 @@ void Server::createListenAddr(ConfigParser &config)
                         }
                         // parse the data
                         else
-                            parsing_buffer(info, cookie, fdEpollLink);
+                            proceed_response(info, cookie, fdEpollLink);
                         // if i finish sending the info I change the status of the socket
                         manage_tserver(info, events, i, epoll_fd);
                         // std::cout << YELLOW "status " << events[i].events << RESET << std::endl;
@@ -426,6 +419,5 @@ void Server::createListenAddr(ConfigParser &config)
                 std::cout << "-----------------------------------" << std::endl;
             }
 		}
-        usleep(100000);
 	}
 }

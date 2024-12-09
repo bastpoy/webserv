@@ -171,7 +171,7 @@ void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::strin
 	std::vector<Location>location = data->location;
 	std::string	content;
 	std::string code;
-	std::string contentType = getContentType(uri);
+	std::string contentType = getContentType(uri, "GET");
 	//check if I have a location block that match the query
 	std::string filePath = check_location(uri, content, data->location, data);
 
@@ -224,6 +224,10 @@ void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::strin
     //idem for the file
 	checkAccessFile(code, filePath, data);
 	std::string response = httpGetResponse(code, contentType, content, data);
+    //add user cookie connection at the end
+    // std::cout << MAGENTA "handling request\n" << response << RESET << std::endl;
+    response = display_user_connection(cookie, data, response);
+    std::cout << response.size() << std::endl; 
     // std::cout << MAGENTA "handling request\n" << response << RESET << std::endl;
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 	{

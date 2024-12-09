@@ -104,7 +104,7 @@ std::vector<std::string>	ft_split(const std::string& str, char delimiter)
 	return result;
 }
 
-std::string getContentType(std::string &path) 
+std::string getContentType(std::string &path, std::string typeRequest) 
 {
 	std::map<std::string, std::string> contentTypes;
 
@@ -147,11 +147,11 @@ std::string getContentType(std::string &path)
 			return contentTypes[extension];
 		}
 	}
-	//if i dont have exetension i add backslash
+	//if i dont have extension i add backslash
 	else
 	{
 		//if size of path = 0 or no '/' at the end
-		if(path.size() == 0 || path.at(path.size() - 1) != '/')
+		if((path.size() == 0 || path.at(path.size() - 1) != '/') && typeRequest != "DELETE")
 			path += "/";
 	}
 	return "text/html"; // Default content type

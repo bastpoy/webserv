@@ -130,7 +130,7 @@ std::string HandleCgiRequest(std::string uri, t_serverData *data, std::map<int, 
 // get.cpp
 void		redirRequest(std::string location, int fd, t_serverData *data);
 std::string	check_location(std::string &uri, std::string &content, std::vector<Location> &location, t_serverData *data);
-std::string	getContentType(std::string &path);
+std::string	getContentType(std::string &path, std::string typeRequest);
 void		checkAccessFile(std::string &code, std::string &filePath, t_serverData *data);
 void		parseAndGetRequest(std::string buffer, t_serverData *data, Cookie &cookie, std::map<int, t_serverData*> &fdEpollLink);
 
@@ -144,7 +144,7 @@ std::string	newSessionCookie(std::map<std::string, std::string> values,Cookie &c
 std::string	manageDate(time_t current_time);
 bool		check_cookie_validity(Cookie &cookie, std::string id);
 std::string	get_cookie_id(std::string buffer);
-
+std::string display_user_connection(Cookie &cookie, t_serverData *data, std::string response);
 // Response.cpp
 std::string	httpGetResponse(std::string code, std::string contentType, std::string content, t_serverData *data);
 std::string	httpGetResponseDownload(std::string code, std::string contentType, std::string content, t_serverData *data);

@@ -27,7 +27,7 @@ bool Cookie::remove_session_id(std::string id)
     if (it != this->session.end())
     {
         this->session.erase (it);
-        std::cout << "DECONNEXION SUCCESSFULL" << std::endl;
+        std::cout << GREEN "DECONNEXION SUCCESSFULL" << RESET << std::endl;
         return (true);
     }
     return(false);
@@ -42,7 +42,6 @@ void Cookie::add_session(std::pair<std::string, t_session> session)
 //=================
 // other functions
 //=================
-
 
 std::string get_cookie_id(std::string buffer)
 {
@@ -71,6 +70,49 @@ bool check_cookie_validity(Cookie &cookie, std::string id)
     else
         return(false);
     return(true);
+}
+
+std::string display_user_connection(Cookie &cookie, t_serverData *data, std::string response)
+{
+    std::string html;
+    std::string id = get_cookie_id(data->buffer);
+    if(id.size() && check_cookie_validity(cookie, id))
+    {
+        std::pair<std::string, t_session> session_id = cookie.get_session_id(id);
+        if(!session_id.first.empty())
+        {
+            std::cout << "AAAAAAAAAAAAAAH" << std::endl;
+            html =    
+                "\t<div class='user-info'>\n"
+                "\t\t<h2>User Connection Details</h2>\n"
+                "\t\t<p><strong>Email:</strong> " + session_id.second.credentials.second + " </p>\n"
+                "\t\t<p><strong>Password:</strong> " + session_id.second.credentials.first + " </p>\n"
+                "\t</div>\n" ;
+                // "</body>\n</html>";
+
+                // size_t pos = response.find("</body>\n</html>");
+                size_t pos = response.find("</body>");
+
+                if(pos != std::string::npos)
+                {
+                    response = response.insert(pos, html);
+                }
+                pos = response.find("Content-Length: ");
+                if(pos != std::string::npos)
+                {
+                    pos += 16;
+                    size_t pos1 = response.find("\r\n", pos);
+                    if(pos != std::string::npos)
+                    {
+                        int length = response.size(); 
+                        std::string lalength = to_string(length);
+                        response.erase(pos, pos1 - pos);
+                        response.insert(pos, lalength);
+                    }
+                }
+        }
+    }
+    return (response);
 }
 
 std::string gen_random(const int len) {

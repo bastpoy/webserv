@@ -107,7 +107,7 @@ void	notFoundFavicon(t_serverData *data)
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 	{
 		std::cout << strerror(errno) << std::endl;
-		throw Response::ErrorSendingResponse(); 
+		throw Response::ErrorSendingResponse();
 	}
 	// close(data->sockfd);
 	throw Response::Error();
@@ -199,7 +199,6 @@ void errorPage(std::string error, t_serverData *data)
 		if(it != data->errorPage.end())
 		{
 			std::string path = data->path + it->second;
-			std::cout << "the path error_code: " << path << std::endl;
 			choose_error_page(error, data, path);
 		}
 	}
