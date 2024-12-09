@@ -14,6 +14,7 @@ std::string Response::sendResponse(std::string statusCode, std::string contentTy
     {
         response += "Connection: close\r\n";
     }
+    std::cout << response << std::endl;
 	response += "\r\n" + content;
 
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)

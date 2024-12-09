@@ -206,7 +206,7 @@ bool handleRequest(std::string buffer, t_serverData *data, Cookie &cookie, std::
 	}
 	//if its not get, post or delete request
 	else
-		std::cout << "404 not found" << std::endl;
+		errorPage("405", data);
 	return(false);
 }
 

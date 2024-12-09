@@ -59,7 +59,7 @@ void errorCloseEpollFd(int &epoll_fd, int errCode)
 
 void	forbidden(t_serverData *data)
 {
-	std::string contentFile = readFile("./www/error/error403.html", data);
+	std::string contentFile = readFile("./www/error/403.html", data);
 
 	std::string response = "HTTP/1.1 403 Forbiden\r\n"
 							"Content-Type: text/html\r\n"
@@ -77,7 +77,7 @@ void	forbidden(t_serverData *data)
 
 void	notFound(t_serverData *data)
 {
-	std::string contentFile = readFile("./www/error/error404.html", data);
+	std::string contentFile = readFile("./www/error/404.html", data);
 
 	std::string response = "HTTP/1.1 404 Not Found\r\n"
 							"Content-Type: text/html\r\n"
@@ -96,7 +96,7 @@ void	notFound(t_serverData *data)
 
 void	notFoundFavicon(t_serverData *data)
 {
-	std::string contentFile = readFile("./www/error/error404.html", data);
+	std::string contentFile = readFile("./www/error/404.html", data);
 
 	std::string response = "HTTP/1.1 404 Not Found\r\n"
 							"Content-Type: text/html\r\n"
@@ -205,21 +205,21 @@ void errorPage(std::string error, t_serverData *data)
 	}
 	// if i dont have error specify i return basic error page
 	if (error == "400")
-		Response::sendResponse("400 Bad Request", "text/html", read_error_file("./www/error/error400.html", data), data);
+		Response::sendResponse("400 Bad Request", "text/html", read_error_file("./www/error/400.html", data), data);
 	else if (error == "403")
-		Response::sendResponse("403 Forbidden", "text/html", read_error_file("./www/error/error403.html", data), data);
+		Response::sendResponse("403 Forbidden", "text/html", read_error_file("./www/error/403.html", data), data);
 	else if (error == "404")
-		Response::sendResponse("404 Not Found", "text/html", read_error_file("./www/error/error404.html", data), data);
+		Response::sendResponse("404 Not Found", "text/html", read_error_file("./www/error/404.html", data), data);
 	else if (error == "405")
-		Response::sendResponse("405 Method Not Allowed", "text/html", read_error_file("./www/error/error405.html", data), data);
+		Response::sendResponse("405 Method Not Allowed", "text/html", read_error_file("./www/error/405.html", data), data);
 	else if (error == "413")
-		Response::sendResponse("413 Content Too Large", "text/html", read_error_file("./www/error/error413.html", data), data);
+		Response::sendResponse("413 Content Too Large", "text/html", read_error_file("./www/error/413.html", data), data);
 	else if (error == "413")
 		contentTooLarge(data);
 	else if (error == "500")
-		Response::sendResponse("500 Internal Server Error", "text/html", read_error_file("./www/error/error500.html", data), data);
+		Response::sendResponse("500 Internal Server Error", "text/html", read_error_file("./www/error/500.html", data), data);
 	else if (error == "501")
-		Response::sendResponse("501 Not Implemented", "text/html", readFile("./www/error/error501.html", data), data);
+		Response::sendResponse("501 Not Implemented", "text/html", readFile("./www/error/501.html", data), data);
 	else if (error == "504")
-		Response::sendResponse("504 Gateway Timeout", "text/html", readFile("./www/error/error504.html", data), data);
+		Response::sendResponse("504 Gateway Timeout", "text/html", readFile("./www/error/504.html", data), data);
 }
