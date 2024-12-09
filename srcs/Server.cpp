@@ -90,7 +90,7 @@ void Server::setupSocket(int &sockfd, struct sockaddr_in &addr, std::vector<Serv
 
     std::string ip = itbeg->getIP();
     std::string port = itbeg->getPort();  // Assuming you have a getPort() method
-
+	std::cout << "ip: " << ip << "; Port: " << port << std::endl;
     int status = getaddrinfo(ip.c_str(), port.c_str(), &hints, &result);
     if (status != 0) {
         closeAllFileDescriptors();
