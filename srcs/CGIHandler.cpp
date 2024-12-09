@@ -136,10 +136,10 @@ std::string fileToString(const char *filePath)
     if (!inputFile.is_open())
     {
         throw std::runtime_error("Failed to open the file: " + std::string(filePath));
-    } // love
+    }
 
     std::stringstream buffer;
-    buffer << inputFile.rdbuf(); //gets all content of the file and puts it into buffer;
+    buffer << inputFile.rdbuf();
     return (buffer.str());
 }
 
@@ -164,6 +164,7 @@ void check_timeout_cgi(t_serverData *info, std::map<int, t_serverData*> &fdEpoll
                         if(send(it->second->sockfd, response.c_str(), response.size(), 0) < 0)
                         {
                             std::cout << RED "error send main "<< errno << " " << strerror(errno) << RESET << std::endl;
+                            errorPage("500", info);
                         }
                         close(it->second->cgi->cgifd);
                         close(it->second->sockfd);
@@ -201,5 +202,6 @@ void read_cgi(t_serverData *data, struct epoll_event *events, int i, int epoll_f
 	if(epoll_ctl(epoll_fd, EPOLL_CTL_MOD, data->sockfd, events) < 0)
     {
         std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
+        errorPage("500", data);
     }
 }

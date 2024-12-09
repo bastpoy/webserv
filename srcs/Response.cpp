@@ -19,7 +19,7 @@ std::string Response::sendResponse(std::string statusCode, std::string contentTy
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 	{
 		std::cout << strerror(errno) << std::endl;
-		throw Response::ErrorSendingResponse(); 
+		errorPage("500", data);
 	}
 	throw Response::responseOk(); 
 }
@@ -80,7 +80,7 @@ void redirRequest(std::string location, int fd, t_serverData *data)
 	if(send(fd, response.c_str(), response.size(), 0) < 0)
 	{
 		std::cout << strerror(errno) << std::endl;
-		std::cout << "Error redirection: " << strerror(errno) << std::endl;
+		errorPage("500", data);
 	}
     // close(fd);
 }
@@ -116,7 +116,7 @@ void httpPostResponse(std::string code , std::string contentType, std::string co
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 	{
 		std::cout << strerror(errno) << std::endl;
-		throw Response::ErrorSendingResponse(); 
+		errorPage("500", data);
 	}
 }
 

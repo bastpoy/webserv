@@ -145,8 +145,10 @@ void Server::configuringNetwork(std::vector<Server>::iterator &itbeg, ConfigPars
 		struct epoll_event event = this->fillEpoolDataIterator(sockfd, itbeg, config);
 
 		//add the epoll event to my epoll_fd instance
-		if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, sockfd, &event) == -1)
+        if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, sockfd, &event) == -1)
+        {
 			errorCloseEpollFd(epoll_fd, 4);
+        }
 		
 		//add every socket to my set container
 		this->setSocketFd(sockfd);
@@ -208,17 +210,8 @@ bool read_one_chunk(t_serverData *data, struct epoll_event ev, int epoll_fd)
 	int bytes_read = recv(data->sockfd, buffer, BUFER_SIZE, 0);
 	if (bytes_read < 0) 
 	{
-        if(errno == EAGAIN)
-        {
-            std::cout << RED "EAGAIN ON RECV\n" << RESET;
-            return(false);
-        }
-        else
-        {
-            std::cout << "Error " << errno << " reading from socket " << data->sockfd << ": " << strerror(errno) << std::endl;
-            errorPage("400", data);
-
-        }
+        std::cout << "Error " << errno << " reading from socket " << data->sockfd << ": " << strerror(errno) << std::endl;
+        errorPage("400", data);
 	} 
 	// if there is a deconnection
 	else if (bytes_read == 0) 
@@ -227,12 +220,12 @@ bool read_one_chunk(t_serverData *data, struct epoll_event ev, int epoll_fd)
 		if(epoll_ctl(epoll_fd, EPOLL_CTL_DEL, data->sockfd, &ev) < 0)
         {
             std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
+            errorPage("500", data);
         }
 		close(data->sockfd);
 		return (false); 
 	}
 	data->buffer.append(buffer, bytes_read);
-	// std::cout << YELLOW << "size " << data->buffer.size() << " " << data->buffer << std::endl;
 	//retieve the header
 	size_t pos = data->buffer.find("\r\n\r\n");
 	if(pos != std::string::npos)
@@ -243,13 +236,11 @@ bool read_one_chunk(t_serverData *data, struct epoll_event ev, int epoll_fd)
 	//check if buffer size - header size = contentlength
 	if(static_cast<int>(data->buffer.size() - data->header.size()) == getContentLength(data->buffer, data))
 	{
-		// std::cout << BLUE "finish reading data first" << RESET << std::endl;
 		return (true);
 	}
 	//if i finish reading everything
 	if(static_cast<int>(data->buffer.size()) == getContentLength(data->buffer, data))
 	{
-		std::cout << CYAN "finish reading data second" << RESET << std::endl;
 		return true;
 	}
 	// std::cout << BLUE "bytes read " << bytes_read << " with sockfd "<< data->sockfd << " and sizebuffer" << data->buffer.size() << RESET <<std::endl;
@@ -271,14 +262,12 @@ void proceed_response(t_serverData *data, Cookie &cookie, std::map<int, t_server
 
 void manage_tserver(t_serverData *&data, struct epoll_event *events, int i, int epoll_fd)
 {
-    (void)events;
-    (void)i;
-    (void)epoll_fd;
     std::cout << BLUE "switching to epoolin" << RESET << std::endl;
     events[i].events = EPOLLIN;
     if(epoll_ctl(epoll_fd, EPOLL_CTL_MOD, data->sockfd, events) < 0)
     {
         std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
+        errorPage("500", data);
     }
     close(data->sockfd);
     GlobalLinkedList::update_data(data);
@@ -340,10 +329,9 @@ void Server::createListenAddr(ConfigParser &config)
 				struct sockaddr_in client_addr;
 				//new fd_client for communication
 				int client_fd = acceptConnection(fd, epoll_fd, client_addr);
-				// std::cout << "New connection established with new fd: " << client_fd << std::endl;
+				std::cout << "New connection established with new fd: " << client_fd << std::endl;
 				// add new fd to my epoll instance
 				struct epoll_event client_event = this->fillEpoolDataInfo(client_fd, info);
-                std::cout << "New client fd epoll: " << client_event.data.fd << " and fd " << static_cast<t_serverData*>(client_event.data.ptr)->sockfd << std::endl;
 				// add the new fd to be control by my epoll instance
 				if(epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &client_event) == -1)
                 {
@@ -370,6 +358,7 @@ void Server::createListenAddr(ConfigParser &config)
                         if(epoll_ctl(epoll_fd, EPOLL_CTL_MOD, info->sockfd, events) < 0)
                         {
                             std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
+                            errorCloseEpollFd(epoll_fd, 4);
                         }
                     }
                 }
@@ -382,13 +371,11 @@ void Server::createListenAddr(ConfigParser &config)
                         //if I have already a cgi and ready to return information
                         if(info->cgi)
                         {
-                            std::cout << GREEN "sending cgi response\n" RESET;
                             std::string response = httpGetResponse("200 Ok", "text/html", info->body, info);
-                            std::cout << MAGENTA "Response: " << response << RESET << std::endl;
                             if(send(info->sockfd, response.c_str(), response.size(), 0) < 0)
                             {
                                 std::cout << "error sending CGI response\n";
-                                Response::sendResponse("500", "text/html", "<h1>500 Internal Server Error</h1>", info);
+                                errorPage("500", info);
                             }
                             fdEpollLink.erase(info->sockfd);
                             close(info->cgi->cgifd);
@@ -400,7 +387,6 @@ void Server::createListenAddr(ConfigParser &config)
                             proceed_response(info, cookie, fdEpollLink);
                         // if i finish sending the info I change the status of the socket
                         manage_tserver(info, events, i, epoll_fd);
-                        // std::cout << YELLOW "status " << events[i].events << RESET << std::endl;
                     }
                     catch(const std::exception& e)
                     {

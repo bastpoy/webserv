@@ -44,7 +44,7 @@ void displayDeletePage(std::string path, t_serverData *data)
     if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 	{
 		std::cout << strerror(errno) << std::endl;
-		throw Response::ErrorSendingResponse(); 
+		errorPage("500", data);
 	}
     // close(data->sockfd);
 }
@@ -71,7 +71,7 @@ void deleteRequest(std::string &uri, t_serverData *data, std::string typeRequest
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 	{
 		std::cout << strerror(errno) << std::endl;
-		throw Response::ErrorSendingResponse(); 
+		errorPage("500", data);
 	}
 }
 

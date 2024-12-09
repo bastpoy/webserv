@@ -81,7 +81,6 @@ std::string display_user_connection(Cookie &cookie, t_serverData *data, std::str
         std::pair<std::string, t_session> session_id = cookie.get_session_id(id);
         if(!session_id.first.empty())
         {
-            std::cout << "AAAAAAAAAAAAAAH" << std::endl;
             html =    
                 "\t<div class='user-info'>\n"
                 "\t\t<h2>User Connection Details</h2>\n"
@@ -162,6 +161,5 @@ std::string newSessionCookie(std::map<std::string, std::string> values, Cookie &
         it++;
     }
     cookie.add_session(newSession);
-    std::cout << "adding new cookie" << std::endl;
     return (newSession.first);
 }

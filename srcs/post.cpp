@@ -170,49 +170,6 @@ std::string getFileName(std::string body, t_serverData *data)
 	return (fileName);
 }
 
-bool read_full_body(t_serverData *data, std::string &body, int content_length) 
-{
-	// read the full body of the upload content
-	int total_read = body.size();
-	const int buffer_size = 1024;   // Use a large buffer if desired
-	char buffer[buffer_size];
-
-    std::cout << body << std::endl;
-	while (total_read < content_length) {
-		// Calculate how much more data we need to read
-		int bytes_to_read = std::min(content_length - total_read, buffer_size);
-        // std::cout << content_length - total_read << " " << buffer_size << " " << bytes_to_read << std::endl;
-		
-		// Read data into the buffer
-        // int bytes_read =  read(data->sockfd, buffer, bytes_to_read);
-		int bytes_read = recv(data->sockfd, buffer, bytes_to_read, 0);
-        // std::cout << "bytes read " << bytes_read << std::endl;
-		if (bytes_read < 0) 
-		{
-			std::cout << "Error reading from socket: " << strerror(errno) << std::endl;
-			errorPage("400", data);
-		} 
-		else if (bytes_read == 0) 
-		{
-			std::cout << "Connection closed by the client." << std::endl;
-			break; // Connection closed
-		}
-        // else if(bytes_read < buffer_size)
-        // {
-        //     std::cout << "je break alors que faut pas " << bytes_read << std::endl;
-		//     body.append(buffer, bytes_read);
-        //     // exit(1);
-		// 	break; // Connection closed
-        // }
-        // std::cout << bytes_to_read << " " << total_read << " " << content_length << std::endl;
-		// Append the read data to the body string
-		body.append(buffer, bytes_read);
-		total_read += bytes_read;
-	}
-    std::cout << "je suis sorti\n" << total_read << " " << content_length << std::endl;
-	// Check if we read the expected content length
-	return total_read == content_length;
-}
 
 void postRequest(t_serverData *data, Cookie &cookie)
 {
@@ -232,7 +189,6 @@ void postRequest(t_serverData *data, Cookie &cookie)
 			std::string fileName = getFileName(data->body, data);
 			fileName = "./www/upload/" + fileName;
 			//read all the data of the upload file
-			// read_full_body(data, body, size);
 			std::ofstream output(fileName.c_str(), std::ios::binary);
 			if(!output.is_open())
 			{

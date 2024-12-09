@@ -69,7 +69,7 @@ void	forbidden(t_serverData *data)
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 	{
 		std::cout << strerror(errno) << std::endl;
-		throw Response::ErrorSendingResponse(); 
+		errorPage("500", data);
 	}
 	close(data->sockfd);
 	throw Response::Error();
@@ -88,7 +88,7 @@ void	notFound(t_serverData *data)
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 	{
 		std::cout << strerror(errno) << std::endl;
-		throw Response::ErrorSendingResponse(); 
+		errorPage("500", data);
 	}
 	close(data->sockfd);
 	throw Response::Error();
@@ -107,7 +107,7 @@ void	notFoundFavicon(t_serverData *data)
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 	{
 		std::cout << strerror(errno) << std::endl;
-		throw Response::ErrorSendingResponse();
+		errorPage("500", data);
 	}
 	// close(data->sockfd);
 	throw Response::Error();
@@ -129,7 +129,7 @@ static void	contentTooLarge(t_serverData *data)
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 	{
 		std::cout << strerror(errno) << std::endl;
-		throw Response::ErrorSendingResponse(); 
+		errorPage("500", data);
 	}
 	throw Response::Error();
 }

@@ -232,7 +232,7 @@ void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::strin
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 	{
 		std::cout << strerror(errno) << std::endl;
-		throw Response::ErrorSendingResponse();
+		errorPage("500", data);
 	}
 }
 
