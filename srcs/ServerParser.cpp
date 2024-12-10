@@ -236,10 +236,9 @@ std::vector<std::string>			&Server::getAllowedMethods() { return (_allowedMethod
 
 std::vector<Location>	&Server::getLocation() { return (_location); }
 
-std::vector<void (Location::*)(std::string)>	Server::getLocationFunctions(void)
-{
-	return (_locationFunctions);
-}
+std::vector<void (Location::*)(std::string)>	Server::getLocationFunctions(void) { return (_locationFunctions); }
+
+int	Server::getKeywordsSize(void) { return (_locKeywordsSize); }
 
 std::vector<std::string>	Server::getKeywords(void)
 {
@@ -249,8 +248,6 @@ std::vector<std::string>	Server::getKeywords(void)
 		locKeywords.push_back(_locKeywords[i][0]);
 	return (locKeywords);
 }
-
-int	Server::getKeywordsSize(void) { return (_locKeywordsSize); }
 
 /* ================ */
 /*		FILL		*/

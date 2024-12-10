@@ -127,27 +127,18 @@ void Server::configuringNetwork(std::vector<Server>::iterator &itbeg, ConfigPars
 		}
 
 		std::cout << sockfd << " and ";
-		//add properties to allow the socket to be reusable even if it is in time wait
 		int opt = 1;
 		if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
 			errorCloseEpollFd(epoll_fd, 3);
-		
-		// std::cout << itbeg->getPort() << "-" << itbeg->getServerName() << "-" << std::endl;
 
-		//fill my sockaddr_in addr with the result of getaddrinfo
 		addr.sin_family = AF_INET;
 		addr.sin_port = htons(atoi(itbeg->getPort().c_str()));
 
 		setupSocket(sockfd, addr, itbeg);
 
-		//create a new instance of epool_event to stock info        
 		struct epoll_event event = this->fillEpoolDataIterator(sockfd, itbeg, config);
-
-		//add the epoll event to my epoll_fd instance
 		if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, sockfd, &event) == -1)
 			errorCloseEpollFd(epoll_fd, 4);
-		
-		//add every socket to my set container
 		this->setSocketFd(sockfd);
 		itbeg++;
 	}
@@ -226,9 +217,7 @@ void parsing_buffer(t_serverData *data, Cookie &cookie, std::map<int, t_serverDa
 		handleRequest(data->buffer, data, cookie, fdEpollLink);
 	}
 	else
-	{
 		std::cout << "no data provide" << std::endl;
-	}
 }
 
 void check_timeout_cgi(t_serverData *info, std::map<int, t_serverData*> &fdEpollLink)
@@ -274,9 +263,7 @@ void read_cgi(t_serverData *data, struct epoll_event *events, int i, int epoll_f
 	std::cout << YELLOW "before reading cgi" << RESET << std::endl;
 	bytes_read = read(data->cgi->cgifd, buffer, 4096);
 	if(bytes_read < 1)
-	{
 		std::cerr << RED "error reading the cgi: " << strerror(errno) << RESET << std::endl; 
-	}
 	std::cout << GREEN "reading from the cgi fd" << RESET << std::endl;
 	data->body.append(buffer, bytes_read);
 	events[i].events = EPOLLOUT;
@@ -288,9 +275,7 @@ void manage_tserver(t_serverData *&data, struct epoll_event *events, int i, int 
 	std::cout << BLUE "switching to epoolin" << RESET << std::endl;
 	events[i].events = EPOLLIN;
 	if(epoll_ctl(epoll_fd, EPOLL_CTL_MOD, data->sockfd, events) < 0)
-	{
 		std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
-	}
 	close(data->sockfd);
 	delete data;
 	GlobalLinkedList::update_data(data);

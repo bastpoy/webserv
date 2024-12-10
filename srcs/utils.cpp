@@ -61,7 +61,6 @@ bool	ft_stoi(const std::string &str, int &result)
 	}
 	if (i < str.length() && (str[i] < '0' || str[i] > '9'))
 		return false;
-
 	result = isNegative ? -result : result;
 	return true;
 }
@@ -75,9 +74,8 @@ std::vector<std::string>	ft_split(const std::string& str, char delimiter)
 		if (str[i] == delimiter) {
 			result.push_back(tmp);
 			tmp.clear();
-		} else {
+		} else
 			tmp += str[i];
-		}
 	}
 	if (!tmp.empty())
 		result.push_back(tmp);
@@ -124,9 +122,8 @@ std::string getContentType(std::string &path)
 	size_t dotPos = path.find_last_of(".");
 	if (dotPos != std::string::npos) {
 		std::string extension = path.substr(dotPos);
-		if (contentTypes.find(extension) != contentTypes.end()) {
+		if (contentTypes.find(extension) != contentTypes.end())
 			return contentTypes[extension];
-		}
 	}
 	else
 		if(path.size() == 0 || path.at(path.size() - 1) != '/')
@@ -211,9 +208,7 @@ std::string read_error_file(std::string path, t_serverData *data)
 {
 	std::ifstream file(path.c_str(), std::ios::binary);
 	if(!file.is_open())
-	{
 		Response::sendResponse("500", "text/html", "<h1>500 Internal Server Error</h1>", data);
-	}
 	return std::string(
 		std::istreambuf_iterator<char>(file),
 		std::istreambuf_iterator<char>()
@@ -223,9 +218,7 @@ std::string read_error_file(std::string path, t_serverData *data)
 bool is_keep_alive(std::string &header)
 {
 	if(header.find("keep-alive") != std::string::npos)
-	{
 		return (true);
-	}
 	return (false);
 }
 
@@ -255,7 +248,17 @@ void truncate_file(std::string &file, t_serverData *data)
 	file.erase(0, pos + 1);
 	pos = file.find(boundary + "--");
 	if(pos != std::string::npos)
-	{
 		file.erase(pos - 1, (boundary + "--").size());
-	}
+}
+
+void	signal_handler(int signal)
+{
+	if (signal == SIGINT || signal == SIGQUIT)
+		GlobalLinkedList::cleanup();
+}
+
+void	configureSignals()
+{
+	std::signal(SIGINT, signal_handler);
+	std::signal(SIGQUIT, signal_handler);
 }

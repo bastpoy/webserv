@@ -43,7 +43,7 @@
 #include "Location.hpp"			// Class for Locations
 #include "Request.hpp"			// Classe for Request
 #include "Response.hpp"			// Class for Response
-#include "Utils.hpp"
+#include "utils.hpp"
 #include "Cookie.hpp"
 #include "GlobalLinkList.hpp"
 
@@ -146,7 +146,6 @@ void		checkLocationPath(Location &location, std::vector<Location> &locations);
 // post.cpp
 int 		getContentLength(std::string header, t_serverData *data);
 void		postRequest(t_serverData *data, Cookie &cookie);
-
 
 // Response.cpp
 std::string	httpGetResponse(std::string code, std::string contentType, std::string content, t_serverData *data);

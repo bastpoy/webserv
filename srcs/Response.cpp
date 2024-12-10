@@ -7,13 +7,9 @@ std::string Response::sendResponse(std::string statusCode, std::string contentTy
 	response += "Content-Type: " + contentType + " \r\n";
 	response += "Content-Length: " + to_string(content.size()) + "\r\n";
 	if (is_keep_alive(data->header))
-	{
 		response += "Connection: keep-alive\r\n";
-	}
 	else
-	{
 		response += "Connection: close\r\n";
-	}
 	std::cout << response << std::endl;
 	response += "\r\n" + content;
 
@@ -31,13 +27,9 @@ std::string httpGetResponse(std::string code, std::string contentType, std::stri
 	response += "Content-Type: " + contentType + "\r\n";
 	response += "Content-Length: " + to_string(content.size()) + "\r\n";
 	if (is_keep_alive(data->header))
-	{
 		response += "Connection: keep-alive\r\n";
-	}
 	else
-	{
 		response += "Connection: close\r\n";
-	}
 	response += "\r\n" + content;
 	return (response);
 }
@@ -49,13 +41,9 @@ std::string httpGetResponseDownload(std::string code, std::string contentType, s
 	response += "Content-Length: " + to_string(content.size()) + "\r\n";
 	response += "Content-Disposition: attachment\r\n";
 	if (is_keep_alive(data->header))
-	{
 		response += "Connection: keep-alive\r\n";
-	}
 	else
-	{
 		response += "Connection: close\r\n";
-	}
 	response += "\r\n" + content;
 	return (response);
 }
@@ -67,13 +55,9 @@ void redirRequest(std::string location, int fd, t_serverData *data)
 							"Content-Type: text/html\r\n"
 							"Content-Length: 0 \r\n";
 	if (is_keep_alive(data->header))
-	{
 		response += "Connection: keep-alive\r\n\r\n";
-	}
 	else
-	{
 		response += "Connection: close\r\n\r\n";
-	}
 	if(send(fd, response.c_str(), response.size(), 0) < 0)
 	{
 		std::cout << strerror(errno) << std::endl;
@@ -96,13 +80,9 @@ void httpPostResponse(std::string code , std::string contentType, std::string co
 		response += "; email=" + session.second.credentials.second + "\r\n";
 	}
 	if (is_keep_alive(data->header))
-	{
 		response += "Connection: keep-alive\r\n";
-	}
 	else
-	{
 		response += "Connection: close\r\n";
-	}
 	response +=	"Content-Length: " + to_string(content.size()) + "\r\n"
 				"\r\n" + content;
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
