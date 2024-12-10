@@ -17,11 +17,10 @@ int main(int ac, char **av)
 	try
 	{
 		configureSignals();
-		// Vérifier si un fichier de configuration a été passé en argument
 		if (ac < 2)
 			throw std::runtime_error("Usage: <program_name> <config_file>");
-        
-		ConfigParser	config(av[1]); // Initialiser ConfigParser avec le fichier de configuration fourni
+		
+		ConfigParser	config(av[1]);
 		Server			listenAddress;
 
 		config.parseConfig(config.getServers());

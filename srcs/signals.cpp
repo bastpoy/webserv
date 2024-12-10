@@ -3,24 +3,20 @@
 void	SIGINT_handler(int signal)
 {
 	(void)signal;
-    GlobalLinkedList::cleanup();
-	std::cout << "\nCTRL+C" << std::endl;
+	GlobalLinkedList::cleanup();
 }
 
 void	SIGQUIT_handler(int signal)
 {
 	(void)signal;
-    GlobalLinkedList::cleanup();
-	std::cout << "\nCTRL+\\" << std::endl;
+	GlobalLinkedList::cleanup();
 }
 
 void	SIGTERM_handler(int signal)
 {
 	switch (signal){
 		case SIGINT:
-		{
 			std::cout << "\nCTRL+D" << std::endl;
-		}
 	}
 }
 
@@ -46,5 +42,4 @@ void	configureSignals()
 	std::signal(SIGINT, SIGINT_handler);
 	std::signal(SIGTERM, SIGTERM_handler);
 	std::signal(SIGQUIT, SIGQUIT_handler);
-	// std::signal(SIGCHLD, SIGCHLD_handler);
 }
