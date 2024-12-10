@@ -5,50 +5,48 @@
 /*	   INCLUDES 	*/
 /* ================ */
 
-// Bibliothèques standard C++
-#include <string>				// Manipulation de chaînes
-#include <vector>				// Conteneur vector
+// standard library C++
+#include <string>				// Chain manipulation
+#include <vector>				// Vector container
 #include <map>
-# include <set>					// Conteneur map
-#include <exception>			// Gestion des exceptions
-#include <stdexcept>			// Exceptions standard
-#include <utility>				// Utilitaires
-#include <cstddef>				// Types de taille
+# include <set>					// Map Container
+#include <exception>			// Exceptions handler
+#include <stdexcept>			// Standard exceptions
+#include <utility>				// Utilitaries
+#include <cstddef>				// Size type
 
-#include <iostream>				// Pour cout
-#include <sstream>				// Pour les flux de chaînes
+#include <iostream>				// for cout
+#include <sstream>				// for les flux de chaînes
 #include <fstream>				// std::ifstream
-#include <algorithm>			// Pour erase()
+#include <algorithm>			// for erase()
 
-// Bibliothèques système / C
+// System library / C
 #include <dirent.h>
-#include <limits.h>			// For auto indexing
+#include <limits.h>				// For auto indexing
 #include <sys/stat.h>			// For auto indexing
-#include <sys/socket.h>			// Pour les fonctions de socket
+#include <sys/socket.h>			// for socket functions
 #include <sys/wait.h>
-#include <netinet/in.h>			// Pour sockaddr_in
-#include <cstdlib>				// Pour exit() et EXIT_FAILURE
-#include <csignal>				// Pour exit() et EXIT_FAILURE
-#include <errno.h>				// Pour errno
-#include <string.h>				// Pour strerror
-#include <unistd.h>				// Pour close
-#include <arpa/inet.h>			// Pour inet_ntoa
+#include <netinet/in.h>			// for sockaddr_in
+#include <cstdlib>				// for exit() et EXIT_FAILURE
+#include <csignal>				// for exit() et EXIT_FAILURE
+#include <errno.h>				// for errno
+#include <string.h>				// for strerror
+#include <unistd.h>				// for close
+#include <arpa/inet.h>			// for inet_ntoa
 #include <sys/epoll.h>
 #include <fcntl.h>
 #include <netdb.h>
 
-// Fichiers d'en-tête spécifiques au projet
-#include "ServerParser.hpp"		// Classe pour le serveur
-#include "Server.hpp"			// Classe pour le serveur
-#include "ConfigParser.hpp"		// Classe pour parser la configuration
-#include "Location.hpp"			// Classe pour les locations
-#include "Request.hpp"			// Classe pour les requêtes
-#include "RequestHandler.hpp"	// Gestion des requêtes
-#include "Response.hpp"			// Classe pour les réponses
+// Class header
+#include "ServerParser.hpp"		// Class for Server
+#include "ConfigParser.hpp"		// Class for Parsing
+#include "Location.hpp"			// Class for Locations
+#include "Request.hpp"			// Classe for Request
+#include "Response.hpp"			// Class for Response
 #include "Utils.hpp"
-#include "delete.hpp"
-#include "cookie.hpp"
+#include "Cookie.hpp"
 #include "GlobalLinkList.hpp"
+
 
 /* ================ */
 /*		COLORS		*/
@@ -86,6 +84,8 @@
 #define ON_MAGENTA	"\e[45m"
 #define ON_CYAN		"\e[46m"
 #define ON_WHITE	"\e[47m"
+
+
 /* ================ */
 /*		CLASS		*/
 /* ================ */
@@ -101,29 +101,37 @@ class Server;
 class Cookie;
 
 
-// main.cpp Functions
-int				main(int ac, char **av);
-t_serverData	*singleton_data(t_serverData *data);
-class ServerParser;
-
 /* ================ */
 /*	  FUNCTIONS 	*/
 /* ================ */
 
-// autoindex.cpp Functions
+// main.cpp
+int				main(int ac, char **av);
+
+// autoindex.cpp
 bool						isDirectory(const std::string& path);
 std::vector<std::string>	listDirectory(const std::string& directory);
 std::string					generateAutoIndexPage(const std::string directory, const std::vector<std::string>& files);
 
-// ParsingUtils.cpp
-void		checkLocationPath(Location &location, std::vector<Location> &locations);
-// void	maxBodyParsing(std::string caracter, std::string &size);
-
-
 // CGIHandler.cpp
-std::string	execute(std::string uri, std::string &code, t_serverData *data);
-// std::string	cgiProtocol(std::string uri, std::string &code, t_serverData *data);
 std::string HandleCgiRequest(std::string uri, t_serverData *data, std::map<int, t_serverData*> &fdEpollLink);
+
+// cookie.cpp
+std::string	newSessionCookie(std::map<std::string, std::string> values,Cookie &cookie, t_serverData *data);
+std::string	manageDate(time_t current_time);
+bool		check_cookie_validity(Cookie &cookie, std::string id);
+std::string	get_cookie_id(std::string buffer);
+
+// delete.cpp
+void	deleteRequest(std::string &path, t_serverData *data);
+void	displayDeletePage(std::string path, t_serverData *data);
+void	parseAndDeleteRequest(std::string buffer, t_serverData *data);
+
+// error.cpp
+void	closeAllFileDescriptors(); 
+void	errorCloseEpollFd(int &epoll_fd, int errCode);
+void	notFoundFavicon(t_serverData *data);
+void	errorPage(std::string error, t_serverData *data);
 
 // get.cpp
 void		redirRequest(std::string location, int fd, t_serverData *data);
@@ -132,29 +140,18 @@ std::string	getContentType(std::string &path);
 void		checkAccessFile(std::string &code, std::string &filePath, t_serverData *data);
 void		parseAndGetRequest(std::string buffer, t_serverData *data, Cookie &cookie, std::map<int, t_serverData*> &fdEpollLink);
 
+// ParsingUtils.cpp
+void		checkLocationPath(Location &location, std::vector<Location> &locations);
+
 // post.cpp
 int 		getContentLength(std::string header, t_serverData *data);
-std::string	getFileName(std::string body);
 void		postRequest(t_serverData *data, Cookie &cookie);
 
-// cookie.cpp
-std::string	newSessionCookie(std::map<std::string, std::string> values,Cookie &cookie, t_serverData *data);
-std::string	manageDate(time_t current_time);
-bool		check_cookie_validity(Cookie &cookie, std::string id);
-std::string	get_cookie_id(std::string buffer);
 
 // Response.cpp
 std::string	httpGetResponse(std::string code, std::string contentType, std::string content, t_serverData *data);
 std::string	httpGetResponseDownload(std::string code, std::string contentType, std::string content, t_serverData *data);
 void		httpPostResponse(std::string code , std::string contentType, std::string content, t_serverData *data, Cookie &cookie, std::string id);
-
-// error.cpp Functions
-void    closeAllFileDescriptors(); 
-void	errorCloseEpollFd(int &epoll_fd, int errCode);
-void	forbidden(t_serverData *data); // not used
-void	notFound(t_serverData *data); // not used
-void	notFoundFavicon(t_serverData *data);
-void	errorPage(std::string error, t_serverData *data);
 
 // signals.cpp
 void	configureSignals();

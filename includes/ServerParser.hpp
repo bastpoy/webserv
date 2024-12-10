@@ -34,7 +34,7 @@ typedef struct s_serverData
 	std::map<std::string, std::string>	cgiPath;
 	std::map<std::string, std::string>	redir;
 	std::vector<Location>				location;
-    std::vector<std::string>            requestAllow;
+	std::vector<std::string>			requestAllow;
 }t_serverData;
 
 /**
@@ -61,13 +61,13 @@ class Server
 		std::vector<std::string>			_allowedMethods;
 		std::vector<Location>				_location;
 		std::set<int>						socketfd;
-        t_serverData                        *data;
+		t_serverData						*data;
 
 		std::vector<std::string>						_locKeywords[8];
 		std::vector<void (Location::*)(std::string)>	_locationFunctions;
 		static int const								_locKeywordsSize = 8;
 	
-    public:
+	public:
 
 		void	setIP(std::string port);
 		void	setServerName(std::string server_name);

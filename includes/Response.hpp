@@ -3,16 +3,6 @@
 
 # include "Header.hpp"
 
-/*
-But : Créer la réponse HTTP envoyée au client.
-Rôle :
-Générer la réponse HTTP en fonction de la requête reçue.
-Gérer les codes de statut HTTP (200, 404, etc.), les en-têtes et le corps de la réponse.
-*/
-
-/**
- * @brief Toutes les exceptions
-*/
 class Response
 {
 	public:

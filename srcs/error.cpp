@@ -53,41 +53,6 @@ void errorCloseEpollFd(int &epoll_fd, int errCode)
 	throw Response::Error();
 }
 
-void	forbidden(t_serverData *data)
-{
-	std::string contentFile = readFile("./www/error/403.html", data);
-
-	std::string response = "HTTP/1.1 403 Forbiden\r\n"
-							"Content-Type: text/html\r\n"
-							"Content-Length: " + to_string(contentFile.size()) + "\r\n"
-							"\r\n" + contentFile;
-	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
-	{
-		std::cout << strerror(errno) << std::endl;
-		throw Response::ErrorSendingResponse(); 
-	}
-	close(data->sockfd);
-	throw Response::Error();
-}
-
-void	notFound(t_serverData *data)
-{
-	std::string contentFile = readFile("./www/error/404.html", data);
-
-	std::string response = "HTTP/1.1 404 Not Found\r\n"
-							"Content-Type: text/html\r\n"
-							"Connection: keep-alive\r\n"
-							"Content-Length: " + to_string(contentFile.size()) + "\r\n"
-							"\r\n" + contentFile;
-	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
-	{
-		std::cout << strerror(errno) << std::endl;
-		throw Response::ErrorSendingResponse(); 
-	}
-	close(data->sockfd);
-	throw Response::Error();
-}
-
 void	notFoundFavicon(t_serverData *data)
 {
 	std::string contentFile = readFile("./www/error/404.html", data);

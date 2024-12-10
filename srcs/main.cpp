@@ -3,15 +3,6 @@
 Node* GlobalLinkedList::head = NULL;
 Node* GlobalLinkedList::tail = NULL;
 
-t_serverData	*singleton_data(t_serverData *data)
-{
-	static t_serverData *data_todeliver;
-
-	if (data)
-		data_todeliver = data;
-	return (data_todeliver);
-}
-
 int main(int ac, char **av)
 {
 	try

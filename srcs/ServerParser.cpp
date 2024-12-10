@@ -275,7 +275,7 @@ void	Server::fillLocation(std::ifstream &file, std::string line, std::vector<Loc
 	while(getline(file, line))
 	{
 		int i = 0;
-		ConfigParser::parseLine(line); //TODO - Retoucher et mettre dans utils
+		ConfigParser::parseLine(line);
 		if (line.find("{") != std::string::npos)
 		{
 			bracket = true;

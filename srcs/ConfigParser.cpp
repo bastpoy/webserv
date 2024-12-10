@@ -75,7 +75,7 @@ void	ConfigParser::functionConfig(void)
 	_serverFunctions.push_back(&Server::setAllowedMethods);
 }
 
-void	ConfigParser::checkServerAttributs(Server &server, std::vector<Server> &servers) //TODO - Mettre dans utils
+void	ConfigParser::checkServerAttributs(Server &server, std::vector<Server> &servers)
 {
 	for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); it++)
 	{
@@ -84,7 +84,7 @@ void	ConfigParser::checkServerAttributs(Server &server, std::vector<Server> &ser
 	}
 }
 
-bool ConfigParser::isFileEmpty(const std::string &filePath) //TODO - Mettre dans utils
+bool ConfigParser::isFileEmpty(const std::string &filePath)
 {
 	std::ifstream file(filePath.c_str(), std::ios::ate);
 	if (!file.is_open())
@@ -141,7 +141,7 @@ void	ConfigParser::parseConfig(std::vector<Server> &servers)
 	throw Response::ConfigurationFileServer("Missing '}'");
 }
 
-void	ConfigParser::rmComments(std::string &line) //TODO - Mettre dans utils
+void	ConfigParser::rmComments(std::string &line)
 {
 	size_t commentPos = line.find('#');
 
@@ -149,7 +149,7 @@ void	ConfigParser::rmComments(std::string &line) //TODO - Mettre dans utils
 		line = line.substr(0, commentPos);
 }
 
-void	ConfigParser::checkSemicolon(std::string &line) //TODO - Mettre dans utils
+void	ConfigParser::checkSemicolon(std::string &line)
 {
 	bool conditions = line.find("}") == std::string::npos && line.find("location") == std::string::npos && !line.empty();
 
@@ -161,7 +161,7 @@ void	ConfigParser::checkSemicolon(std::string &line) //TODO - Mettre dans utils
 		line.erase(line.size() - 1);
 }
 
-void ConfigParser::parseLine(std::string &line) //TODO - Mettre dans utils
+void ConfigParser::parseLine(std::string &line)
 {
 	bool	present = line.find("{") != std::string::npos;
 
