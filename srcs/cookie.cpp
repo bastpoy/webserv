@@ -63,7 +63,6 @@ bool check_cookie_validity(Cookie &cookie, std::string id)
 
     if(!cookie.get_session().empty())
     {
-        std::cout << "checking cookie validity" << std::endl;
         if(cookie.get_session_id(id).second.expireDate < actualTime)
             return (false);
     }
@@ -134,7 +133,6 @@ std::string manageDate(time_t current_time)
     char buffer[80];
 
     strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S %Z", local_time);
-    std::cout << buffer << std::endl;
     return (buffer);
 }
 
@@ -146,7 +144,6 @@ std::string newSessionCookie(std::map<std::string, std::string> values, Cookie &
     newSession.first = gen_random(8);
     // cookie during 15sec
     newSession.second.expireDate = time(NULL) + 15;
-    std::cout << newSession.second.expireDate << std::endl;
 
     //adding email and password to the client session
     std::map<std::string, std::string>::iterator it = values.begin();

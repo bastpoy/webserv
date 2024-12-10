@@ -40,7 +40,7 @@ void displayDeletePage(std::string path, t_serverData *data)
     html += "</body>\n</html>";
     content += html;
     //render the full html page
-    response = httpGetResponse("200 Ok", contentType, content, data);
+    response = httpGetResponse("200 Ok", contentType, content, data, "");
     if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 	{
 		std::cout << strerror(errno) << std::endl;
@@ -66,7 +66,7 @@ void deleteRequest(std::string &uri, t_serverData *data, std::string typeRequest
 	content = readFile(filePath, data);
 	deleteFile(filePath);
 
-    response = httpGetResponse("200", "text/html", "", data);
+    response = httpGetResponse("200", "text/html", "", data, "");
     //send response
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 	{

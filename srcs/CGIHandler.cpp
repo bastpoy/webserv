@@ -160,7 +160,7 @@ void check_timeout_cgi(t_serverData *info, std::map<int, t_serverData*> &fdEpoll
                     if(it->second->cgi->cgiTimeout < time(NULL))
                     {
                         std::cout << "a cgi is TIMEOUT" << std::endl;
-                        std::string response = httpGetResponse("200 Ok", "text/html", readFile("./www/error/error408.html", it->second), it->second);
+                        std::string response = httpGetResponse("200 Ok", "text/html", readFile("./www/error/error408.html", it->second), it->second, "");
                         if(send(it->second->sockfd, response.c_str(), response.size(), 0) < 0)
                         {
                             std::cout << RED "error send main "<< errno << " " << strerror(errno) << RESET << std::endl;

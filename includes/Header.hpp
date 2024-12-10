@@ -133,6 +133,7 @@ std::string	check_location(std::string &uri, std::string &content, std::vector<L
 std::string	getContentType(std::string &path, std::string typeRequest);
 void		checkAccessFile(std::string &code, std::string &filePath, t_serverData *data);
 void		parseAndGetRequest(std::string buffer, t_serverData *data, Cookie &cookie, std::map<int, t_serverData*> &fdEpollLink);
+bool        is_download(std::string filePath, t_serverData *data);
 
 // post.cpp
 int 		getContentLength(std::string header, t_serverData *data);
@@ -145,8 +146,9 @@ std::string	manageDate(time_t current_time);
 bool		check_cookie_validity(Cookie &cookie, std::string id);
 std::string	get_cookie_id(std::string buffer);
 std::string display_user_connection(Cookie &cookie, t_serverData *data, std::string response);
+
 // Response.cpp
-std::string	httpGetResponse(std::string code, std::string contentType, std::string content, t_serverData *data);
+std::string	httpGetResponse(std::string code, std::string contentType, std::string content, t_serverData *data, std::string filePath);
 std::string	httpGetResponseDownload(std::string code, std::string contentType, std::string content, t_serverData *data);
 void		httpPostResponse(std::string code , std::string contentType, std::string content, t_serverData *data, Cookie &cookie, std::string id);
 

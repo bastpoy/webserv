@@ -31,6 +31,7 @@ struct epoll_event Server::fillEpoolDataIterator(int sockfd, std::vector<Server>
 	data->header = "";
 	data->body = "";
 	data->cgi = NULL;
+    data->isDownload = false;
 
 	struct epoll_event event;
 	event.events = EPOLLIN; // Monitor for input events
@@ -62,6 +63,7 @@ struct epoll_event Server::fillEpoolDataInfo(int &client_fd, t_serverData *info)
 	data->header = "";
 	data->body = "";
 	data->cgi = NULL;
+    data->isDownload = false;
 
     struct epoll_event client_event;
 	client_event.events = EPOLLIN;
@@ -311,7 +313,7 @@ void Server::createListenAddr(ConfigParser &config)
 		{
 			t_serverData *info = static_cast<t_serverData*>(events[i].data.ptr);
 			int fd = info->sockfd;
-			std::cout << YELLOW "i " << i << " num " << num_fds << " poll fd " << events[i].data.fd << " fd " << fd << " status: " << events[i].events << RESET << std::endl; 
+			// std::cout << YELLOW "i " << i << " num " << num_fds << " poll fd " << events[i].data.fd << " fd " << fd << " status: " << events[i].events << RESET << std::endl; 
             if((events[i].events & EPOLLERR) || (events[i].events & EPOLLHUP) || (!(events[i].events & EPOLLIN)))
             {
                 if(epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, &events[i]) == -1)
@@ -329,10 +331,10 @@ void Server::createListenAddr(ConfigParser &config)
 				struct sockaddr_in client_addr;
 				//new fd_client for communication
 				int client_fd = acceptConnection(fd, epoll_fd, client_addr);
-				std::cout << "New connection established with new fd: " << client_fd << std::endl;
+				// std::cout << "New connection established with new fd: " << client_fd << std::endl;
 				// add new fd to my epoll instance
 				struct epoll_event client_event = this->fillEpoolDataInfo(client_fd, info);
-				// add the new fd to be control by my epoll instance
+				// add the new fd  to be control by my epoll instance
 				if(epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &client_event) == -1)
                 {
                     std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
@@ -371,7 +373,7 @@ void Server::createListenAddr(ConfigParser &config)
                         //if I have already a cgi and ready to return information
                         if(info->cgi)
                         {
-                            std::string response = httpGetResponse("200 Ok", "text/html", info->body, info);
+                            std::string response = httpGetResponse("200 Ok", "text/html", info->body, info, "");
                             if(send(info->sockfd, response.c_str(), response.size(), 0) < 0)
                             {
                                 std::cout << "error sending CGI response\n";

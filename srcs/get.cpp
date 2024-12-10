@@ -166,6 +166,23 @@ void process_extension(std::string &filePath, std::string &code, std::string uri
     }
 }
 
+bool is_download(std::string filePath, t_serverData *data)
+{
+    std::string downloadPath = "./www/upload";
+    size_t pos = filePath.find_last_of("/");
+
+    if(pos !=  std::string::npos)
+    {
+        if(downloadPath == filePath.substr(0, pos))
+        {
+            std::cout << "downloading file: " << filePath << std::endl;
+            data->isDownload = true;
+            return(true);
+        }
+    }
+    return (false);
+}
+
 void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::string buffer, std::map<int, t_serverData*> &fdEpollLink)
 {
 	std::vector<Location>location = data->location;
@@ -182,7 +199,7 @@ void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::strin
 		if(data->path.empty())
 			errorPage("403", data);
         // if i have a file to download
-        else if(isExtensionDownload(uri))
+        else if(isExtensionDownload(uri) || is_download(data->path + uri, data))
         {
             filePath= data->path + uri;
             content = readFile(filePath, data);
@@ -216,18 +233,16 @@ void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::strin
 		else
 			errorPage("403", data);
 	}
-	// std::cout << YELLOW "the filePath is: " << filePath << " uri : " << uri << RESET << std::endl;
 
+	// std::cout << YELLOW "the filePath is: " << filePath << " uri : " << uri << RESET << std::endl;
     //check if i am a directory and if i can enter inside
 	if (isDirectory(filePath))
 		checkAccessDir(code, filePath, data);
     //idem for the file
 	checkAccessFile(code, filePath, data);
-	std::string response = httpGetResponse(code, contentType, content, data);
-    //add user cookie connection at the end
-    // std::cout << MAGENTA "handling request\n" << response << RESET << std::endl;
+	std::string response = httpGetResponse(code, contentType, content, data, filePath);
+    // add user cookie connection at the end
     response = display_user_connection(cookie, data, response);
-    std::cout << response.size() << std::endl; 
     // std::cout << MAGENTA "handling request\n" << response << RESET << std::endl;
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 	{

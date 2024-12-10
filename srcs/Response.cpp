@@ -24,12 +24,11 @@ std::string Response::sendResponse(std::string statusCode, std::string contentTy
 	throw Response::responseOk(); 
 }
 
-std::string httpGetResponse(std::string code, std::string contentType, std::string content, t_serverData *data)
+std::string httpGetResponse(std::string code, std::string contentType, std::string content, t_serverData *data, std::string filePath)
 {
-    (void)data;
+    (void)filePath;
 	//make the header response
     std::string response = "HTTP/1.1 " + code + "\r\n" ;
-    response += "Content-Type: " + contentType + "\r\n";
     response += "Content-Length: " + to_string(content.size()) + "\r\n";
     if (is_keep_alive(data->header))
     {
@@ -39,8 +38,21 @@ std::string httpGetResponse(std::string code, std::string contentType, std::stri
     {
         response += "Connection: close\r\n";
     }
-    std::cout << BLUE << response << RESET << std::endl;
+    if(data->isDownload)
+    {
+        size_t pos = filePath.find_last_of("/");
+        std::string file = filePath.substr(pos + 1, filePath.size());
+        response += "Content-Disposition: attachment; filename=" + file  + "\r\n";
+        response += "Content-Type: application/octet-stream\r\n";
+        response += "Content-Transfer-Encoding: binary\r\n";
+        data->isDownload = false;
+    }
+    else
+    {
+        response += "Content-Type: " + contentType + "\r\n";
+    }
     response += "\r\n" + content;
+    std::cout << BLUE << response << RESET << std::endl;
     return (response);
 }
 

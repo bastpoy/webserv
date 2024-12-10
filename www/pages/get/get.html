@@ -11,8 +11,48 @@
 		<a href="../../index.html" style="font-size: 20px;margin:1rem;width:150px;padding:5px;">Home</a>
 	</nav>
 	<h1>GET</h1>
-	<a href="../../assets/images/img2.gif" target="_blank" download="img2.gif">
-		<button type="button">Download a file</button>
-	</a>
+    <h1>Downloading File</h1>
+        <label for="fileName">Enter the file name to Donwload:</label>
+        <input type="text" id="fileName" placeholder="your_file_to_donwload.txt">
+        <button class="minimal-button" id="downloadButton">Donwload File</button>
+    <h1></h1>
+    <script>
+        document.getElementById('downloadButton').addEventListener('click', function() {
+            const fileName = document.getElementById('fileName').value;
+            
+            fetch(`../../upload/${fileName}`, {
+                method: 'GET'
+            })
+            .then(response => {
+                // Check if the response is successful
+                if (!response.ok) {
+                    throw new Error('File not found');
+                }
+                
+                // Get the filename from Content-Disposition header or use the input filename
+                const suggestedFilename = response.headers.get('Content-Disposition')?.split('filename=')[1] || fileName;
+                
+                // Convert response to blob
+                return response.blob().then(blob => {
+                    // Create a link element to trigger download
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = suggestedFilename;
+                    document.body.appendChild(a);
+                    a.click();
+                    
+                    // Clean up
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                });
+            })
+            .catch(error => {
+                console.error('Download error:', error);
+                alert(`Failed to download the file: ${error.message}`);
+            });
+        });
+</script>
 </body>
 </html>
