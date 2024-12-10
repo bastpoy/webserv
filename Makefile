@@ -101,7 +101,7 @@ simple:
 	@clear
 	@make -j4 -s
 	@clear
-	./webserv conf/config.conf
+	./webserv conf/server.conf
 
 test:
 	@clear
