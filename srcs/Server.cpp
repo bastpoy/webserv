@@ -196,14 +196,10 @@ bool handleRequest(std::string buffer, t_serverData *data, Cookie &cookie, std::
 	}
 	//if it is a post request
 	else if(typeRequest == "POST" && request_allowed("POST", data))
-	{
 		postRequest(data, cookie);
-	}
 	//if its a delete request
 	else if(typeRequest == "DELETE" && request_allowed("DELETE", data))
-	{
 		parseAndDeleteRequest(buffer, data);
-	}
 	//if its not get, post or delete request
 	else
 		errorPage("405", data);
