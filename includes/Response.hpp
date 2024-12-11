@@ -58,7 +58,7 @@ class Response
 				std::string _msg;
 			public:
 				explicit ErrorCreatingSocket(const std::string &msg):
-					_msg("Error creating socket: " + msg) {}
+					_msg("Creating socket: " + msg) {}
 				virtual const char* what() const throw();
 				virtual ~ErrorCreatingSocket() throw() {}
 		};
