@@ -168,14 +168,11 @@ bool check_download(t_serverData *data, std::string &filePath, std::string uri)
 {
 	std::string downloadPath = "./www/upload";
 	std::string path = data->path + uri;
-	std::cout << "path is " << path << std::endl;
 
 	size_t pos = path.find_last_of("/?");
 
 	if(pos !=  std::string::npos)
 	{
-		std::cout << "the path " << path.substr(pos) << std::endl;
-		std::cout << "the path " << path.substr(0, pos) << std::endl;
 		//check if i have a filename at the right of the path
 		size_t pos1 = path.substr(pos + 1).find("fileName=");
 		if(pos1 != std::string::npos)
@@ -231,7 +228,6 @@ void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::strin
 		}
 		else if (!data->index.empty())
 		{
-			std::cout << "herehere\n";
 			filePath = data->path + uri + data->index;
 			content = readFile(filePath, data);
 		}
@@ -274,7 +270,6 @@ void parseAndGetRequest(std::string buffer, t_serverData *data, Cookie &cookie, 
 	//if i have a redirection to delete page i modify it in the displaydeletepage
 	else if(path == "pages/delete/delete.html")
 		displayDeletePage(path, data);
-	// return the data to the client
 	else
 		getRequest(path, data, cookie, buffer, fdEpollLink);
 }
