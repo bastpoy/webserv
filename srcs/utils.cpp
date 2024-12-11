@@ -83,7 +83,7 @@ std::vector<std::string>	ft_split(const std::string& str, char delimiter)
 	return result;
 }
 
-std::string getContentType(std::string &path) 
+std::string getContentType(std::string &path, std::string typeRequest) 
 {
 	std::map<std::string, std::string> contentTypes;
 
@@ -126,7 +126,7 @@ std::string getContentType(std::string &path)
 			return contentTypes[extension];
 	}
 	else
-		if(path.size() == 0 || path.at(path.size() - 1) != '/')
+		if((path.size() == 0 || path.at(path.size() - 1) != '/')  && typeRequest != "DELETE")
 			path += "/";
 	return "text/html";
 }

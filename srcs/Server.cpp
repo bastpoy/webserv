@@ -173,7 +173,7 @@ bool handleRequest(std::string buffer, t_serverData *data, Cookie &cookie, std::
 	else if(typeRequest == "POST" && request_allowed("POST", data))
 		postRequest(data, cookie);
 	else if(typeRequest == "DELETE" && request_allowed("DELETE", data))
-		parseAndDeleteRequest(buffer, data);
+		parseAndDeleteRequest(buffer, data, typeRequest);
 	else
 		errorPage("405", data);
 	return(false);
