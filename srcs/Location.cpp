@@ -7,6 +7,11 @@ Location::~Location() {}
 /* ================ */
 /*		SETTER		*/
 /* ================ */
+void	Location::setPath1(std::string path)
+{
+	path.erase(std::remove(path.begin(), path.end(), ' '), path.end());
+	this->_path = path;
+}
 
 void	Location::setPath(std::string line)
 {

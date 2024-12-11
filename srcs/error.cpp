@@ -60,12 +60,13 @@ void	notFoundFavicon(t_serverData *data)
 	std::string response = "HTTP/1.1 404 Not Found\r\n"
 							"Content-Type: text/html\r\n"
 							"Content-Length: " + to_string(contentFile.size()) + "\r\n"
-							"Connection: keep-alive\r\n"
-							"\r\n" + contentFile;
+							"Connection: keep-alive\r\n\r\n"
+							+ contentFile;
+	//send response
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 	{
 		std::cout << strerror(errno) << std::endl;
-		throw Response::ErrorSendingResponse(); 
+		errorPage("500", data);
 	}
 	throw Response::Error();
 }
@@ -83,7 +84,7 @@ static void	contentTooLarge(t_serverData *data)
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 	{
 		std::cout << strerror(errno) << std::endl;
-		throw Response::ErrorSendingResponse(); 
+		errorPage("500", data);
 	}
 	throw Response::Error();
 }
@@ -141,7 +142,6 @@ void errorPage(std::string error, t_serverData *data)
 		if(it != data->errorPage.end())
 		{
 			std::string path = data->path + it->second;
-			std::cout << "the path error_code: " << path << std::endl;
 			choose_error_page(error, data, path);
 		}
 	}

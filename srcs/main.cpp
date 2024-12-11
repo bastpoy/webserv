@@ -19,9 +19,11 @@ int main(int ac, char **av)
 			throw std::runtime_error("No server configuration found in the file");
 		config.printConfig();
 		listenAddress.createListenAddr(config);
+        GlobalLinkedList::cleanup();
 	}
 	catch (const std::exception& e)
 	{
+        GlobalLinkedList::cleanup();
 		std::cerr << RED << "Error: " << e.what() << RESET << std::endl;
 	}
 	return (0);

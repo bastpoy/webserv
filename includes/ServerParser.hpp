@@ -30,6 +30,7 @@ typedef struct s_serverData
 	std::string							header;
 	std::string							body;
 	t_cgi								*cgi;
+    bool                                isDownload;
 	std::map<std::string, std::string>	errorPage;
 	std::map<std::string, std::string>	cgiPath;
 	std::map<std::string, std::string>	redir;

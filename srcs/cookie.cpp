@@ -43,7 +43,6 @@ void Cookie::add_session(std::pair<std::string, t_session> session)
 // other functions
 //=================
 
-
 std::string get_cookie_id(std::string buffer)
 {
 	size_t pos = buffer.find("Cookie: id=");
@@ -62,13 +61,54 @@ bool check_cookie_validity(Cookie &cookie, std::string id)
 
 	if(!cookie.get_session().empty())
 	{
-		std::cout << "checking cookie validity" << std::endl;
 		if(cookie.get_session_id(id).second.expireDate < actualTime)
 			return (false);
 	}
 	else
 		return(false);
 	return(true);
+}
+
+std::string display_user_connection(Cookie &cookie, t_serverData *data, std::string response)
+{
+    std::string html;
+    std::string id = get_cookie_id(data->buffer);
+    if(id.size() && check_cookie_validity(cookie, id))
+    {
+        std::pair<std::string, t_session> session_id = cookie.get_session_id(id);
+        if(!session_id.first.empty())
+        {
+            html =    
+                "\t<div class='user-info'>\n"
+                "\t\t<h2>User Connection Details</h2>\n"
+                "\t\t<p><strong>Email:</strong> " + session_id.second.credentials.second + " </p>\n"
+                "\t\t<p><strong>Password:</strong> " + session_id.second.credentials.first + " </p>\n"
+                "\t</div>\n" ;
+                // "</body>\n</html>";
+
+                // size_t pos = response.find("</body>\n</html>");
+                size_t pos = response.find("</body>");
+
+                if(pos != std::string::npos)
+                {
+                    response = response.insert(pos, html);
+                }
+                pos = response.find("Content-Length: ");
+                if(pos != std::string::npos)
+                {
+                    pos += 16;
+                    size_t pos1 = response.find("\r\n", pos);
+                    if(pos != std::string::npos)
+                    {
+                        int length = response.size(); 
+                        std::string lalength = to_string(length);
+                        response.erase(pos, pos1 - pos);
+                        response.insert(pos, lalength);
+                    }
+                }
+        }
+    }
+    return (response);
 }
 
 std::string gen_random(const int len) {
@@ -90,19 +130,18 @@ std::string manageDate(time_t current_time)
 	struct tm *local_time = localtime(&current_time);
 	char buffer[80];
 
-	strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S %Z", local_time);
-	std::cout << buffer << std::endl;
-	return (buffer);
+    strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S %Z", local_time);
+    return (buffer);
 }
 
 std::string newSessionCookie(std::map<std::string, std::string> values, Cookie &cookie, t_serverData *data)
 {
-	std::pair<std::string, t_session> newSession;
-	newSession.first = gen_random(8);
-	newSession.second.expireDate = time(NULL) + 15;
-	std::cout << newSession.second.expireDate << std::endl;
-
-	newSession.second.is_valid = 1;
+    // creating a cookie session and save client info and credentials
+    std::pair<std::string, t_session> newSession;
+    //add all atributes to my session
+    newSession.first = gen_random(8);
+    // cookie during 15sec
+    newSession.second.expireDate = time(NULL) + 15;
 
 	std::map<std::string, std::string>::iterator it = values.begin();
 	if(it == values.end())
@@ -116,6 +155,5 @@ std::string newSessionCookie(std::map<std::string, std::string> values, Cookie &
 		it++;
 	}
 	cookie.add_session(newSession);
-	std::cout << "adding new cookie" << std::endl;
 	return (newSession.first);
 }

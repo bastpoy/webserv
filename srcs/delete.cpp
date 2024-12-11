@@ -20,7 +20,7 @@ void displayDeletePage(std::string path, t_serverData *data)
 {
 	std::string filePath = data->path + path;
 	std::string content = readFile(filePath, data);
-	std::string contentType = getContentType(filePath);
+	std::string contentType = getContentType(filePath, "DELETE");
 	std::string pathToUpload = "./www/upload";
 	std::string html;
 	std::string response;
@@ -35,36 +35,39 @@ void displayDeletePage(std::string path, t_serverData *data)
 	}
 	html += "</body>\n</html>";
 	content += html;
-	response = httpGetResponse("200 Ok", contentType, content, data);
+	response = httpGetResponse("200 Ok", contentType, content, data, "");
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 	{
 		std::cout << strerror(errno) << std::endl;
-		throw Response::ErrorSendingResponse(); 
+		errorPage("500", data);
 	}
 }
 
-void deleteRequest(std::string &uri, t_serverData *data)
+
+void deleteRequest(std::string &uri, t_serverData *data, std::string typeRequest)
 {
 	std::string code;
 	std::string content;
 	std::string filePath = check_location(uri, content, data->location, data);
 	std::string response;
-	std::string contentType = getContentType(uri);
+	std::string contentType = getContentType(uri, typeRequest);
+	//if i have a location
 	if(filePath.empty())
 		filePath = data->path + uri;
 	checkAccessFile(code, filePath, data);
 	content = readFile(filePath, data);
 	deleteFile(filePath);
 
-	response = httpGetResponse("200", "text/html", "", data);
+    response = httpGetResponse("200", "text/html", "", data, "");
+    //send response
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 	{
 		std::cout << strerror(errno) << std::endl;
-		throw Response::ErrorSendingResponse(); 
+		errorPage("500", data);
 	}
 }
 
-void parseAndDeleteRequest(std::string buffer, t_serverData *data)
+void parseAndDeleteRequest(std::string buffer, t_serverData *data, std::string typeRequest)
 {
 	std::cout << "DELETE RESPONSE" << std::endl;
 
@@ -74,5 +77,5 @@ void parseAndDeleteRequest(std::string buffer, t_serverData *data)
 		close(data->sockfd);
 	else if(path.find("?") != std::string::npos)
 		errorPage("501", data);
-	deleteRequest(path, data);
+	deleteRequest(path, data, typeRequest);
 }

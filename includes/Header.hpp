@@ -114,6 +114,10 @@ std::vector<std::string>	listDirectory(const std::string& directory);
 std::string					generateAutoIndexPage(const std::string directory, const std::vector<std::string>& files);
 
 // CGIHandler.cpp
+void check_timeout_cgi(t_serverData *info, std::map<int, t_serverData*> &fdEpollLink);
+void read_cgi(t_serverData *data, struct epoll_event *events, int i, int epoll_fd);
+
+// std::string	cgiProtocol(std::string uri, std::string &code, t_serverData *data);
 std::string HandleCgiRequest(std::string uri, t_serverData *data, std::map<int, t_serverData*> &fdEpollLink);
 
 // cookie.cpp
@@ -136,19 +140,27 @@ void	errorPage(std::string error, t_serverData *data);
 // get.cpp
 void		redirRequest(std::string location, int fd, t_serverData *data);
 std::string	check_location(std::string &uri, std::string &content, std::vector<Location> &location, t_serverData *data);
-std::string	getContentType(std::string &path);
+std::string	getContentType(std::string &path, std::string typeRequest);
 void		checkAccessFile(std::string &code, std::string &filePath, t_serverData *data);
 void		parseAndGetRequest(std::string buffer, t_serverData *data, Cookie &cookie, std::map<int, t_serverData*> &fdEpollLink);
 
 // ParsingUtils.cpp
 void		checkLocationPath(Location &location, std::vector<Location> &locations);
+bool        is_download(t_serverData *data, std::string &filePath, std::string uri);
 
 // post.cpp
 int 		getContentLength(std::string header, t_serverData *data);
 void		postRequest(t_serverData *data, Cookie &cookie);
 
+// cookie.cpp
+std::string	newSessionCookie(std::map<std::string, std::string> values,Cookie &cookie, t_serverData *data);
+std::string	manageDate(time_t current_time);
+bool		check_cookie_validity(Cookie &cookie, std::string id);
+std::string	get_cookie_id(std::string buffer);
+std::string display_user_connection(Cookie &cookie, t_serverData *data, std::string response);
+
 // Response.cpp
-std::string	httpGetResponse(std::string code, std::string contentType, std::string content, t_serverData *data);
+std::string	httpGetResponse(std::string code, std::string contentType, std::string content, t_serverData *data, std::string filePath);
 std::string	httpGetResponseDownload(std::string code, std::string contentType, std::string content, t_serverData *data);
 void		httpPostResponse(std::string code , std::string contentType, std::string content, t_serverData *data, Cookie &cookie, std::string id);
 

@@ -160,33 +160,6 @@ std::string getFileName(std::string body, t_serverData *data)
 	return (fileName);
 }
 
-bool read_full_body(t_serverData *data, std::string &body, int content_length) 
-{
-	int total_read = body.size();
-	const int buffer_size = 1024;
-	char buffer[buffer_size];
-
-	std::cout << body << std::endl;
-	while (total_read < content_length) {
-		int bytes_to_read = std::min(content_length - total_read, buffer_size);
-		
-		int bytes_read = recv(data->sockfd, buffer, bytes_to_read, 0);
-		if (bytes_read < 0) 
-		{
-			std::cout << "Error reading from socket: " << strerror(errno) << std::endl;
-			errorPage("400", data);
-		} 
-		else if (bytes_read == 0) 
-		{
-			std::cout << "Connection closed by the client." << std::endl;
-			break;
-		}
-		body.append(buffer, bytes_read);
-		total_read += bytes_read;
-	}
-	std::cout << "je suis sorti\n" << total_read << " " << content_length << std::endl;
-	return total_read == content_length;
-}
 
 void postRequest(t_serverData *data, Cookie &cookie)
 {
