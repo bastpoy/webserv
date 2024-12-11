@@ -58,8 +58,8 @@ void deleteRequest(std::string &uri, t_serverData *data, std::string typeRequest
 	content = readFile(filePath, data);
 	deleteFile(filePath);
 
-    response = httpGetResponse("200", "text/html", "", data, "");
-    //send response
+	response = httpGetResponse("200", "text/html", "", data, "");
+	//send response
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 	{
 		std::cout << strerror(errno) << std::endl;

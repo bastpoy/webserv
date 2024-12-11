@@ -143,41 +143,41 @@ std::string fileToString(const char *filePath)
 
 void check_timeout_cgi(t_serverData *info, std::map<int, t_serverData*> &fdEpollLink)
 {
-    if(info)
-    {
-        if(info->cgi == NULL)
-        {
-            std::map<int, t_serverData*>::iterator it = fdEpollLink.begin();
-            //iterate through my corresponse map between fd and data struct
-            while (it != fdEpollLink.end()) 
-            {
-                //if i have a cgi inside my struct
-                if(it->second->cgi)
-                {
-                    //if my cgi is timeout
-                    if(it->second->cgi->cgiTimeout < time(NULL))
-                    {
-                        std::cout << "a cgi is TIMEOUT" << std::endl;
-                        std::string response = httpGetResponse("200 Ok", "text/html", readFile("./www/error/error408.html", it->second), it->second, "");
-                        if(send(it->second->sockfd, response.c_str(), response.size(), 0) < 0)
-                        {
-                            std::cout << RED "error send main "<< errno << " " << strerror(errno) << RESET << std::endl;
-                            errorPage("500", info);
-                        }
-                        close(it->second->cgi->cgifd);
-                        close(it->second->sockfd);
-                        delete it->second->cgi;
-                        it->second->cgi = NULL;
-                        std::map<int, t_serverData*>::iterator toErase = it;
-                        it++;
-                        fdEpollLink.erase(toErase);
-                        continue;
-                    }
-                }
-                it++;
-            }
-        }
-    }
+	if(info)
+	{
+		if(info->cgi == NULL)
+		{
+			std::map<int, t_serverData*>::iterator it = fdEpollLink.begin();
+			//iterate through my corresponse map between fd and data struct
+			while (it != fdEpollLink.end()) 
+			{
+				//if i have a cgi inside my struct
+				if(it->second->cgi)
+				{
+					//if my cgi is timeout
+					if(it->second->cgi->cgiTimeout < time(NULL))
+					{
+						std::cout << "a cgi is TIMEOUT" << std::endl;
+						std::string response = httpGetResponse("200 Ok", "text/html", readFile("./www/error/error408.html", it->second), it->second, "");
+						if(send(it->second->sockfd, response.c_str(), response.size(), 0) < 0)
+						{
+							std::cout << RED "error send main "<< errno << " " << strerror(errno) << RESET << std::endl;
+							errorPage("500", info);
+						}
+						close(it->second->cgi->cgifd);
+						close(it->second->sockfd);
+						delete it->second->cgi;
+						it->second->cgi = NULL;
+						std::map<int, t_serverData*>::iterator toErase = it;
+						it++;
+						fdEpollLink.erase(toErase);
+						continue;
+					}
+				}
+				it++;
+			}
+		}
+	}
 }
 
 void read_cgi(t_serverData *data, struct epoll_event *events, int i, int epoll_fd)
@@ -198,8 +198,8 @@ void read_cgi(t_serverData *data, struct epoll_event *events, int i, int epoll_f
 	//switching to epollout
 	events[i].events = EPOLLOUT;
 	if(epoll_ctl(epoll_fd, EPOLL_CTL_MOD, data->sockfd, events) < 0)
-    {
-        std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
-        errorPage("500", data);
-    }
+	{
+		std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
+		errorPage("500", data);
+	}
 }

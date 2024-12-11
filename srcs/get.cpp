@@ -143,29 +143,29 @@ void process_extension(std::string &filePath, std::string &code, std::string uri
 
 bool is_download(t_serverData *data, std::string &filePath, std::string uri)
 {
-    std::string downloadPath = "./www/upload";
+	std::string downloadPath = "./www/upload";
 	std::string path = data->path + uri;
-    size_t pos = path.find_last_of("/?");
+	size_t pos = path.find_last_of("/?");
 
-    if(pos !=  std::string::npos)
-    {
-        //check if i have a filename at the right of the path
-        size_t pos1 = path.substr(pos + 1).find("fileName=");
-        if(pos1 != std::string::npos)
-        {
+	if(pos !=  std::string::npos)
+	{
+		//check if i have a filename at the right of the path
+		size_t pos1 = path.substr(pos + 1).find("fileName=");
+		if(pos1 != std::string::npos)
+		{
 			pos1 += pos + 10;
 			filePath = downloadPath + "/" + path.substr(pos1);
-        	data->isDownload = true;
-			return(true);
-        }
-        else if(downloadPath == path.substr(0, pos))
-        {
-			filePath = path;
-        	data->isDownload = true;
+			data->isDownload = true;
 			return(true);
 		}
-    }
-    return (false);
+		else if(downloadPath == path.substr(0, pos))
+		{
+			filePath = path;
+			data->isDownload = true;
+			return(true);
+		}
+	}
+	return (false);
 }
 
 void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::string buffer, std::map<int, t_serverData*> &fdEpollLink)
@@ -181,16 +181,16 @@ void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::strin
 	{
 		if(data->path.empty())
 			errorPage("403", data);
-        // if i have a file to download
-        else if(isExtensionDownload(uri) || is_download(data, filePath, uri))
-        {
+		// if i have a file to download
+		else if(isExtensionDownload(uri) || is_download(data, filePath, uri))
+		{
 			if(isExtensionDownload(uri))
 			{
-            	filePath = data->path + uri;
+				filePath = data->path + uri;
 			}
-            content = readFile(filePath, data);
-        }
-        // if i have a file to download or uri
+			content = readFile(filePath, data);
+		}
+		// if i have a file to download or uri
 		else if(isExtension(uri) || is_cgi_extension(uri))
 			process_extension(filePath, code, uri, buffer, content, cookie, data, fdEpollLink);
 		else if(uri == "pages/deconnexion/")
@@ -219,9 +219,9 @@ void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::strin
 		checkAccessDir(code, filePath, data);
 	checkAccessFile(code, filePath, data);
 	std::string response = httpGetResponse(code, contentType, content, data, filePath);
-    // add user cookie connection at the end
-    response = display_user_connection(cookie, data, response);
-    // std::cout << MAGENTA "handling request\n" << response << RESET << std::endl;
+	// add user cookie connection at the end
+	response = display_user_connection(cookie, data, response);
+	// std::cout << MAGENTA "handling request\n" << response << RESET << std::endl;
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 	{
 		std::cout << strerror(errno) << std::endl;
@@ -234,19 +234,19 @@ void parseAndGetRequest(std::string buffer, t_serverData *data, Cookie &cookie, 
 	std::string path = buffer.substr(buffer.find('/') + 1, buffer.size() - buffer.find('/'));
 	path = path.substr(0, path.find(' '));
 
-    std::cout << "GET RESPONSE " << path <<  std::endl;
-    if(path.find("favicon.ico") != std::string::npos)
-    {
-        return notFoundFavicon(data);
-    }
-    //if i have a ? inside my url which represent filtering
-    // else if(path.find("?") != std::string::npos)
-    //     errorPage("501", data);
-    //if i have a redirection to delete page i modify it in the displaydeletepage
-    else if(path == "pages/delete/delete.html")
-        displayDeletePage(path, data);
-    // return the data to the client
-    else
-        getRequest(path, data, cookie, buffer, fdEpollLink);
+	std::cout << "GET RESPONSE " << path <<  std::endl;
+	if(path.find("favicon.ico") != std::string::npos)
+	{
+		return notFoundFavicon(data);
+	}
+	//if i have a ? inside my url which represent filtering
+	// else if(path.find("?") != std::string::npos)
+	//     errorPage("501", data);
+	//if i have a redirection to delete page i modify it in the displaydeletepage
+	else if(path == "pages/delete/delete.html")
+		displayDeletePage(path, data);
+	// return the data to the client
+	else
+		getRequest(path, data, cookie, buffer, fdEpollLink);
 }
 
