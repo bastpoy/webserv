@@ -38,7 +38,6 @@ SRCS		=	srcs/autoIndex.cpp \
 				srcs/get.cpp \
 				srcs/Location.cpp \
 				srcs/main.cpp \
-				srcs/parsingUtils.cpp \
 				srcs/post.cpp \
 				srcs/Response.cpp \
 				srcs/Server.cpp \

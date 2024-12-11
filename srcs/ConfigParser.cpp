@@ -127,7 +127,6 @@ void	ConfigParser::parseConfig(std::vector<Server> &servers)
 			getServerAttributs(file, server, getKeywords(), _serverFunctions);
 			checkServerAttributs(server, servers);
 			addServer(server);
-			std::cout << "end parsing" << std::endl;
 		}
 		else if (line.find("server") != std::string::npos && !httpBlock)
 			throw Response::ConfigurationFileServer("http block is missing");

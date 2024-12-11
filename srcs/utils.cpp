@@ -262,3 +262,12 @@ void	configureSignals()
 	std::signal(SIGINT, signal_handler);
 	std::signal(SIGQUIT, signal_handler);
 }
+
+void	checkLocationPath(Location &location, std::vector<Location> &locations)
+{
+	for (std::vector<Location>::iterator it = locations.begin(); it != locations.end(); it++)
+	{
+		if (it->getPath() == location.getPath())
+			throw Response::ConfigurationFileLocationPath();
+	}
+}
