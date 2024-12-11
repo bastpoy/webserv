@@ -166,19 +166,29 @@ void process_extension(std::string &filePath, std::string &code, std::string uri
     }
 }
 
-bool is_download(std::string filePath, t_serverData *data)
+bool is_download(t_serverData *data, std::string &filePath, std::string uri)
 {
     std::string downloadPath = "./www/upload";
-    size_t pos = filePath.find_last_of("/");
+	std::string path = data->path + uri;
+    size_t pos = path.find_last_of("/?");
 
     if(pos !=  std::string::npos)
     {
-        if(downloadPath == filePath.substr(0, pos))
+        //check if i have a filename at the right of the path
+        size_t pos1 = path.substr(pos + 1).find("fileName=");
+        if(pos1 != std::string::npos)
         {
-            std::cout << "downloading file: " << filePath << std::endl;
-            data->isDownload = true;
-            return(true);
+			pos1 += pos + 10;
+			filePath = downloadPath + "/" + path.substr(pos1);
+        	data->isDownload = true;
+			return(true);
         }
+        else if(downloadPath == path.substr(0, pos))
+        {
+			filePath = path;
+        	data->isDownload = true;
+			return(true);
+		}
     }
     return (false);
 }
@@ -199,9 +209,12 @@ void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::strin
 		if(data->path.empty())
 			errorPage("403", data);
         // if i have a file to download
-        else if(isExtensionDownload(uri) || is_download(data->path + uri, data))
+        else if(isExtensionDownload(uri) || is_download(data, filePath, uri))
         {
-            filePath= data->path + uri;
+			if(isExtensionDownload(uri))
+			{
+            	filePath = data->path + uri;
+			}
             content = readFile(filePath, data);
         }
         // if i have a file to download or uri
@@ -264,8 +277,8 @@ void parseAndGetRequest(std::string buffer, t_serverData *data, Cookie &cookie, 
         return notFoundFavicon(data);
     }
     //if i have a ? inside my url which represent filtering
-    else if(path.find("?") != std::string::npos)
-        errorPage("501", data);
+    // else if(path.find("?") != std::string::npos)
+    //     errorPage("501", data);
     //if i have a redirection to delete page i modify it in the displaydeletepage
     else if(path == "pages/delete/delete.html")
         displayDeletePage(path, data);

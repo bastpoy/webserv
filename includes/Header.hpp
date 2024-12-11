@@ -133,7 +133,7 @@ std::string	check_location(std::string &uri, std::string &content, std::vector<L
 std::string	getContentType(std::string &path, std::string typeRequest);
 void		checkAccessFile(std::string &code, std::string &filePath, t_serverData *data);
 void		parseAndGetRequest(std::string buffer, t_serverData *data, Cookie &cookie, std::map<int, t_serverData*> &fdEpollLink);
-bool        is_download(std::string filePath, t_serverData *data);
+bool        is_download(t_serverData *data, std::string &filePath, std::string uri);
 
 // post.cpp
 int 		getContentLength(std::string header, t_serverData *data);

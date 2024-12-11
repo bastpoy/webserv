@@ -46,7 +46,6 @@ void displayDeletePage(std::string path, t_serverData *data)
 		std::cout << strerror(errno) << std::endl;
 		errorPage("500", data);
 	}
-    // close(data->sockfd);
 }
 
 
