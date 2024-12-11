@@ -141,14 +141,41 @@ void process_extension(std::string &filePath, std::string &code, std::string uri
 	}
 }
 
-bool is_download(t_serverData *data, std::string &filePath, std::string uri)
+bool is_download(t_serverData *data, std::string uri)
 {
 	std::string downloadPath = "./www/upload";
 	std::string path = data->path + uri;
+
 	size_t pos = path.find_last_of("/?");
 
 	if(pos !=  std::string::npos)
 	{
+		//check if i have a filename at the right of the path
+		size_t pos1 = path.substr(pos + 1).find("fileName=");
+		if(pos1 != std::string::npos)
+		{
+			return(true);
+		}
+		else if(downloadPath == path.substr(0, pos))
+		{
+			return(true);
+		}
+	}
+	return (false);	
+}
+
+bool check_download(t_serverData *data, std::string &filePath, std::string uri)
+{
+	std::string downloadPath = "./www/upload";
+	std::string path = data->path + uri;
+	std::cout << "path is " << path << std::endl;
+
+	size_t pos = path.find_last_of("/?");
+
+	if(pos !=  std::string::npos)
+	{
+		std::cout << "the path " << path.substr(pos) << std::endl;
+		std::cout << "the path " << path.substr(0, pos) << std::endl;
 		//check if i have a filename at the right of the path
 		size_t pos1 = path.substr(pos + 1).find("fileName=");
 		if(pos1 != std::string::npos)
@@ -173,8 +200,8 @@ void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::strin
 	std::vector<Location>location = data->location;
 	std::string	content;
 	std::string code;
-	std::string contentType = getContentType(uri, "GET");
-	//check if I have a location block that match the query
+	std::string contentType = getContentType(uri, "GET", data);
+	// check if I have a location block that match the query
 	std::string filePath = check_location(uri, content, data->location, data);
 
 	if(filePath.empty())
@@ -182,12 +209,13 @@ void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::strin
 		if(data->path.empty())
 			errorPage("403", data);
 		// if i have a file to download
-		else if(isExtensionDownload(uri) || is_download(data, filePath, uri))
+		else if(isExtensionDownload(uri) || check_download(data, filePath, uri))
 		{
 			if(isExtensionDownload(uri))
 			{
 				filePath = data->path + uri;
 			}
+			std::cout << filePath << std::endl;
 			content = readFile(filePath, data);
 		}
 		// if i have a file to download or uri
@@ -203,6 +231,7 @@ void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::strin
 		}
 		else if (!data->index.empty())
 		{
+			std::cout << "herehere\n";
 			filePath = data->path + uri + data->index;
 			content = readFile(filePath, data);
 		}

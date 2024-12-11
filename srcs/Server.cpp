@@ -270,9 +270,13 @@ void Server::createListenAddr(ConfigParser &config)
 		{
 			t_serverData *info = static_cast<t_serverData*>(events[i].data.ptr);
 			int fd = info->sockfd;
-			// std::cout << YELLOW "i " << i << " num " << num_fds << " poll fd " << events[i].data.fd << " fd " << fd << " status: " << events[i].events << RESET << std::endl; 
+			std::cout << YELLOW "i " << i << " num " << num_fds << " poll fd " << events[i].data.fd << " fd " << fd << " status: " << events[i].events << RESET << std::endl; 
 			if((events[i].events & EPOLLERR) || (events[i].events & EPOLLHUP) || (!(events[i].events & EPOLLIN)))
 			{
+				if(events[i].events & EPOLLHUP)
+				{
+					std::cout << "petite erreur" << std::endl;
+				}
 				if(epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, &events[i]) == -1)
 				{
 					std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
@@ -282,7 +286,7 @@ void Server::createListenAddr(ConfigParser &config)
 				std::cout << RED "client disconnection" << RESET << std::endl;
 			}
 			// check if my fd is equal to a socket for handcheck
-			else if(this->socketfd.find(fd) != this->socketfd.end())
+			if(this->socketfd.find(fd) != this->socketfd.end())
 			{
 				struct sockaddr_in client_addr;
 				int client_fd = acceptConnection(fd, epoll_fd, client_addr);
@@ -321,10 +325,10 @@ void Server::createListenAddr(ConfigParser &config)
 				{
 					try
 					{
-						// std::cout << BMAGENTA "Inside epollout" RESET << std::endl;
 						//if I have already a cgi and ready to return information
 						if(info->cgi)
 						{
+							std::cout << BMAGENTA "Inside epollout CGI" RESET << std::endl;
 							std::string response = httpGetResponse("200 Ok", "text/html", info->body, info, "");
 							if(send(info->sockfd, response.c_str(), response.size(), 0) < 0)
 							{
@@ -356,8 +360,8 @@ void Server::createListenAddr(ConfigParser &config)
 				}
 				//check if i have a cgi running in all my fd open
 				check_timeout_cgi(info, fdEpollLink);
-				std::cout << "-----------------------------------" << std::endl;
 			}
 		}
+		std::cout << "-----------------------------------\n" << std::endl;
 	}
 }

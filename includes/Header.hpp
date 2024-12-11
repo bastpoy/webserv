@@ -140,13 +140,13 @@ void	errorPage(std::string error, t_serverData *data);
 // get.cpp
 void		redirRequest(std::string location, int fd, t_serverData *data);
 std::string	check_location(std::string &uri, std::string &content, std::vector<Location> &location, t_serverData *data);
-std::string	getContentType(std::string &path, std::string typeRequest);
+std::string	getContentType(std::string &path, std::string typeRequest, t_serverData * data);
 void		checkAccessFile(std::string &code, std::string &filePath, t_serverData *data);
 void		parseAndGetRequest(std::string buffer, t_serverData *data, Cookie &cookie, std::map<int, t_serverData*> &fdEpollLink);
 
 // ParsingUtils.cpp
 void		checkLocationPath(Location &location, std::vector<Location> &locations);
-bool        is_download(t_serverData *data, std::string &filePath, std::string uri);
+bool 		is_download(t_serverData *data, std::string uri);
 
 // post.cpp
 int 		getContentLength(std::string header, t_serverData *data);

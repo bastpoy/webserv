@@ -150,7 +150,10 @@ void errorPage(std::string error, t_serverData *data)
 	else if (error == "403")
 		Response::sendResponse("403 Forbidden", "text/html", read_error_file("./www/error/403.html", data), data);
 	else if (error == "404")
+	{
+		std::cout << "ici batard\n";
 		Response::sendResponse("404 Not Found", "text/html", read_error_file("./www/error/404.html", data), data);
+	}
 	else if (error == "405")
 		Response::sendResponse("405 Method Not Allowed", "text/html", read_error_file("./www/error/405.html", data), data);
 	else if (error == "413")

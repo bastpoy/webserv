@@ -47,8 +47,8 @@ std::string httpGetResponse(std::string code, std::string contentType, std::stri
 	{
 		response += "Content-Type: " + contentType + "\r\n";
 	}
-	response += "\r\n" + content;
 	// std::cout << BLUE << response << RESET << std::endl;
+	response += "\r\n" + content;
 	return (response);
 }
 

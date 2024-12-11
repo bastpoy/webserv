@@ -30,7 +30,6 @@ struct epoll_event fillDataCgi(t_serverData *importData, t_cgi *cgi, std::map<in
 	struct epoll_event client_event;
 
 	client_event.events = EPOLLIN;
-	client_event.data.fd = importData->sockfd;
 	client_event.data.ptr = static_cast<void*>(data);
 
 	std::pair<int, t_serverData*> pair(data->sockfd, data);
@@ -56,7 +55,7 @@ t_cgi * new_cgi(int fd, int pid, time_t time, int parentSocket)
 	return (newcgi);
 }
 
-pid_t	executeCGI(std::string uri, t_serverData *data, std::map<int, t_serverData*> &fdEpollLink)
+void	executeCGI(std::string uri, t_serverData *data, std::map<int, t_serverData*> &fdEpollLink)
 {
 	int fd[2];
 	std::string extension = CGIExtension(uri);
@@ -77,7 +76,6 @@ pid_t	executeCGI(std::string uri, t_serverData *data, std::map<int, t_serverData
 	if (pid < 0)
 	{
 		std::cout << "Fork failed" << std::endl; 
-		return pid;
 	}
 	else if (pid == 0)
 	{
@@ -104,25 +102,27 @@ pid_t	executeCGI(std::string uri, t_serverData *data, std::map<int, t_serverData
 
 	t_cgi *cgi = new_cgi(fd[0], pid, time(NULL) + 5, data->sockfd);
 	client_event = fillDataCgi(data, cgi, fdEpollLink);
-	if(epoll_ctl(3, EPOLL_CTL_DEL, data->sockfd, NULL) < 0)
-	{
-		std::cerr << "error deleting epoll ctl " << strerror(errno) << std::endl;
-		errorPage("500", data);
-	}
+	std::cout << "le fd remove est " << data->sockfd << " new cgi: " << fd[0] << std::endl;
+	// if(epoll_ctl(3, EPOLL_CTL_DEL, data->sockfd, NULL) < 0)
+	// {
+	// 	std::cerr << "error deleting epoll ctl " << strerror(errno) << std::endl;
+	// 	errorPage("500", data);
+	// }
 	if(epoll_ctl(3, EPOLL_CTL_ADD, fd[0], &client_event) < 0)
 	{
 		std::cerr << "error adding epoll ctl " << strerror(errno) << std::endl;
 		errorPage("500", data);
 	}
 	data->cgi = new_cgi(fd[0], pid, cgi->cgiTimeout, data->sockfd);
-	return (pid);
+	std::cout << "cgi fd: " << data->sockfd << std::endl;
 }
 
 std::string HandleCgiRequest(std::string uri, t_serverData *data, std::map<int, t_serverData*> &fdEpollLink)
 {
 	std::cout << "hi whats up cgi handler here path is |" << uri << "|" << std::endl;
 
-	executeCGI(uri, data, fdEpollLink); 
+	executeCGI(uri, data, fdEpollLink);
+	std::cout << " after my cgi\n";
 	throw Response::responseOk();
 	return "";
 }
@@ -182,7 +182,7 @@ void check_timeout_cgi(t_serverData *info, std::map<int, t_serverData*> &fdEpoll
 
 void read_cgi(t_serverData *data, struct epoll_event *events, int i, int epoll_fd)
 {
-	//i read my cgi which is finish
+	//I read my cgi which is finish
 	char buffer[4096];
 	int bytes_read;
 
@@ -197,9 +197,11 @@ void read_cgi(t_serverData *data, struct epoll_event *events, int i, int epoll_f
 	data->body.append(buffer, bytes_read);
 	//switching to epollout
 	events[i].events = EPOLLOUT;
+	std::cout << "le fd cgi avnat erreur: " << data->sockfd << std::endl;
+	// if(epoll_ctl(epoll_fd, EPOLL_CTL_MOD, data->cgi->cgifd, events) < 0)
 	if(epoll_ctl(epoll_fd, EPOLL_CTL_MOD, data->sockfd, events) < 0)
 	{
 		std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
-		errorPage("500", data);
+		// errorPage("500", data);
 	}
 }

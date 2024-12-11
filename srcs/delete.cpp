@@ -20,7 +20,7 @@ void displayDeletePage(std::string path, t_serverData *data)
 {
 	std::string filePath = data->path + path;
 	std::string content = readFile(filePath, data);
-	std::string contentType = getContentType(filePath, "DELETE");
+	std::string contentType = getContentType(filePath, "DELETE", data);
 	std::string pathToUpload = "./www/upload";
 	std::string html;
 	std::string response;
@@ -50,7 +50,7 @@ void deleteRequest(std::string &uri, t_serverData *data, std::string typeRequest
 	std::string content;
 	std::string filePath = check_location(uri, content, data->location, data);
 	std::string response;
-	std::string contentType = getContentType(uri, typeRequest);
+	std::string contentType = getContentType(uri, typeRequest, data);
 	//if i have a location
 	if(filePath.empty())
 		filePath = data->path + uri;

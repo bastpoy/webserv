@@ -83,7 +83,7 @@ std::vector<std::string>	ft_split(const std::string& str, char delimiter)
 	return result;
 }
 
-std::string getContentType(std::string &path, std::string typeRequest) 
+std::string getContentType(std::string &path, std::string typeRequest, t_serverData * data) 
 {
 	std::map<std::string, std::string> contentTypes;
 
@@ -126,7 +126,7 @@ std::string getContentType(std::string &path, std::string typeRequest)
 			return contentTypes[extension];
 	}
 	else
-		if((path.size() == 0 || path.at(path.size() - 1) != '/')  && typeRequest != "DELETE")
+		if((path.size() == 0 || path.at(path.size() - 1) != '/')  && typeRequest != "DELETE" && !is_download(data, path))
 			path += "/";
 	return "text/html";
 }
@@ -197,7 +197,10 @@ std::string readFile(std::string filePath, t_serverData *data)
 	std::ifstream inputFile(filePath.c_str(), std::ios::binary);
 
 	if (!inputFile.is_open())
+	{
+		std::cout << "error read file\n";
 		errorPage("404", data);
+	}
 
 	std::stringstream buffer;
 	buffer << inputFile.rdbuf();
