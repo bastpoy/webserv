@@ -1,8 +1,12 @@
 #include "Header.hpp"
 
-#define TIME_OUT_CGI_MS 10000000
-
-
+/**
+ * @brief	This function will fill the data structure for the CGI.
+ * @details	It will fill the data structure with the data from the server.
+ * @param	importData	The data to import.
+ * @param	cgi			The CGI structure.
+ * @param	fdEpollLink	The map of file descriptors.
+*/
 struct epoll_event fillDataCgi(t_serverData *importData, t_cgi *cgi, std::map<int, t_serverData*> &fdEpollLink)
 {
 	t_serverData *data = new t_serverData;
@@ -35,6 +39,13 @@ struct epoll_event fillDataCgi(t_serverData *importData, t_cgi *cgi, std::map<in
 	return(client_event);
 }
 
+/**
+ * @brief	This function will create a new CGI structure.
+ * @param	fd				The file descriptor.
+ * @param	pid				The process id.
+ * @param	time			The time.
+ * @param	parentSocket	The parent socket.
+*/
 t_cgi * new_cgi(int fd, int pid, time_t time, int parentSocket)
 {
 	t_cgi *newcgi = new t_cgi;

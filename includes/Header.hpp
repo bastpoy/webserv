@@ -84,6 +84,8 @@
 #define ON_CYAN		"\e[46m"
 #define ON_WHITE	"\e[47m"
 
+// Values
+#define TIME_OUT_CGI_MS 10000000
 
 /* ================ */
 /*		CLASS		*/
@@ -98,7 +100,6 @@ class RequestHandler;
 class Response;
 class Server;
 class Cookie;
-
 
 /* ================ */
 /*	  FUNCTIONS 	*/
