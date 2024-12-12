@@ -3,24 +3,24 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Détails Requête GET & Téléchargement</title>
+	<title>GET Request</title>
 	<link rel="stylesheet" href="../../styles.css">
 </head>
 <body>
 	<h1>🌐 GET Request</h1>
 	<div class="container">
 		<form method="get">
+			<label for="url">Request URL</label>
 			<div class="form-group">
-				<label for="url">Request URL</label>
 				<input type="text" id="url" placeholder="Enter the URL request" required>
 			</div>
-			<button type="submit">Sent GET Request</button>
+			<button type="submit">Send GET Request</button>
 		</form>
 
 		<!-- Section Téléchargement de Fichier -->
 		<form action="/upload" method="get" class="file-download-section">
 			<h2>🗂️ Download File</h2>
-			<div class="file-options">
+			<div class="form-group">
 				<input type="text" id="fileName" name="fileName" placeholder="Name of file to download" required>
 			</div>
 			<button type="submit">Download File</button>

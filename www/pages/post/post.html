@@ -3,28 +3,34 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Simple website</title>
-	<link rel="icon" type="image/x-icon" href="../../assets/images/favicon.ico">
+	<title>POST Request</title>
 	<link rel="stylesheet" href="../../styles.css">
 </head>
 <body>
-	<h1>POST Request</h1>
+	<h1>📤 POST Request</h1>
 	<div class="container">
-		<form id="fileForm" method="post" enctype="multipart/form-data">
-			<div>
-				<label for="fileInput">Fichiers :</label>
-				<input type="file" id="fileInput" name="files" multiple>
+		<form method="post" enctype="multipart/form-data" class="file-download-section">
+			<h2>🗂️ Upload File</h2>
+			<div class="form-group">
+				<input type="file" id="fileInput" name="files">
 			</div>
 			<button type="submit">Send File</button>
 		</form>
 
-		<form id="form-group" method="post">
+		<form id="form-group" method="post" class="file-download-section">
+			<h2> Contact Form</h2>
 			<label for="name">Nom :</label>
-			<input type="text" id="name" name="name" pattern="^[a-zA-Z0-9]+$" required>
+			<div class="form-group">
+				<input type="text" id="name" name="name" pattern="^[a-zA-Z0-9]+$" required>
+			</div>
 			<label for="email">Email :</label>
-			<input type="email" id="email" name="email" pattern="^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" required>
+			<div class="form-group">
+				<input type="email" id="email" name="email" pattern="^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" required>
+			</div>
 			<label for="message">Message :</label>
-			<textarea id="message" name="message" rows="4" pattern="^[a-zA-Z0-9]+$" required></textarea>
+			<div class="form-group">
+				<textarea id="message" name="message" rows="4" pattern="^[a-zA-Z0-9]+$" required></textarea>
+			</div>
 			<button type="submit">Envoyer</button>
 		</form>
 	</div>

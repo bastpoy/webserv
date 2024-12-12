@@ -6,19 +6,19 @@
 	<title>Connexion</title>
 	<link rel="stylesheet" href="../../styles.css">
 </head>
-<body style="text-align: center;">
-	<h1>🌐 Log In</h1>
+<body>
+	<h1>🔐 Log In</h1>
 	<div class="container">
-		<form  method="post">
+		<form method="post">
+			<label for="username">Username:</label>
 			<div class="form-group">
-				<label for="username">Username:</label>
-				<input type="text" id="username" name="username" required><br><br>
-				
-				<label for="password">Password:</label>
-				<input type="password" id="password" name="password" required><br><br>
-				
-				<button type="submit" value="Submit">
+				<input type="text" id="username" name="username" required>
 			</div>
+			<label for="password">Password:</label>
+			<div class="form-group">
+				<input type="password" id="password" name="password" required>
+			</div>
+			<button type="submit" value="Submit">Log In</button>
 		</form>
 	</div>
 	<a href="../../index.html" id="return">Go Back Home</a>
