@@ -9,7 +9,9 @@
 */
 struct epoll_event fillDataCgi(t_serverData *importData, t_cgi *cgi, std::map<int, t_serverData*> &fdEpollLink)
 {
-	t_serverData *data = new t_serverData;
+	t_serverData					*data = new t_serverData;
+	struct epoll_event				client_event;
+	std::pair<int, t_serverData*>	pair(data->sockfd, data);
 
 	data->sockfd = importData->sockfd;
 	data->port = importData->port;
@@ -27,15 +29,12 @@ struct epoll_event fillDataCgi(t_serverData *importData, t_cgi *cgi, std::map<in
 	data->body = "";
 	data->cgi = cgi;
 
-	struct epoll_event client_event;
-
 	client_event.events = EPOLLIN;
 	client_event.data.ptr = static_cast<void*>(data);
 
-	std::pair<int, t_serverData*> pair(data->sockfd, data);
 	fdEpollLink.insert(pair);
 	GlobalLinkedList::insert(data);
-	return(client_event);
+	return (client_event);
 }
 
 /**
@@ -57,9 +56,11 @@ t_cgi * new_cgi(int fd, int pid, time_t time, int parentSocket)
 
 void	executeCGI(std::string uri, t_serverData *data, std::map<int, t_serverData*> &fdEpollLink)
 {
-	int fd[2];
-	std::string extension = CGIExtension(uri);
+	int			fd[2];
+	std::string	extension = CGIExtension(uri);
 	std::map<std::string, std::string>::const_iterator it = data->cgiPath.find(extension);
+
+	std::cout << RED "extension is " << extension << RESET << std::endl;
 	if (it == data->cgiPath.end())
 	{
 		std::cerr << "Error : can't find extension " << extension << std::endl;
