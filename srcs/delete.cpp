@@ -22,7 +22,7 @@ void displayDeletePage(std::string path, t_serverData *data)
 	std::string content = readFile(filePath, data);
 	std::string contentType = getContentType(filePath, "DELETE", data);
 	std::string pathToUpload = "./www/upload";
-	std::string html;
+	std::string html = "<ul style=\"text-align:center\">\n";
 	std::string response;
 
 	std::vector<std::string> files = listDirectory(pathToUpload);
@@ -33,8 +33,10 @@ void displayDeletePage(std::string path, t_serverData *data)
 			html += "\t<li>" + *it + "</li>\n";
 		it++;
 	}
+	html += "</ul>\n</div><a href=\"../../index.html\" id=\"return\">Go Back Home</a>\n";
 	html += "</body>\n</html>";
 	content += html;
+	std::cout << MAGENTA << html << RESET << std::endl;
 	response = httpGetResponse("200 Ok", contentType, content, data, "");
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 	{

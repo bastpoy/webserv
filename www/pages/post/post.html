@@ -5,47 +5,29 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Simple website</title>
 	<link rel="icon" type="image/x-icon" href="../../assets/images/favicon.ico">
+	<link rel="stylesheet" href="../../styles.css">
 </head>
-<body style="text-align: center;">
-	<nav style="padding:15px;">
-		<a href="../../index.html" style="font-size: 20px;margin:1rem;width:150px;padding:5px;">Home</a>
-	</nav>
-	<h1>POST</h1>
-	<h2>Upload</h2>
-	<div>
-		<form method="post" enctype="multipart/form-data">
+<body>
+	<h1>POST Request</h1>
+	<div class="container">
+		<form id="fileForm" method="post" enctype="multipart/form-data">
 			<div>
-				<input type="file" name="files" multiple>
-				<label for="fileInput"></label>
+				<label for="fileInput">Fichiers :</label>
+				<input type="file" id="fileInput" name="files" multiple>
 			</div>
-			<button type="submit" style="margin:2rem;">Envoyer les fichiers</button>
+			<button type="submit">Send File</button>
 		</form>
-		<h2>Form</h2>
-		<form method="post">
-			<label for="name">Name :</label>
-			<input type="text" id="name" name="name" pattern="^[a-zA-Z0-9]+$" required><br><br>
-			
-			<label for="email">Email :</label>
-			<input type="email" id="email" name="email" pattern="^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" required><br><br>
-			
-			<label for="message">Message :</label><br>
-			<textarea id="message" name="message" rows="4" cols="50" pattern="^[a-zA-Z0-9]+$" required></textarea><br><br>
-			
-			<button type="submit">Send</button>
-		</form>
-		<script>
-			document.getElementById('postForm').addEventListener('submit', function(e) {
-				var name = document.getElementById('name').value;
-				var email = document.getElementById('email').value;
-				var message = document.getElementById('message').value;
-				var regex = /^[a-zA-Z0-9]+$/;
-				var regexMail = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
-				if (!regex.test(username) || !regexMail.test(email) || !regex.test(message)) {
-					alert("You can only use letters and numbers");
-					e.preventDefault();
-				}
-			});
-		</script>
+		<form id="form-group" method="post">
+			<label for="name">Nom :</label>
+			<input type="text" id="name" name="name" pattern="^[a-zA-Z0-9]+$" required>
+			<label for="email">Email :</label>
+			<input type="email" id="email" name="email" pattern="^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" required>
+			<label for="message">Message :</label>
+			<textarea id="message" name="message" rows="4" pattern="^[a-zA-Z0-9]+$" required></textarea>
+			<button type="submit">Envoyer</button>
+		</form>
+	</div>
+	<a href="../../index.html" id="return">Go Back Home</a>
 </body>
 </html>

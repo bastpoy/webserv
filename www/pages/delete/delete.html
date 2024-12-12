@@ -1,19 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upload</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Upload</title>
+	<link rel="stylesheet" href="../../styles.css">
 </head>
-<body style="text-align: center;">
-	<nav style="padding:15px;">
-		<a href="../../index.html" style="font-size: 20px;margin:1rem;width:150px;padding:5px;">Home</a>
-	</nav>
-		<h1>Delete File</h1>
-			<label for="fileName">Enter the file name to delete:</label>
-			<input type="text" id="fileName" placeholder="your_file_to_delete.txt">
-			<button class="minimal-button" id="deleteButton">Delete File</button>
-		<h1></h1>
+<body>
+	<h1>🌐 DELETE Request</h1>
+	<div class="container">
+		<label for="fileName">Enter the file name to delete:</label>
+		<input type="text" id="fileName" placeholder="your_file_to_delete.txt">
+		<button id="deleteButton">Delete File</button>
 <script>
 	document.getElementById('deleteButton').addEventListener('click', function() {
 		const fileName = document.getElementById('fileName').value;
@@ -33,16 +31,4 @@
 		});
 	});
 </script>
-
-<button class="minimal-button" id="refreshButton">Refresh</button>
-<script>
-    // Get a reference to the button element
-    const button = document.getElementById('refreshButton');
-
-    // Add a click event listener to the button
-    button.addEventListener('click', function() {
-        // Refresh the page
-        location.reload();
-    });
-</script>
-<h3>List of uploaded files :</h3>
+<h2>List of uploaded files :</h2>
