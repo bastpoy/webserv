@@ -32,6 +32,7 @@ struct epoll_event Server::fillEpoolDataIterator(int sockfd, std::vector<Server>
 	data->body = "";
 	data->cgi = NULL;
 	data->isDownload = false;
+	data->isCgi = false;
 
 	event.events = EPOLLIN; // Monitor for input events
 	//I stock the info server on the event ptr data
@@ -271,20 +272,8 @@ void Server::createListenAddr(ConfigParser &config)
 			t_serverData *info = static_cast<t_serverData*>(events[i].data.ptr);
 			int fd = info->sockfd;
 			std::cout << YELLOW "i " << i << " num " << num_fds << " poll fd " << events[i].data.fd << " fd " << fd << " status: " << events[i].events << RESET << std::endl; 
-			if((events[i].events & EPOLLERR) || (events[i].events & EPOLLHUP) || (!(events[i].events & EPOLLIN)))
-			{
-				if(events[i].events & EPOLLHUP)
-				{
-					std::cout << "petite erreur" << std::endl;
-				}
-				if(epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, &events[i]) == -1)
-				{
-					std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
-					errorCloseEpollFd(epoll_fd, 4);
-				}
-				close(fd);
-				std::cout << RED "client disconnection" << RESET << std::endl;
-			}
+			if(info->cgi)
+				std::cout << YELLOW " fd cgi: " << info->cgi->cgifd << RESET << std::endl;
 			// check if my fd is equal to a socket for handcheck
 			if(this->socketfd.find(fd) != this->socketfd.end())
 			{
@@ -307,6 +296,7 @@ void Server::createListenAddr(ConfigParser &config)
 					if(info->cgi)
 					{
 						read_cgi(info, events, i, epoll_fd);
+						std::cout << info->body << std::endl;
 					}
 					else if(read_one_chunk(info, events[i], epoll_fd))
 					{
@@ -330,16 +320,26 @@ void Server::createListenAddr(ConfigParser &config)
 						{
 							std::cout << BMAGENTA "Inside epollout CGI" RESET << std::endl;
 							std::string response = httpGetResponse("200 Ok", "text/html", info->body, info, "");
+							if(!info->body.size())
+								continue;
+							std::cout << "response: " << response << std::endl;
 							if(send(info->sockfd, response.c_str(), response.size(), 0) < 0)
 							{
 								std::cout << "error sending CGI response\n";
 								errorPage("500", info);
+							}
+							if(epoll_ctl(epoll_fd, EPOLL_CTL_DEL, info->cgi->cgifd, NULL) < 0)
+							{
+								std::cerr << "error deleting epoll ctl " << strerror(errno) << std::endl;
+								errorPage("500", data);
 							}
 							fdEpollLink.erase(info->sockfd);
 							close(info->cgi->cgifd);
 							delete info->cgi;
 							info->cgi = NULL;
 						}
+						else if(info->isCgi)
+							continue;
 						// parse the data
 						else
 							proceed_response(info, cookie, fdEpollLink);
@@ -349,9 +349,15 @@ void Server::createListenAddr(ConfigParser &config)
 					catch(const std::exception& e)
 					{
 						std::cout << RED << "Error catch" << RESET << std::endl;
-						if(info->cgi)
+						if(info->isCgi)
 						{
-							std::cout << GREEN "CGI EXIST BUT RETURN" RESET << std::endl;
+							std::cout << GREEN "CGI EXIST BUT RETURN WITH FD "<< fd << RESET << std::endl;
+							events[i].events = EPOLLOUT;
+							if(epoll_ctl(epoll_fd, EPOLL_CTL_MOD, info->sockfd, events) < 0)
+							{
+								std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
+								errorPage("500", info);
+							}
 							continue;
 						}
 						manage_tserver(info, events, i, epoll_fd);

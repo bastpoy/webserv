@@ -26,6 +26,7 @@ struct epoll_event fillDataCgi(t_serverData *importData, t_cgi *cgi, std::map<in
 	data->header = "";
 	data->body = "";
 	data->cgi = cgi;
+	data->isDownload = importData->isDownload;
 
 	struct epoll_event client_event;
 
@@ -62,13 +63,12 @@ void	executeCGI(std::string uri, t_serverData *data, std::map<int, t_serverData*
 	std::map<std::string, std::string>::const_iterator it = data->cgiPath.find(extension);
 	if (it == data->cgiPath.end())
 	{
-		std::cerr << "Error : can't find extension " << extension << std::endl;
+		std::cout << "Error : can't find extension " << extension << std::endl;
 		errorPage("501", data);
-		throw Response::Error();
 	}
 	if(pipe(fd) < 0)
 	{
-		std::cerr << "error creating pipe " << strerror(errno) << std::endl;
+		std::cout << "error creating pipe " << strerror(errno) << std::endl;
 		errorPage("500", data);
 	}
 
@@ -86,14 +86,13 @@ void	executeCGI(std::string uri, t_serverData *data, std::map<int, t_serverData*
 		script[2] = NULL;
 		if(dup2(fd[1], STDOUT_FILENO) < 0)
 		{
-			std::cerr << "Error dup inside CGI" << strerror(errno) << std::endl;
+			std::cout << "Error dup inside CGI" << strerror(errno) << std::endl;
 			errorPage("500", data);
 		}
 		close(fd[0]);
 		close(fd[1]);
 		execve(it->second.c_str(), script, NULL);
-		std::cerr << "failed to execve, path was : " << uri << std::endl;
-		std::cout << MAGENTA << "it: " << it->first << RESET << std::endl;
+		std::cout << "failed to execve, path was : " << uri << std::endl;
 		perror("execve");
 		std::exit(EXIT_FAILURE);
 	}
@@ -102,19 +101,13 @@ void	executeCGI(std::string uri, t_serverData *data, std::map<int, t_serverData*
 
 	t_cgi *cgi = new_cgi(fd[0], pid, time(NULL) + 5, data->sockfd);
 	client_event = fillDataCgi(data, cgi, fdEpollLink);
-	std::cout << "le fd remove est " << data->sockfd << " new cgi: " << fd[0] << std::endl;
-	// if(epoll_ctl(3, EPOLL_CTL_DEL, data->sockfd, NULL) < 0)
-	// {
-	// 	std::cerr << "error deleting epoll ctl " << strerror(errno) << std::endl;
-	// 	errorPage("500", data);
-	// }
 	if(epoll_ctl(3, EPOLL_CTL_ADD, fd[0], &client_event) < 0)
 	{
-		std::cerr << "error adding epoll ctl " << strerror(errno) << std::endl;
+		std::cout << "error adding epoll ctl " << strerror(errno) << std::endl;
 		errorPage("500", data);
 	}
-	data->cgi = new_cgi(fd[0], pid, cgi->cgiTimeout, data->sockfd);
-	std::cout << "cgi fd: " << data->sockfd << std::endl;
+	data->isCgi = true;
+	// data->cgi = new_cgi(fd[0], pid, cgi->cgiTimeout, data->sockfd);
 }
 
 std::string HandleCgiRequest(std::string uri, t_serverData *data, std::map<int, t_serverData*> &fdEpollLink)
@@ -122,7 +115,6 @@ std::string HandleCgiRequest(std::string uri, t_serverData *data, std::map<int, 
 	std::cout << "hi whats up cgi handler here path is |" << uri << "|" << std::endl;
 
 	executeCGI(uri, data, fdEpollLink);
-	std::cout << " after my cgi\n";
 	throw Response::responseOk();
 	return "";
 }
@@ -182,26 +174,24 @@ void check_timeout_cgi(t_serverData *info, std::map<int, t_serverData*> &fdEpoll
 
 void read_cgi(t_serverData *data, struct epoll_event *events, int i, int epoll_fd)
 {
-	//I read my cgi which is finish
+	// I read my cgi which is finish
 	char buffer[4096];
 	int bytes_read;
 
-	std::cout << YELLOW "before reading cgi" << RESET << std::endl;
+	std::cout << YELLOW "Reading cgi" << RESET << std::endl;
 	bytes_read = read(data->cgi->cgifd, buffer, 4096);
 	if(bytes_read < 1)
 	{
 		std::cerr << RED "error reading the cgi: " << strerror(errno) << RESET << std::endl; 
 	}
-	std::cout << GREEN "reading from the cgi fd" << RESET << std::endl;
 	//i put the content of the cgi response in the body
 	data->body.append(buffer, bytes_read);
 	//switching to epollout
 	events[i].events = EPOLLOUT;
-	std::cout << "le fd cgi avnat erreur: " << data->sockfd << std::endl;
-	// if(epoll_ctl(epoll_fd, EPOLL_CTL_MOD, data->cgi->cgifd, events) < 0)
-	if(epoll_ctl(epoll_fd, EPOLL_CTL_MOD, data->sockfd, events) < 0)
+	if(epoll_ctl(epoll_fd, EPOLL_CTL_MOD, data->cgi->cgifd, events) < 0)
+	// if(epoll_ctl(epoll_fd, EPOLL_CTL_MOD, data->sockfd, events) < 0)
 	{
 		std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
-		// errorPage("500", data);
+		errorPage("500", data);
 	}
 }

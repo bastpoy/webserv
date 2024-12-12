@@ -15,6 +15,7 @@ std::string Response::sendResponse(std::string statusCode, std::string contentTy
 
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 	{
+		// std::cout << "here" << std::endl;
 		std::cout << strerror(errno) << std::endl;
 		errorPage("500", data);
 	}

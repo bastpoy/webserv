@@ -210,8 +210,10 @@ std::string readFile(std::string filePath, t_serverData *data)
 std::string read_error_file(std::string path, t_serverData *data)
 {
 	std::ifstream file(path.c_str(), std::ios::binary);
-	if(!file.is_open())
+	if(!file.is_open()){
+		std::cout << "here\n";
 		Response::sendResponse("500", "text/html", "<h1>500 Internal Server Error</h1>", data);
+	}
 	return std::string(
 		std::istreambuf_iterator<char>(file),
 		std::istreambuf_iterator<char>()

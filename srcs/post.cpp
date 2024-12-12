@@ -177,7 +177,6 @@ void postRequest(t_serverData *data, Cookie &cookie)
 			if(!output.is_open())
 			{
 				errorPage("500", data);
-				throw Response::ErrorOpeningFile(NULL);
 			}
 			truncate_file(data->body, data);
 			output.write(data->body.c_str(), data->body.size());
