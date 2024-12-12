@@ -13,33 +13,36 @@
 class ConfigParser
 {
 	private:
-		std::vector<Server>	_servers; // Stores the list of configured servers
+		std::vector<Server>	_servers;
 		std::string			_path;
-	// 	int		_port;
-	// 	int		_server_root;
+
+		std::vector<std::string>					_keywords;
+		std::vector<void (Server::*)(std::string)>	_serverFunctions;
+		static int const							_keywordsSize = 10;
+		std::vector<t_serverData *>					listData;
 
 	public:
-		// Canonical form (constructor, destructor, copy operations)
 		ConfigParser(void);
 		ConfigParser(char *path);
 		~ConfigParser(void);
-		// ConfigParser(const ConfigParser &other);
-		// ConfigParser	&operator=(const ConfigParser &other);
 
-		// Setter
-		void	addServer(Server &server);
+		void		addServer(Server &server);
+		void		setListData(t_serverData *data);
 
-		// Getter
-		std::vector<Server>	&getServers();
+		std::vector<Server>			&getServers(void);
+		std::vector<std::string>	getKeywords(void);
+		std::vector<t_serverData *>	getListData(void) const;
 
-		// Parsing
-		void	parseConfig(); // pour analyser le fichier de configuration et remplir les attributs.
-		// void	parseConfigFile(); 
-		void	getServerAttributs(std::ifstream &file, Server &server);
-
-		// Debug
-		void	printConfig();
-
+		static void	rmComments(std::string &line);
+		static void	checkSemicolon(std::string &line);
+		static bool	parseLine(std::string &line);
+		void		handleNewServer(std::string& line, std::ifstream& file, std::vector<Server>& servers, bool httpBlock);
+		void		parseConfig(std::vector<Server> &servers);
+		void		getServerAttributs(std::ifstream& file, Server &server, bool bracket);
+		void		functionConfig(void);
+		bool		isFileEmpty(const std::string &filePath);
+		void		checkServerAttributs(Server &server, std::vector<Server> &servers);
+		void		printConfig(void);
 };
 
 # endif /* CONFIGPARSER_HPP */

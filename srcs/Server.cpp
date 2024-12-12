@@ -1,188 +1,367 @@
 #include "Header.hpp"
 
-bool isExtension(std::string path)
+#define TIMEOUT 5000
+#define BUFER_SIZE 4096
+#define FD_NUMBER 100
+
+
+struct epoll_event Server::fillEpoolDataIterator(int sockfd, std::vector<Server>::iterator itbeg, ConfigParser &config)
 {
-    //return false if there is not extension
-    if(path.find(".html") == std::string::npos &&
-        path.find(".css") == std::string::npos &&
-        path.find(".js") == std::string::npos &&
-        path.find(".png") == std::string::npos &&
-        path.find(".jpg") == std::string::npos &&
-        path.find(".gif") == std::string::npos &&
-        path.find(".ico") == std::string::npos)
-        return (false);
-    return (true);
+	t_serverData *data = new t_serverData;
+
+	GlobalLinkedList::insert(data);
+	struct epoll_event event;
+
+	this->data = data;
+	config.setListData(data);
+
+	data->sockfd = sockfd;
+	data->port = itbeg->getPort();
+	data->server_name = itbeg->getServerName();
+	data->path = itbeg->getRoot();
+	data->maxBody = itbeg->getMaxBody();
+	data->autoindex = itbeg->getAutoIndex();
+	data->index = itbeg->getIndex();
+	data->errorPage = itbeg->getErrorPage();
+	data->cgiPath = itbeg->getCgiPath();
+	data->redir = itbeg->getRedir();
+	data->location = itbeg->getLocation();
+	data->requestAllow = itbeg->getAllowedMethods();
+	data->buffer = "";
+	data->header = "";
+	data->body = "";
+	data->cgi = NULL;
+	data->isDownload = false;
+
+	event.events = EPOLLIN; // Monitor for input events
+	//I stock the info server on the event ptr data
+	event.data.ptr = static_cast<void*>(data);
+
+	return (event);
 }
 
-std::string check_location(std::string &filePath, std::vector<Location> &location, t_serverData *data)
+struct epoll_event Server::fillEpoolDataInfo(int &client_fd, t_serverData *info)
 {
-    std::vector<Location>::iterator it = location.begin();
+	t_serverData *data = new t_serverData();
 
-    // it->getPath => pathLocation
-    // it->getIndex => indexLocation
-    // it->getRoot => rootLocation
-    // rootServer => rootServer
-    // indexServer => indexServer
-    // uri => path to the current uri
+	GlobalLinkedList::insert(data);
+	data->sockfd = client_fd;
+	data->port = info->port;
+	data->server_name = info->server_name;
+	data->path = info->path;
+	data->maxBody = info->maxBody;
+	data->autoindex = info->autoindex;
+	data->index = info->index;
+	data->errorPage = info->errorPage;
+	data->cgiPath = info->cgiPath;
+	data->redir = info->redir;
+	data->location = info->location;
+	data->requestAllow = info->requestAllow;
+	data->buffer = "";
+	data->header = "";
+	data->body = "";
+	data->cgi = NULL;
+	data->isDownload = false;
 
-    //modify locationPath to remove the first '/' 
-    it->setPath(it->getPath().substr(1, it->getPath().size() - 1));
-    std::string finalPath;
-    //iterate throught my different server location
-    while(it != location.end())
-    {
-        // if the path is equal to the location path
-        if(!it->getPath().empty() && filePath == it->getPath())
-        {
-            std::cout << "location path: " << it->getPath() << std::endl;
-            //I check if I have a root directory
-            if(!it->getRoot().empty())
-            {
-                //add root to the path
-                finalPath += it->getRoot() + it->getPath();
-            }
-            //if no location root
-            else
-            {
-                if(!data->path.empty())
-                    finalPath += data->path + it->getPath();
-                else
-                    finalPath += it->getPath();
-            }
-            // if i have a file to return inside location
-            if(!it->getIndex().empty())
-            {
-                //path is equal to serverRoot
-                finalPath += it->getIndex();
-            }
-            //else i return the server file
-            else
-                finalPath += data->index;
-            std::cout << "finalPath: " << finalPath << std::endl;
-            return(finalPath);
-        }
-        it++;
-    }
-    return ("");
+	struct epoll_event client_event;
+	client_event.events = EPOLLIN;
+	client_event.data.ptr = static_cast<void*>(data);
+
+	return(client_event);
 }
 
-void sendData(std::string &uri , std::string &contentType, t_serverData *data)
+void Server::setupSocket(int &sockfd, struct sockaddr_in &addr, std::vector<Server>::iterator itbeg)
 {
-    std::vector<Location>location = data->location;
-    //root de server
-    std::string defaultPath = data->path;
-    std::string filePath; // Change this to your file path
-    std::string locationPath;
+	struct addrinfo hints, *result;
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_PASSIVE;
 
-    //if there is a index specify in the server and not extension in the path
-    if(!data->index.empty() && !isExtension(uri))
-        filePath = defaultPath + data->index;
-    else
-    {
-        filePath = defaultPath + uri;
-    }
-    // check if there is a location path
-    locationPath = check_location(uri, data->location, data);
-    if(!locationPath.empty())
-    {
-        std::cout << "a location\n";
-        filePath = locationPath;
-    }
+	std::string ip = itbeg->getIP();
+	std::string port = itbeg->getPort();
+	std::cout << "ip: " << ip << "; Port: " << port << std::endl;
+	int status = getaddrinfo(ip.c_str(), port.c_str(), &hints, &result);
+	if (status != 0) {
+		closeAllFileDescriptors();
+		std::cerr << "getaddrinfo error: " << gai_strerror(status) << std::endl;
+		throw Response::Error();
+	}
+	
+	struct sockaddr_in *resolved_addr = reinterpret_cast<struct sockaddr_in*>(result->ai_addr);
+	memcpy(&addr, resolved_addr, sizeof(struct sockaddr_in));
 
-    std::cout << "the path is: " << filePath <<  " defautl path: " << defaultPath << " uri: " << uri << std::endl;
-    std::cout << "the content type: " << contentType << std::endl;
-    //read the file content 
-    std::string content = readFile(filePath);
+	if (bind(sockfd, result->ai_addr, result->ai_addrlen) < 0) 
+	{
+		closeAllFileDescriptors();
+		freeaddrinfo(result);
+		std::cout << "\nBIND: ";
+		throw Response::ErrorCreatingSocket(strerror(errno));
+	}
 
-    //return the response
-    std::string response = "HTTP/1.1 200 OK \r\n"
-                            "Content-Type: " + contentType + "\r\n"
-                            "Content-Length: " + to_string(content.size()) + "\r\n"
-                            "Connection: close\r\n"
-                            "\r\n" + content;
-    
-    if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
-    {
-        std::cout << strerror(errno) << std::endl;
-        throw Response::ErrorSendingResponse(); 
-    }
+	if (listen(sockfd, 10) < 0)
+	{
+		closeAllFileDescriptors();
+		freeaddrinfo(result);
+		std::cout <<"LISTEN: " << strerror(errno);
+		throw Response::Error();
+	}
+	freeaddrinfo(result);
 }
 
-std::string getContentType(std::string &path) 
+void Server::configuringNetwork(std::vector<Server>::iterator &itbeg, ConfigParser &config, int &epoll_fd)
 {
-    std::map<std::string, std::string> contentTypes;
+	while(itbeg != config.getServers().end())
+	{
+		struct sockaddr_in addr;
+		
+		int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+		if (sockfd == -1)
+		{
+			std::cout << "error creating socket" << std::endl;
+			errorCloseEpollFd(epoll_fd, 2);
+		}
 
-    contentTypes.insert(std::pair<std::string, std::string>(".html", "text/html"));
-    contentTypes.insert(std::pair<std::string, std::string>(".css", "text/css"));
-    contentTypes.insert(std::pair<std::string, std::string>(".js", "application/javascript"));
-    contentTypes.insert(std::pair<std::string, std::string>(".png", "image/png"));
-    contentTypes.insert(std::pair<std::string, std::string>(".jpg", "image/jpeg"));
-    contentTypes.insert(std::pair<std::string, std::string>(".gif", "image/gif"));
+		//add properties to allow the socket to be reusable even if it is in time wait
+		int opt = 1;
+		if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
+			errorCloseEpollFd(epoll_fd, 3);
 
-    size_t dotPos = path.find_last_of(".");
-    if (dotPos != std::string::npos) {
-        std::string extension = path.substr(dotPos);
-        if (contentTypes.find(extension) != contentTypes.end()) {
-            return contentTypes[extension];
-        }
-    }
-    //si je n'ai pas d'extensions donc pas de fichiers jer ajoute un backslach
-    else
-    {
-        if(path.size() == 0 || path.at(path.size() - 1) != '/')
-            path += "/";
-        
-    }
-    return "text/html"; // Default content type
+		addr.sin_family = AF_INET;
+		addr.sin_port = htons(atoi(itbeg->getPort().c_str()));
+
+		setupSocket(sockfd, addr, itbeg);
+
+		struct epoll_event event = this->fillEpoolDataIterator(sockfd, itbeg, config);
+		if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, sockfd, &event) == -1)
+			errorCloseEpollFd(epoll_fd, 4);
+		this->setSocketFd(sockfd);
+		itbeg++;
+	}
+	std::cout << std::endl;
 }
 
-bool redirHeader(std::map<std::string, std::string>::iterator redir, int fd)
+int acceptConnection(int &fd, int &epoll_fd, struct sockaddr_in &client_addr)
 {
-    std::string response = "HTTP/1.1 302 Found \r\n"
-                            "Location: " + redir->second + "\r\n"
-                            "Content-Type: text/html\r\n"
-                            "Content-Length: 0 \r\n"
-                            "Connection: keep-alive\r\n\r\n";
+	socklen_t client_addr_len = sizeof(client_addr);
+	int client_fd = accept(fd, (struct sockaddr*)&client_addr, &client_addr_len);
+	if (client_fd == -1)
+	{
+		errorCloseEpollFd(epoll_fd, 6);
+	}
 
-    std::cout << "the response:\n" << response << std::endl;
-    if(send(fd, response.c_str(), response.size(), 0) < 0)
-    {
-        std::cout << strerror(errno) << std::endl;
-        std::cout << "Error redirection: " << strerror(errno) << std::endl;
-        return (false);
-    }
-    return(true);
+	return(client_fd);
 }
 
-bool redirectRequest(std::string buffer, t_serverData *data) 
+bool handleRequest(std::string buffer, t_serverData *data, Cookie &cookie, std::map<int, t_serverData*> &fdEpollLink) 
 {
-    std::string firstLine = buffer.substr(0, buffer.find("\n"));
-    std::string typeRequest =  firstLine.substr(0, buffer.find(" "));
+	std::string firstLine = data->header.substr(0, data->header.find("\n"));
+	std::string typeRequest = firstLine.substr(0, data->header.find(" "));
 
-    if(typeRequest == "GET")
-    {
-        //if i have a redirection 
-        if(data->redir.size())
-        {
-            std::cout << "GET REDIRECTION " << data->port << " " << data->server_name << std::endl;
-            return(redirHeader(data->redir.begin(), data->sockfd));
-        }
-        // else I retrieve the info
-        else
-        {
-            std::cout << "GET RESPONSE" << std::endl;
-            //get the url of the request
+	request_allowed(typeRequest, data);
 
-            std::string path = buffer.substr(buffer.find('/') + 1, buffer.size() - buffer.find('/'));
-            path = path.substr(0, path.find(' '));
-            
-            // get the type of the request file
-            std::string contentType = getContentType(path);
-            // return the data to the client
-            sendData(path, contentType, data);
-        }
-    }
-    else
-        std::cout << "404 not found" << std::endl; 
-    return(false);
+	if(typeRequest == "GET")
+	{
+		if(data->redir.size())
+		{
+			std::cout << "REDIRECTION GET" << std::endl;
+			redirRequest(data->redir.begin()->second, data->sockfd, data);
+		}
+		else
+			parseAndGetRequest(buffer, data, cookie, fdEpollLink);
+	}
+	else if(typeRequest == "POST" && request_allowed("POST", data))
+		postRequest(data, cookie);
+	else if(typeRequest == "DELETE" && request_allowed("DELETE", data))
+		parseAndDeleteRequest(buffer, data, typeRequest);
+	else
+		errorPage("405", data);
+	return(false);
+}
+
+bool read_one_chunk(t_serverData *data, struct epoll_event ev, int epoll_fd) 
+{
+	char buffer[BUFER_SIZE];
+	int bytes_read = recv(data->sockfd, buffer, BUFER_SIZE, 0);
+	if (bytes_read < 0) 
+	{
+		std::cout << "Error " << errno << " reading from socket " << data->sockfd << ": " << strerror(errno) << std::endl;
+		errorPage("400", data);
+	} 
+	else if (bytes_read == 0) 
+	{
+		std::cout << RED "Connection closed by the client. (recv = 0) " << data->sockfd << RESET << std::endl;
+		if(epoll_ctl(epoll_fd, EPOLL_CTL_DEL, data->sockfd, &ev) < 0)
+		{
+			std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
+			errorPage("500", data);
+		}
+		close(data->sockfd);
+		return (false); 
+	}
+	data->buffer.append(buffer, bytes_read);
+	size_t pos = data->buffer.find("\r\n\r\n");
+	if(pos != std::string::npos)
+	{
+		data->header = data->buffer.substr(0, pos + 4);
+		std::cout << GREEN << data->header << RESET << std::endl;
+	}
+	if(static_cast<int>(data->buffer.size() - data->header.size()) == getContentLength(data->buffer, data))
+		return (true);
+	if(static_cast<int>(data->buffer.size()) == getContentLength(data->buffer, data))
+		return true;
+	return (false);
+}
+
+void proceed_response(t_serverData *data, Cookie &cookie, std::map<int, t_serverData*> &fdEpollLink)
+{
+	if(!data->buffer.empty())
+	{
+		size_t pos = data->buffer.find("\r\n\r\n");
+		data->header = data->buffer.substr(0, pos);
+		data->body = data->buffer.substr(pos + 4, data->buffer.size() - pos + 4);
+		handleRequest(data->buffer, data, cookie, fdEpollLink);
+	}
+}
+
+void manage_tserver(t_serverData *&data, struct epoll_event *events, int i, int epoll_fd)
+{
+	std::cout << BLUE "switching to epoolin" << RESET << std::endl;
+	events[i].events = EPOLLIN;
+	if(epoll_ctl(epoll_fd, EPOLL_CTL_MOD, data->sockfd, events) < 0)
+	{
+		std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
+		errorPage("500", data);
+	}
+	close(data->sockfd);
+	GlobalLinkedList::update_data(data);
+	data->body.erase();
+	data->buffer.erase();
+	data->header.erase();
+	delete data;
+	data = NULL;
+}
+
+void Server::createListenAddr(ConfigParser &config)
+{
+	std::vector<Server>::iterator itbeg = config.getServers().begin();
+	std::map<int, t_serverData*> fdEpollLink;
+
+	int epoll_fd = epoll_create(50);
+	if (epoll_fd == -1)
+		errorCloseEpollFd(epoll_fd, 7);
+
+	Cookie cookie;
+	this->configuringNetwork(itbeg, config, epoll_fd);
+
+	struct epoll_event events[MAX_EVENTS];
+
+	std::cout << "\nWaiting for connection...\n";
+
+	while (true) {
+		int num_fds = epoll_wait(epoll_fd, events, MAX_EVENTS, -1);
+		if (num_fds == -1) 
+			errorCloseEpollFd(epoll_fd, 1);
+		if(num_fds == 0)
+		{
+			std::cout << BCYAN " TIMEOUT DETECTED" << RESET << std::endl; 
+		}
+		for (int i = 0; i < num_fds; ++i)
+		{
+			t_serverData *info = static_cast<t_serverData*>(events[i].data.ptr);
+			int fd = info->sockfd;
+			std::cout << YELLOW "i " << i << " num " << num_fds << " poll fd " << events[i].data.fd << " fd " << fd << " status: " << events[i].events << RESET << std::endl; 
+			if((events[i].events & EPOLLERR) || (events[i].events & EPOLLHUP) || (!(events[i].events & EPOLLIN)))
+			{
+				if(events[i].events & EPOLLHUP)
+				{
+					std::cout << "petite erreur" << std::endl;
+				}
+				if(epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, &events[i]) == -1)
+				{
+					std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
+					errorCloseEpollFd(epoll_fd, 4);
+				}
+				close(fd);
+				std::cout << RED "client disconnection" << RESET << std::endl;
+			}
+			// check if my fd is equal to a socket for handcheck
+			if(this->socketfd.find(fd) != this->socketfd.end())
+			{
+				struct sockaddr_in client_addr;
+				int client_fd = acceptConnection(fd, epoll_fd, client_addr);
+				
+				struct epoll_event client_event = this->fillEpoolDataInfo(client_fd, info);
+				if(epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &client_event) == -1)
+				{
+					std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
+					errorCloseEpollFd(epoll_fd, 4);
+				}
+			}
+			else
+			{
+				//i listen for some epollin event and possible data read
+				if(events[i].events & EPOLLIN)
+				{
+					// if i read the content of a cgi
+					if(info->cgi)
+					{
+						read_cgi(info, events, i, epoll_fd);
+					}
+					else if(read_one_chunk(info, events[i], epoll_fd))
+					{
+						//if i finish read the request info i change the status of the socket
+						std::cout << BLUE "switching to epoolout" RESET << std::endl;
+						events[i].events = EPOLLOUT;
+						if(epoll_ctl(epoll_fd, EPOLL_CTL_MOD, info->sockfd, events) < 0)
+						{
+							std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
+							errorCloseEpollFd(epoll_fd, 4);
+						}
+					}
+				}
+				// if i can write to my socket
+				if(events[i].events & EPOLLOUT)
+				{
+					try
+					{
+						//if I have already a cgi and ready to return information
+						if(info->cgi)
+						{
+							std::cout << BMAGENTA "Inside epollout CGI" RESET << std::endl;
+							std::string response = httpGetResponse("200 Ok", "text/html", info->body, info, "");
+							if(send(info->sockfd, response.c_str(), response.size(), 0) < 0)
+							{
+								std::cout << "error sending CGI response\n";
+								errorPage("500", info);
+							}
+							fdEpollLink.erase(info->sockfd);
+							close(info->cgi->cgifd);
+							delete info->cgi;
+							info->cgi = NULL;
+						}
+						// parse the data
+						else
+							proceed_response(info, cookie, fdEpollLink);
+						// if i finish sending the info I change the status of the socket
+						manage_tserver(info, events, i, epoll_fd);
+					}
+					catch(const std::exception& e)
+					{
+						std::cout << RED << "Error catch" << RESET << std::endl;
+						if(info->cgi)
+						{
+							std::cout << GREEN "CGI EXIST BUT RETURN" RESET << std::endl;
+							continue;
+						}
+						manage_tserver(info, events, i, epoll_fd);
+						std::cerr << e.what() << '\n';
+					}
+				}
+				//check if i have a cgi running in all my fd open
+				check_timeout_cgi(info, fdEpollLink);
+			}
+		}
+		std::cout << "-----------------------------------\n" << std::endl;
+	}
 }

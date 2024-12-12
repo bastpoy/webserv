@@ -23,7 +23,6 @@
 // 		Socket(int domain, int service, int protocol, int port, u_long interface);
 // 		~Socket();
 
-// 		//TODO - Simplifie les noms des méthodes
 // 		void	bindSocket();				// Lier le socket à une adresse et un port
 // 		void	listenSocket(int backlog);	// Écouter les connexions entrantes
 // 		int		acceptConnection();			// Accepter une connexion client et retourner son file descriptor

@@ -9,18 +9,13 @@
 <body style="text-align: center;">
 	<nav style="padding:15px;">
 		<a href="../../index.html" style="font-size: 20px;margin:1rem;width:150px;padding:5px;">Home</a>
-		<a href="https://github.com/bastpoy/webserv" target="_blank" style="font-size: 20px;margin:1rem;width:150px;padding:5px;">GitHub</a>
-		<a href="https://github.com/users/bastpoy/projects/1" target="_blank" style="font-size: 20px;margin:1rem;width:150px;padding:5px;">Tasks</a>
-		<a href="https://discord.com/channels/@me" target="_blank" style="font-size: 20px;margin:1rem;width:150px;padding:5px;">Discord</a>
-		<a href="https://dear-snowdrop-c6b.notion.site/WebServ-1288dbf5f160806ea3afea00cf7fb312?pvs=4" target="_blank" style="font-size: 20px;margin:1rem;width:150px;padding:5px;">Notion</a>
-		<a href="https://excalidraw.com/#json=o-XAOjTgJ4YdtBfRTEY67,l55wlch1aX7IasHuHfS6Iw" target="_blank" style="font-size: 20px;margin:1rem;width:150px;padding:5px;">Excalidraw</a>
 	</nav>
 	<h1>POST</h1>
 	<h2>Upload</h2>
 	<div>
-		<form method="post">
+		<form method="post" enctype="multipart/form-data">
 			<div>
-				<input type="file"multiple>
+				<input type="file" name="files" multiple>
 				<label for="fileInput"></label>
 			</div>
 			<button type="submit" style="margin:2rem;">Envoyer les fichiers</button>
@@ -28,15 +23,29 @@
 		<h2>Form</h2>
 		<form method="post">
 			<label for="name">Name :</label>
-			<input type="text" id="name" name="name" required><br><br>
+			<input type="text" id="name" name="name" pattern="^[a-zA-Z0-9]+$" required><br><br>
 			
 			<label for="email">Email :</label>
-			<input type="email" id="email" name="email" required><br><br>
+			<input type="email" id="email" name="email" pattern="^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" required><br><br>
 			
 			<label for="message">Message :</label><br>
-			<textarea id="message" name="message" rows="4" cols="50" required></textarea><br><br>
+			<textarea id="message" name="message" rows="4" cols="50" pattern="^[a-zA-Z0-9]+$" required></textarea><br><br>
 			
 			<button type="submit">Send</button>
 		</form>
+		<script>
+			document.getElementById('postForm').addEventListener('submit', function(e) {
+				var name = document.getElementById('name').value;
+				var email = document.getElementById('email').value;
+				var message = document.getElementById('message').value;
+				var regex = /^[a-zA-Z0-9]+$/;
+				var regexMail = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+				if (!regex.test(username) || !regexMail.test(email) || !regex.test(message)) {
+					alert("You can only use letters and numbers");
+					e.preventDefault();
+				}
+			});
+		</script>
 </body>
 </html>
