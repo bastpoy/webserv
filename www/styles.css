@@ -147,3 +147,20 @@ button:hover{
 	word-wrap: break-word;
 	font-style: italic;
 }
+
+#game {
+	margin: auto;
+	text-align: center;
+	display: inline-block; 
+	border: 2px solid #333; 
+	padding: 20px; 
+	margin: 20px;
+}
+#target {
+	width: 50px;
+	height: 50px;
+	background-color: red;
+	border-radius: 50%;
+	position: absolute;
+	cursor: pointer;
+}
