@@ -84,6 +84,8 @@
 #define ON_CYAN		"\e[46m"
 #define ON_WHITE	"\e[47m"
 
+#define DELETEPATH	"./www/pages/delete/delete.html"
+
 // Values
 #define TIME_OUT_CGI_MS 10000000
 

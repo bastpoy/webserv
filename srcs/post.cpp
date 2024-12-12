@@ -33,11 +33,12 @@ void insertValue(std::string temp, std::map<std::string, std::string> &values, t
 	}
 }
 
-void putFormData(std::map<std::string, std::string> values)
+void putFormData(std::map<std::string, std::string> values, t_serverData *data)
 {
 	std::map<std::string, std::string>::iterator it = values.begin();
 
-	int fd = open("./www/data/form/keyvalue.txt", O_WRONLY | O_APPEND | O_CREAT, 0644);
+	std::string file = data->path + "data/form/keyvalue.txt";
+	int fd = open(file.c_str(), O_WRONLY | O_APPEND | O_CREAT, 0644);
 	if(fd < 0)
 	{
 		std::cout << "Error during opening file:" << strerror(errno) << std::endl;
@@ -77,26 +78,28 @@ void parsePostBody(std::string &body, t_serverData *data, Cookie &cookie)
 	
 	if(values.find("password") != values.end())
 	{
-		std::string file = "./www/pages/post/post.html";
+		std::string file = data->path + "pages/post/post.html";
 		std::string id = newSessionCookie(values, cookie, data);
 		httpPostResponse("201 Created", "text/html", readFile(file, data), data, cookie, id);
-		Response::responseOk();
+		throw Response::responseOk();
 	}
 	else
-		putFormData(values);
+		putFormData(values, data);
 }
 
 void translateJson(t_serverData *data)
 {
 	std::string line;
 	int once = 0;
-	std::ifstream inFile("./www/data/form/keyvalue.txt");
+	std::string file = data->path + "data/form/keyvalue.txt";
+	std::ifstream inFile(file);
 	if(!inFile.is_open())
 	{
 		errorPage("400", data);
 		std::cout << "error opening the file for data " << strerror(errno) << std::endl;
 	}
-	int jsonFile = open("./www/data/form/keyvalue.json", O_WRONLY | O_CREAT, 0644);
+	file = data->path + "data/form/keyvalue.json";
+	int jsonFile = open(file.c_str(), O_WRONLY | O_CREAT, 0644);
 	if(jsonFile < 0)
 	{
 		inFile.close();

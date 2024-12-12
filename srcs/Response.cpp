@@ -48,7 +48,6 @@ std::string httpGetResponse(std::string code, std::string contentType, std::stri
 	{
 		response += "Content-Type: " + contentType + "\r\n";
 	}
-	// std::cout << BLUE << response << RESET << std::endl;
 	response += "\r\n" + content;
 	return (response);
 }
@@ -109,6 +108,7 @@ void httpPostResponse(std::string code , std::string contentType, std::string co
 		std::cout << strerror(errno) << std::endl;
 		errorPage("500", data);
 	}
+	Response::responseOk();
 }
 
 const char*	Response::ErrorOpeningFile::what() const throw()

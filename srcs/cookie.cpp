@@ -84,28 +84,12 @@ std::string display_user_connection(Cookie &cookie, t_serverData *data, std::str
 				"\t\t<p><strong>Email:</strong> " + session_id.second.credentials.second + " </p>\n"
 				"\t\t<p><strong>Password:</strong> " + session_id.second.credentials.first + " </p>\n"
 				"\t</div>\n" ;
-				// "</body>\n</html>";
 
-				// size_t pos = response.find("</body>\n</html>");
-				size_t pos = response.find("</body>");
-
-				if(pos != std::string::npos)
-				{
-					response = response.insert(pos, html);
-				}
-				pos = response.find("Content-Length: ");
-				if(pos != std::string::npos)
-				{
-					pos += 16;
-					size_t pos1 = response.find("\r\n", pos);
-					if(pos != std::string::npos)
-					{
-						int length = response.size(); 
-						std::string lalength = to_string(length);
-						response.erase(pos, pos1 - pos);
-						response.insert(pos, lalength);
-					}
-				}
+			size_t pos = response.find("</body>");
+			if(pos != std::string::npos)
+			{
+				response = response.insert(pos, html);
+			}
 		}
 	}
 	return (response);

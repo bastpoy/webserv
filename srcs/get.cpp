@@ -212,7 +212,6 @@ void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::strin
 			{
 				filePath = data->path + uri;
 			}
-			std::cout << filePath << std::endl;
 			content = readFile(filePath, data);
 		}
 		// if i have a file to download or uri
@@ -240,12 +239,16 @@ void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::strin
 		else
 			errorPage("403", data);
 	}
+	if(filePath.find("pages/delete/delete.html") != std::string::npos)
+		displayDeletePage("pages/delete/delete.html", data);
 	if (isDirectory(filePath))
 		checkAccessDir(code, filePath, data);
 	checkAccessFile(code, filePath, data);
-	std::string response = httpGetResponse(code, contentType, content, data, filePath);
+	std::cout << MAGENTA << data->path << std::endl;
 	// add user cookie connection at the end
-	response = display_user_connection(cookie, data, response);
+	content = display_user_connection(cookie, data, content);
+	//get the response
+	std::string response = httpGetResponse(code, contentType, content, data, filePath);
 	// std::cout << MAGENTA "handling request\n" << response << RESET << std::endl;
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 	{
@@ -268,8 +271,8 @@ void parseAndGetRequest(std::string buffer, t_serverData *data, Cookie &cookie, 
 	// else if(path.find("?") != std::string::npos)
 	//     errorPage("501", data);
 	//if i have a redirection to delete page i modify it in the displaydeletepage
-	else if(path == "pages/delete/delete.html")
-		displayDeletePage(path, data);
+	// else if(path == "pages/delete/delete.html")
+	// 	displayDeletePage(path, data);
 	else
 		getRequest(path, data, cookie, buffer, fdEpollLink);
 }

@@ -32,7 +32,7 @@ struct epoll_event Server::fillEpoolDataIterator(int sockfd, std::vector<Server>
 	data->body = "";
 	data->cgi = NULL;
 	data->isDownload = false;
-	data->isCgi = false;
+	data->isCgi = NULL;
 
 	event.events = EPOLLIN; // Monitor for input events
 	//I stock the info server on the event ptr data
@@ -62,7 +62,8 @@ struct epoll_event Server::fillEpoolDataInfo(int &client_fd, t_serverData *info)
 	data->header = "";
 	data->body = "";
 	data->cgi = NULL;
-	data->isDownload = false;
+	data->isDownload = info->isDownload;
+	data->isCgi = info->isCgi;
 
 	struct epoll_event client_event;
 	client_event.events = EPOLLIN;
@@ -263,10 +264,6 @@ void Server::createListenAddr(ConfigParser &config)
 		int num_fds = epoll_wait(epoll_fd, events, MAX_EVENTS, -1);
 		if (num_fds == -1) 
 			errorCloseEpollFd(epoll_fd, 1);
-		if(num_fds == 0)
-		{
-			std::cout << BCYAN " TIMEOUT DETECTED" << RESET << std::endl; 
-		}
 		for (int i = 0; i < num_fds; ++i)
 		{
 			t_serverData *info = static_cast<t_serverData*>(events[i].data.ptr);
@@ -296,7 +293,6 @@ void Server::createListenAddr(ConfigParser &config)
 					if(info->cgi)
 					{
 						read_cgi(info, events, i, epoll_fd);
-						std::cout << info->body << std::endl;
 					}
 					else if(read_one_chunk(info, events[i], epoll_fd))
 					{
@@ -320,9 +316,6 @@ void Server::createListenAddr(ConfigParser &config)
 						{
 							std::cout << BMAGENTA "Inside epollout CGI" RESET << std::endl;
 							std::string response = httpGetResponse("200 Ok", "text/html", info->body, info, "");
-							if(!info->body.size())
-								continue;
-							std::cout << "response: " << response << std::endl;
 							if(send(info->sockfd, response.c_str(), response.size(), 0) < 0)
 							{
 								std::cout << "error sending CGI response\n";
@@ -337,8 +330,10 @@ void Server::createListenAddr(ConfigParser &config)
 							close(info->cgi->cgifd);
 							delete info->cgi;
 							info->cgi = NULL;
+
 						}
-						else if(info->isCgi)
+						// CGI of parent socket waiting for the fork to finish
+						else if(info->isCgi != NULL)
 							continue;
 						// parse the data
 						else

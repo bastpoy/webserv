@@ -106,8 +106,7 @@ void	executeCGI(std::string uri, t_serverData *data, std::map<int, t_serverData*
 		std::cout << "error adding epoll ctl " << strerror(errno) << std::endl;
 		errorPage("500", data);
 	}
-	data->isCgi = true;
-	// data->cgi = new_cgi(fd[0], pid, cgi->cgiTimeout, data->sockfd);
+	data->isCgi = cgi;
 }
 
 std::string HandleCgiRequest(std::string uri, t_serverData *data, std::map<int, t_serverData*> &fdEpollLink)
@@ -119,19 +118,6 @@ std::string HandleCgiRequest(std::string uri, t_serverData *data, std::map<int, 
 	return "";
 }
 
-std::string fileToString(const char *filePath)
-{
-	std::ifstream inputFile(filePath);
-
-	if (!inputFile.is_open())
-	{
-		throw std::runtime_error("Failed to open the file: " + std::string(filePath));
-	}
-
-	std::stringstream buffer;
-	buffer << inputFile.rdbuf();
-	return (buffer.str());
-}
 
 void check_timeout_cgi(t_serverData *info, std::map<int, t_serverData*> &fdEpollLink)
 {
@@ -189,7 +175,6 @@ void read_cgi(t_serverData *data, struct epoll_event *events, int i, int epoll_f
 	//switching to epollout
 	events[i].events = EPOLLOUT;
 	if(epoll_ctl(epoll_fd, EPOLL_CTL_MOD, data->cgi->cgifd, events) < 0)
-	// if(epoll_ctl(epoll_fd, EPOLL_CTL_MOD, data->sockfd, events) < 0)
 	{
 		std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
 		errorPage("500", data);
