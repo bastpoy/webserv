@@ -16,7 +16,7 @@ class ConfigParser
 		std::vector<Server>	_servers;
 		std::string			_path;
 
-		std::vector<std::string>					_keywords[10];
+		std::vector<std::string>					_keywords;
 		std::vector<void (Server::*)(std::string)>	_serverFunctions;
 		static int const							_keywordsSize = 10;
 		std::vector<t_serverData *>					listData;
@@ -26,24 +26,23 @@ class ConfigParser
 		ConfigParser(char *path);
 		~ConfigParser(void);
 
+		void		addServer(Server &server);
+		void		setListData(t_serverData *data);
+
 		std::vector<Server>			&getServers(void);
 		std::vector<std::string>	getKeywords(void);
-		int 						getKeywordsSize(void);
-
-
-		void						parseConfig(std::vector<Server> &servers);
-		void						addServer(Server &server);
-		void						getServerAttributs(std::ifstream& file, Server &server, std::vector<std::string> keywords, std::vector<void (Server::*)(std::string)> serverFunctions, bool bracket);
-		void						printConfig(void);
 		std::vector<t_serverData *>	getListData(void) const;
-		
-		void				functionConfig(void);
-		bool				isFileEmpty(const std::string &filePath);
-		static void			rmComments(std::string &line);
-		static void			checkSemicolon(std::string &line);
-		static void			parseLine(std::string &line);
-		void				checkServerAttributs(Server &server, std::vector<Server> &servers);
-		void				setListData(t_serverData *data);
+
+		static void	rmComments(std::string &line);
+		static void	checkSemicolon(std::string &line);
+		static bool	parseLine(std::string &line);
+		void		handleNewServer(std::string& line, std::ifstream& file, std::vector<Server>& servers, bool httpBlock);
+		void		parseConfig(std::vector<Server> &servers);
+		void		getServerAttributs(std::ifstream& file, Server &server, bool bracket);
+		void		functionConfig(void);
+		bool		isFileEmpty(const std::string &filePath);
+		void		checkServerAttributs(Server &server, std::vector<Server> &servers);
+		void		printConfig(void);
 };
 
 # endif /* CONFIGPARSER_HPP */
