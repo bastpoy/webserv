@@ -53,6 +53,28 @@ class Response
 				virtual const char* what() const throw();
 		};
 
+		class ErrorAndDisplayPage : public std::exception{
+			private:
+				std::string _msg;
+				std::string _code;
+				t_serverData *_data;
+			public:
+				explicit ErrorAndDisplayPage(const std::string &msg, const std::string &code, t_serverData *data):
+					_msg("CGI Handling: " + msg), _code(code), _data(data) {}
+				virtual const char* what() const throw();
+				virtual ~ErrorAndDisplayPage() throw() {}
+		};
+
+		class ErrorCGI : public std::exception{
+			private:
+				std::string _msg;
+			public:
+				explicit ErrorCGI(const std::string &msg):
+					_msg("CGI: " + msg) {}
+				virtual const char* what() const throw();
+				virtual ~ErrorCGI() throw() {}
+		};
+
 		class ErrorCreatingSocket : public std::exception{
 			private:
 				std::string _msg;

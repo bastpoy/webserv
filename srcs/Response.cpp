@@ -18,7 +18,7 @@ std::string Response::sendResponse(std::string statusCode, std::string contentTy
 		std::cout << strerror(errno) << std::endl;
 		errorPage("500", data);
 	}
-	throw Response::responseOk(); 
+	throw Response::responseOk();
 }
 
 std::string httpGetResponse(std::string code, std::string contentType, std::string content, t_serverData *data, std::string filePath)
@@ -140,9 +140,20 @@ const char* Response::ErrorCreatingSocket::what() const throw()
 	return _msg.c_str();
 }
 
+const char* Response::ErrorCGI::what() const throw()
+{
+	return _msg.c_str();
+}
+
 const char* Response::Error::what() const throw()
 {
 	return("");
+}
+
+const char* Response::ErrorAndDisplayPage::what() const throw()
+{
+	errorPage(_code, _data);
+	return _msg.c_str();
 }
 
 const char* Response::ErrorBodyPostRequest::what() const throw()
