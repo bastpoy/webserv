@@ -238,28 +238,43 @@ void check_timeout_cgi(t_serverData *info, std::map<int, t_serverData*> &fdEpoll
 	}
 }
 
+// void read_cgi(t_serverData *data, struct epoll_event *events, int i, int epoll_fd)
+// {
+// 	//I read my cgi which is finish
+// 	char buffer[4096];
+// 	int bytes_read;
+
+// 	std::cout << YELLOW "before reading cgi" << RESET << std::endl;
+// 	bytes_read = read(data->cgi->cgifd, buffer, 4096);
+// 	if(bytes_read < 1)
+// 	{
+// 		std::cerr << RED "error reading the cgi: " << strerror(errno) << RESET << std::endl; 
+// 	}
+// 	std::cout << GREEN "reading from the cgi fd" << RESET << std::endl;
+// 	//i put the content of the cgi response in the body
+// 	data->body.append(buffer, bytes_read);
+// 	//switching to epollout
+// 	events[i].events = EPOLLOUT;
+// 	std::cout << "le fd cgi avnat erreur: " << data->sockfd << std::endl;
+// 	// if(epoll_ctl(epoll_fd, EPOLL_CTL_MOD, data->cgi->cgifd, events) < 0)
+// 	if(epoll_ctl(epoll_fd, EPOLL_CTL_MOD, data->sockfd, events) < 0)
+// 	{
+// 		std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
+// 		// errorPage("500", data);
+// 	}
+// }
+
 void read_cgi(t_serverData *data, struct epoll_event *events, int i, int epoll_fd)
 {
-	//I read my cgi which is finish
 	char buffer[4096];
-	int bytes_read;
+	int bytes_read = read(data->cgi->cgifd, buffer, sizeof(buffer));
 
-	std::cout << YELLOW "before reading cgi" << RESET << std::endl;
-	bytes_read = read(data->cgi->cgifd, buffer, 4096);
-	if(bytes_read < 1)
-	{
-		std::cerr << RED "error reading the cgi: " << strerror(errno) << RESET << std::endl; 
-	}
-	std::cout << GREEN "reading from the cgi fd" << RESET << std::endl;
-	//i put the content of the cgi response in the body
-	data->body.append(buffer, bytes_read);
-	//switching to epollout
+	if (bytes_read < 1)
+		std::cerr << RED "Error reading CGI: " << strerror(errno) << RESET << std::endl;
+	else
+		data->body.append(buffer, bytes_read);
+
 	events[i].events = EPOLLOUT;
-	std::cout << "le fd cgi avnat erreur: " << data->sockfd << std::endl;
-	// if(epoll_ctl(epoll_fd, EPOLL_CTL_MOD, data->cgi->cgifd, events) < 0)
-	if(epoll_ctl(epoll_fd, EPOLL_CTL_MOD, data->sockfd, events) < 0)
-	{
-		std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
-		// errorPage("500", data);
-	}
+	if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, data->sockfd, events) < 0)
+		std::cerr << RED "Error modifying epoll: " << strerror(errno) << RESET << std::endl;
 }
