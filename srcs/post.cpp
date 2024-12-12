@@ -92,7 +92,7 @@ void translateJson(t_serverData *data)
 	std::string line;
 	int once = 0;
 	std::string file = data->path + "data/form/keyvalue.txt";
-	std::ifstream inFile(file);
+	std::ifstream inFile(file.c_str());
 	if(!inFile.is_open())
 	{
 		errorPage("400", data);
@@ -172,10 +172,10 @@ void postRequest(t_serverData *data, Cookie &cookie)
 	{
 		if(data->header.find("multipart/form-data") != std::string::npos)
 		{
-			std::string file = "./www/pages/post/post.html";
+			std::string file = data->path + "pages/post/post.html";
 			std::cout << "UPLOADING FILE" << std::endl;
 			std::string fileName = getFileName(data->body, data);
-			fileName = "./www/upload/" + fileName;
+			fileName = data->path + "upload/" + fileName;
 			std::ofstream output(fileName.c_str(), std::ios::binary);
 			if(!output.is_open())
 			{
@@ -189,7 +189,7 @@ void postRequest(t_serverData *data, Cookie &cookie)
 		}
 		else
 		{
-			std::string file = "./www/data/form/keyvalue.json";
+			std::string file = data->path + "/data/form/keyvalue.json";
 			std::cout << "POSTING DATA" << std::endl;
 			parsePostBody(data->body, data, cookie);
 			translateJson(data);

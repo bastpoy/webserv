@@ -91,8 +91,9 @@ void	executeCGI(std::string uri, t_serverData *data, std::map<int, t_serverData*
 		}
 		close(fd[0]);
 		close(fd[1]);
+		//std::cout << it->second << " " << uri << std::endl;
 		execve(it->second.c_str(), script, NULL);
-		std::cout << "failed to execve, path was : " << uri << std::endl;
+		//std::cout << "failed to execve, path was : " << uri << " " << strerror(errno) << std::endl;
 		perror("execve");
 		std::exit(EXIT_FAILURE);
 	}
@@ -166,6 +167,7 @@ void read_cgi(t_serverData *data, struct epoll_event *events, int i, int epoll_f
 
 	std::cout << YELLOW "Reading cgi" << RESET << std::endl;
 	bytes_read = read(data->cgi->cgifd, buffer, 4096);
+	std::cout << buffer << std::endl;
 	if(bytes_read < 1)
 	{
 		std::cerr << RED "error reading the cgi: " << strerror(errno) << RESET << std::endl; 
