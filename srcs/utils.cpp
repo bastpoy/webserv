@@ -243,7 +243,7 @@ bool request_allowed(std::string typeRequest, t_serverData *data)
 	std::vector<std::string>::iterator it = std::find(data->requestAllow.begin(), data->requestAllow.end(), typeRequest);
 	if(it != data->requestAllow.end() || !data->requestAllow.size())
 		return(true);
-	errorPage("403", data);
+	errorPage("405", data);
 	return (false);
 }
 

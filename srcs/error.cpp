@@ -163,6 +163,4 @@ void errorPage(std::string error, t_serverData *data)
 		Response::sendResponse("500 Internal Server Error", "text/html", read_error_file(path, data), data);
 	else if (error == "501")
 		Response::sendResponse("501 Not Implemented", "text/html", readFile(path, data), data);
-	else if (error == "504")
-		Response::sendResponse("504 Gateway Timeout", "text/html", readFile(path, data), data);
 }
