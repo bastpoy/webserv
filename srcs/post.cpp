@@ -9,7 +9,7 @@ void display_message(std::string path, t_serverData *data)
 	std::vector<std::string>	substr;
 	std::ifstream file("./www/data/form/keyvalue.txt");
 	if (!file)
-		throw Response::Error();
+		throw Response::ErrorOpeningFile("");
 	std::string content = readFile(filePath, data);
 	std::string line;
 	while (std::getline(file, line))
@@ -47,10 +47,7 @@ void display_message(std::string path, t_serverData *data)
 	content += html;
 	response = httpGetResponse("200 Ok", "text/html", content, data, "");
 	if (send(data->sockfd, response.c_str(), response.size(), 0) < 0)
-	{
-		std::cout << strerror(errno) << std::endl;
-		errorPage("500", data);
-	}
+		errorPage(strerror(errno), "500", data);
 }
 
 
