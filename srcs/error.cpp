@@ -50,7 +50,7 @@ void errorCloseEpollFd(int &epoll_fd, int errCode)
 	else if(errCode == 7)
 		std::cout << "Error creating epoll instance: ";
 	closeAllFileDescriptors();
-	std::cout << errno << " " <<strerror(errno) << std::endl;
+	std::cout << errno << " " << strerror(errno) << std::endl;
 	throw Response::Error();
 }
 

@@ -14,12 +14,11 @@ void Response::sendResponse(std::string statusCode, std::string contentType, std
 	response += "\r\n" + content;
 
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
-		throw Response::DisplayErrorPage("Sending response failed: " + std::string(strerror(errno)), "500", data);
-	// {
-	// 	std::cout << strerror(errno) << std::endl;
-	// 	errorPage("500", data);
-	// }
-	// throw Response::responseOk(); // NOTE - a garder ??
+	{
+		std::cout << strerror(errno) << std::endl;
+		errorPage("500", data);
+	}
+	throw Response::responseOk();
 }
 
 std::string httpGetResponse(std::string code, std::string contentType, std::string content, t_serverData *data, std::string filePath)
@@ -28,9 +27,13 @@ std::string httpGetResponse(std::string code, std::string contentType, std::stri
 	std::string response = "HTTP/1.1 " + code + "\r\n" ;
 	response += "Content-Length: " + to_string(content.size()) + "\r\n";
 	if (is_keep_alive(data->header))
+	{
 		response += "Connection: keep-alive\r\n";
+	}
 	else
+	{
 		response += "Connection: close\r\n";
+	}
 	if(data->isDownload)
 	{
 		size_t pos = filePath.find_last_of("/");
@@ -41,32 +44,20 @@ std::string httpGetResponse(std::string code, std::string contentType, std::stri
 		data->isDownload = false;
 	}
 	else
+	{
 		response += "Content-Type: " + contentType + "\r\n";
+	}
 	// std::cout << BLUE << response << RESET << std::endl;
 	response += "\r\n" + content;
 	return (response);
 }
 
-// std::string httpGetResponseDownload(std::string code, std::string contentType, std::string content, t_serverData *data)
-// {
-// 	std::string response = "HTTP/1.1 " + code + " \r\n" ;
-// 	response += "Content-Type: " + contentType + "\r\n";
-// 	response += "Content-Length: " + to_string(content.size()) + "\r\n";
-// 	response += "Content-Disposition: attachment\r\n";
-// 	if (is_keep_alive(data->header))
-// 		response += "Connection: keep-alive\r\n";
-// 	else
-// 		response += "Connection: close\r\n";
-// 	response += "\r\n" + content;
-// 	return (response);
-// }
-
-std::string	httpGetResponseDownload(std::string code, std::string contentType, std::string content, t_serverData *data)
+std::string httpGetResponseDownload(std::string code, std::string contentType, std::string content, t_serverData *data)
 {
-	std::string response = "HTTP/1.1 " + code + " \r\n"
-							"Content-Type: " + contentType + "\r\n"
-							"Content-Length: " + to_string(content.size()) + "\r\n"
-							"Content-Disposition: attachment\r\n";
+	std::string response = "HTTP/1.1 " + code + " \r\n" ;
+	response += "Content-Type: " + contentType + "\r\n";
+	response += "Content-Length: " + to_string(content.size()) + "\r\n";
+	response += "Content-Disposition: attachment\r\n";
 	if (is_keep_alive(data->header))
 		response += "Connection: keep-alive\r\n";
 	else
@@ -86,11 +77,10 @@ void redirRequest(std::string location, int fd, t_serverData *data)
 	else
 		response += "Connection: close\r\n\r\n";
 	if(send(fd, response.c_str(), response.size(), 0) < 0)
-		throw Response::DisplayErrorPage("Error sending response: " + std::string(strerror(errno)), "500", data);
-	// {
-	// 	// std::cout << strerror(errno) << std::endl;
-	// 	// errorPage("500", data);
-	// }
+	{
+		std::cout << strerror(errno) << std::endl;
+		errorPage("500", data);
+	}
 }
 
 void httpPostResponse(std::string code , std::string contentType, std::string content, t_serverData *data, Cookie &cookie, std::string id)
@@ -101,7 +91,7 @@ void httpPostResponse(std::string code , std::string contentType, std::string co
 	std::pair<std::string, t_session> session = cookie.get_session_id(id);
 	if(!session.first.empty())
 	{
-		response += "Set-Cookie: id=" + session.first +
+		response += "Set-Cookie: id=" + session.first + 
 					"; Expires=" + manageDate(session.second.expireDate) +
 					"; password=" + session.second.credentials.first +
 					"; Path=/";
@@ -113,12 +103,13 @@ void httpPostResponse(std::string code , std::string contentType, std::string co
 		response += "Connection: close\r\n";
 	response +=	"Content-Length: " + to_string(content.size()) + "\r\n"
 				"\r\n" + content;
+	data->sockfd = -1;
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
-		throw Response::DisplayErrorPage("Error sending response: " + std::string(strerror(errno)), "500", data);
-	// {
-	// 	std::cout << strerror(errno) << std::endl;
-	// 	errorPage("500", data);
-	// }
+	{
+		std::cout << MAGENTA "Je suis ici" RESET << std::endl;
+		std::cout << strerror(errno) << std::endl;
+		errorPage("500", data);
+	}
 }
 
 const char*	Response::ErrorOpeningFile::what() const throw()
