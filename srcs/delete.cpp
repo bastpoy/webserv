@@ -40,7 +40,7 @@ void displayDeletePage(std::string path, t_serverData *data)
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 	{
 		std::cout << strerror(errno) << std::endl;
-		errorPage("500", data);
+		errorPage(NULL, "500", data);
 	}
 }
 
@@ -64,7 +64,7 @@ void deleteRequest(std::string &uri, t_serverData *data, std::string typeRequest
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 	{
 		std::cout << strerror(errno) << std::endl;
-		errorPage("500", data);
+		errorPage(NULL, "500", data);
 	}
 }
 
@@ -77,6 +77,6 @@ void parseAndDeleteRequest(std::string buffer, t_serverData *data, std::string t
 	if(path.find("favicon.ico") != std::string::npos)
 		close(data->sockfd);
 	else if(path.find("?") != std::string::npos)
-		errorPage("501", data);
+		errorPage(NULL, "501", data);
 	deleteRequest(path, data, typeRequest);
 }

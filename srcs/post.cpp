@@ -82,7 +82,7 @@ void insertValue(std::string temp, std::map<std::string, std::string> &values, t
 	}
 	else
 	{
-		errorPage("400", data);
+		errorPage(NULL, "400", data);
 		throw Response::ErrorBodyPostRequest();
 	}
 }
@@ -94,10 +94,8 @@ void putFormData(std::map<std::string, std::string> values, t_serverData *data)
 	std::string file = data->path + "data/form/keyvalue.txt";
 	int fd = open(file.c_str(), O_WRONLY | O_APPEND | O_CREAT, 0644);
 	if(fd < 0)
-	{
-		std::cout << "Error during opening file:" << strerror(errno) << std::endl;
-		throw Response::Error();
-	}
+		throw Response::ErrorOpeningFile(std::string(strerror(errno)));
+		// std::cout << "Error during opening file:" << strerror(errno) << std::endl;
 	while(it != values.end())
 	{
 		write(fd, "\"", 1);
@@ -149,7 +147,7 @@ void translateJson(t_serverData *data)
 	std::ifstream inFile(file.c_str());
 	if(!inFile.is_open())
 	{
-		errorPage("400", data);
+		errorPage(NULL, "400", data);
 		std::cout << "error opening the file for data " << strerror(errno) << std::endl;
 	}
 	file = data->path + "data/form/keyvalue.json";
@@ -157,8 +155,8 @@ void translateJson(t_serverData *data)
 	if(jsonFile < 0)
 	{
 		inFile.close();
-		errorPage("400", data);
-		throw Response::Error();
+		errorPage(NULL, "400", data);
+		throw Response::ErrorOpeningFile("Json File: " + std::string(strerror(errno)));
 	}
 	while(std::getline(inFile, line))
 	{
@@ -208,7 +206,7 @@ std::string getFileName(std::string body, t_serverData *data)
 	size_t pos = body.find(file);
 	if(pos == std::string::npos)
 	{
-		errorPage("400", data);
+		errorPage(NULL, "400", data);
 		throw Response::ErrorBodyPostRequest();
 	}
 	std::string fileName = body.substr(pos + file.size(), body.size());
@@ -232,9 +230,7 @@ void postRequest(t_serverData *data, Cookie &cookie)
 			fileName = data->path + "upload/" + fileName;
 			std::ofstream output(fileName.c_str(), std::ios::binary);
 			if(!output.is_open())
-			{
-				errorPage("500", data);
-			}
+				errorPage(NULL, "500", data);
 			truncate_file(data->body, data);
 			output.write(data->body.c_str(), data->body.size());
 			
@@ -252,5 +248,5 @@ void postRequest(t_serverData *data, Cookie &cookie)
 		}
 	}
 	else
-		errorPage("500" , data);
+		errorPage(NULL, "500" , data);
 }

@@ -140,7 +140,7 @@ std::string newSessionCookie(std::map<std::string, std::string> values, Cookie &
 
 	std::map<std::string, std::string>::iterator it = values.begin();
 	if(it == values.end())
-		errorPage("400", data);
+		errorPage(NULL, "400", data);
 	while(it != values.end())
 	{
 		if(!newSession.second.credentials.first.size())

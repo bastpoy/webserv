@@ -1,15 +1,18 @@
 #include "Header.hpp"
 
-void closeAllFileDescriptors() 
+/**
+ * @brief Close all file descriptors
+ * @note Except 0, 1 and 2. dir is used to read the /proc/self/fd directory.
+ * @details a return was deleted..
+*/
+void	closeAllFileDescriptors(void)
 {
-	int i = 3;
-	while(i < 1024)
-	{
+	int				i = 2;
+	DIR				*dir = opendir("/proc/self/fd");
+	struct dirent	*entry;
+
+	while(++i < 1024)
 		close(i);
-		i++;
-	}
-	return;
-	DIR *dir = opendir("/proc/self/fd");
 	if (dir == NULL)
 	{
 		int maxFd = sysconf(_SC_OPEN_MAX);
@@ -17,16 +20,14 @@ void closeAllFileDescriptors()
 			close(fd);
 		return;
 	}
-
-	struct dirent *entry;
-	while ((entry = readdir(dir)) != NULL) {
+	while ((entry = readdir(dir)) != NULL)
+	{
 		if (entry->d_name[0] == '.') 
 			continue;
 		int fd = atoi(entry->d_name);
 		if (fd > 2)
 			close(fd);
 	}
-	
 	closedir(dir);
 }
 
@@ -49,8 +50,7 @@ void errorCloseEpollFd(int &epoll_fd, int errCode)
 	else if(errCode == 7)
 		std::cout << "Error creating epoll instance: ";
 	closeAllFileDescriptors();
-	std::cout << errno << " " <<strerror(errno) << std::endl;
-	throw Response::Error();
+	throw Response::ErrorEpoll("close epoll fd" + std::string(strerror(errno)));
 }
 
 void	notFoundFavicon(t_serverData *data)
@@ -64,11 +64,8 @@ void	notFoundFavicon(t_serverData *data)
 							+ contentFile;
 	//send response
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
-	{
-		std::cout << strerror(errno) << std::endl;
-		errorPage("500", data);
-	}
-	throw Response::Error();
+		errorPage(std::string(strerror(errno)), "500", data);
+	throw Response::ErrorRequest("favicon.ico not found");
 }
 
 static void	contentTooLarge(t_serverData *data)
@@ -83,60 +80,141 @@ static void	contentTooLarge(t_serverData *data)
 							"\r\n" + jsonContent;
 
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
-	{
-		std::cout << strerror(errno) << std::endl;
-		errorPage("500", data);
-	}
-	throw Response::Error();
+		errorPage(std::string(strerror(errno)), "500", data);
+	throw Response::ErrorRequest("Content too large");
 }
 
+/**
+ * @brief Read an error file
+ * @param path The path to the error file
+ * @param data The server data
+ * @return The content of the error file
+*/
 static void	choose_error_page(std::string error, t_serverData *data, std::string path)
 {
-	if (error == "400")
-		Response::sendResponse("400 Bad Request", "text/html", read_error_file(path, data), data);
-	else if (error == "403")
-		Response::sendResponse("403 Forbidden", "text/html", read_error_file(path, data), data);
-	else if (error == "404")
-		Response::sendResponse("404 Not Found", "text/html", read_error_file(path, data), data);
-	else if (error == "405")
-		Response::sendResponse("405 Method Not Allowed", "text/html", read_error_file(path, data), data);
-	else if (error == "413")
-		Response::sendResponse("413 Content Too Large", "text/html", read_error_file(path, data), data);
-	else if (error == "500")
-		Response::sendResponse("500 Internal Server Error", "text/html", read_error_file(path, data), data);
-	else if (error == "501")
-		Response::sendResponse("501 Not Implemented", "text/html", read_error_file(path, data), data);
+	if (error == "400") Response::sendResponse("400 Bad Request", "text/html", read_error_file(path, data), data);
+	else if (error == "403") Response::sendResponse("403 Forbidden", "text/html", read_error_file(path, data), data);
+	else if (error == "404") Response::sendResponse("404 Not Found", "text/html", read_error_file(path, data), data);
+	else if (error == "405") Response::sendResponse("405 Method Not Allowed", "text/html", read_error_file(path, data), data);
+	else if (error == "413") Response::sendResponse("413 Content Too Large", "text/html", read_error_file(path, data), data);
+	else if (error == "500") Response::sendResponse("500 Internal Server Error", "text/html", read_error_file(path, data), data);
+	else if (error == "501") Response::sendResponse("501 Not Implemented", "text/html", read_error_file(path, data), data);
 }
 
-void errorPage(std::string error, t_serverData *data)
-{
-	std::vector<Location>::iterator it1 = data->location.begin();
-	if(it1 != data->location.end())
-	{
-		it1->setPath(it1->getPath().substr(1, it1->getPath().size() - 1));
-		std::string uri = data->buffer.substr(data->buffer.find('/') + 1, data->buffer.size() - data->buffer.find('/'));
-		uri = uri.substr(0, uri.find(' '));
-		while(it1 != data->location.end())
-		{
-			if(!it1->getPath().empty() && uri.find(it1->getPath()) != std::string::npos)
-			{
-				std::cout << RED << "match location" << RESET << std::endl;
-				if(it1->getErrorPage().find(error) != it1->getErrorPage().end())
-				{
-					std::string second = it1->getErrorPage().find(error)->second;
-					std::string path;
-					if(!it1->getRoot().empty())
-						path = it1->getRoot() + second;
-					else
-						path = data->path + second;
-					std::cout << RED "LOCATION ERROR MATCH" << RESET << std::endl;
-					choose_error_page(error, data, path);
-				}
-			}
-			it1++;
-		}
-	}
+// void errorPage(std::string error, t_serverData *data)
+// {
+// 	std::vector<Location>::iterator it1 = data->location.begin();
+// 	if(it1 != data->location.end())
+// 	{
+// 		it1->setPath(it1->getPath().substr(1, it1->getPath().size() - 1));
+// 		std::string uri = data->buffer.substr(data->buffer.find('/') + 1, data->buffer.size() - data->buffer.find('/'));
+// 		uri = uri.substr(0, uri.find(' '));
+// 		while(it1 != data->location.end())
+// 		{
+// 			if(!it1->getPath().empty() && uri.find(it1->getPath()) != std::string::npos)
+// 			{
+// 				std::cout << RED << "match location" << RESET << std::endl;
+// 				if(it1->getErrorPage().find(error) != it1->getErrorPage().end())
+// 				{
+// 					std::string second = it1->getErrorPage().find(error)->second;
+// 					std::string path;
+// 					if(!it1->getRoot().empty())
+// 						path = it1->getRoot() + second;
+// 					else
+// 						path = data->path + second;
+// 					std::cout << RED "LOCATION ERROR MATCH" << RESET << std::endl;
+// 					choose_error_page(error, data, path);
+// 				}
+// 			}
+// 			it1++;
+// 		}
+// 	}
+// 	if(data->errorPage.size())
+// 	{
+// 		std::map<std::string, std::string>::iterator it = data->errorPage.find(error);
+// 		if(it != data->errorPage.end())
+// 		{
+// 			std::string path = data->path + it->second;
+// 			choose_error_page(error, data, path);
+// 		}
+// 	}
+// 	if (error == "400")
+// 		Response::sendResponse("400 Bad Request", "text/html", read_error_file("./www/error/400.html", data), data);
+// 	else if (error == "403")
+// 		Response::sendResponse("403 Forbidden", "text/html", read_error_file("./www/error/403.html", data), data);
+// 	else if (error == "404")
+// 	{
+// 		std::cout << "ici batard\n";
+// 		Response::sendResponse("404 Not Found", "text/html", read_error_file("./www/error/404.html", data), data);
+// 	}
+// 	else if (error == "405")
+// 		Response::sendResponse("405 Method Not Allowed", "text/html", read_error_file("./www/error/405.html", data), data);
+// 	else if (error == "413")
+// 		Response::sendResponse("413 Content Too Large", "text/html", read_error_file("./www/error/413.html", data), data);
+// 	else if (error == "413")
+// 		contentTooLarge(data);
+// 	else if (error == "500")
+// 		Response::sendResponse("500 Internal Server Error", "text/html", read_error_file("./www/error/500.html", data), data);
+// 	else if (error == "501")
+// 		Response::sendResponse("501 Not Implemented", "text/html", readFile("./www/error/501.html", data), data);
+// 	else if (error == "504")
+// 		Response::sendResponse("504 Gateway Timeout", "text/html", readFile("./www/error/504.html", data), data);
+// }
 
+/**
+ * @brief Will find the correct error page to display for a location
+ * @param error The error code
+ * @param data The server data
+ * @param loc The location
+*/
+void chooseErrorPageForLocation(const std::string &error, t_serverData *data, Location &loc)
+{
+	std::string uri = data->buffer.substr(data->buffer.find('/') + 1, data->buffer.find(' ') - data->buffer.find('/'));
+	if (uri.find(loc.getPath()) != std::string::npos && loc.getErrorPage().find(error) != loc.getErrorPage().end())
+	{
+		std::string second = loc.getErrorPage().find(error)->second;
+		std::string path = !loc.getRoot().empty() ? loc.getRoot() + second : data->path + second;
+		choose_error_page(error, data, path);
+	}
+}
+
+/**
+ * @brief Will find the correct default error page to display
+ * @param error The error code
+ * @param data The server data
+ * @details For 413 error code, it will call contentTooLarge function.
+*/
+void useDefaultErrorPage(const std::string &error, t_serverData *data)
+{
+	if (error == "400") Response::sendResponse("400 Bad Request", "text/html", read_error_file("./www/error/400.html", data), data);
+	else if (error == "403") Response::sendResponse("403 Forbidden", "text/html", read_error_file("./www/error/403.html", data), data);
+	else if (error == "404") Response::sendResponse("404 Not Found", "text/html", read_error_file("./www/error/404.html", data), data);
+	else if (error == "405") Response::sendResponse("405 Method Not Allowed", "text/html", read_error_file("./www/error/405.html", data), data);
+	else if (error == "413") contentTooLarge(data);
+	else if (error == "500") Response::sendResponse("500 Internal Server Error", "text/html", read_error_file("./www/error/500.html", data), data);
+	else if (error == "501") Response::sendResponse("501 Not Implemented", "text/html", readFile("./www/error/501.html", data), data);
+	else if (error == "504") Response::sendResponse("504 Gateway Timeout", "text/html", readFile("./www/error/504.html", data), data);
+}
+
+/**
+ * @brief Display an error page
+ * @note location error pages are checked first, then server error pages, then default error pages.
+ * @param error The error code
+ * @param data The server data
+ * @details This function will display an error page based on the error code.
+*/
+void errorPage(std::string msg, std::string error, t_serverData *data)
+{
+	if (msg.empty())
+		std::cout << msg << std::endl;
+	// Check location error pages first
+	for (std::vector<Location>::iterator it = data->location.begin(); it != data->location.end(); ++it)
+	{
+		it->setPath(it->getPath().substr(1));	// Strip leading '/'
+		if (!it->getPath().empty())
+			chooseErrorPageForLocation(error, data, *it);
+	}
+	// Check server error pages
 	if(data->errorPage.size())
 	{
 		std::map<std::string, std::string>::iterator it = data->errorPage.find(error);
@@ -146,21 +224,6 @@ void errorPage(std::string error, t_serverData *data)
 			choose_error_page(error, data, path);
 		}
 	}
-	std::string path = data->path + "error/" + error + ".html";
-	if (error == "400")
-		Response::sendResponse("400 Bad Request", "text/html", read_error_file(path, data), data);
-	else if (error == "403")
-		Response::sendResponse("403 Forbidden", "text/html", read_error_file(path, data), data);
-	else if (error == "404")
-		Response::sendResponse("404 Not Found", "text/html", read_error_file(path, data), data);
-	else if (error == "405")
-		Response::sendResponse("405 Method Not Allowed", "text/html", read_error_file(path, data), data);
-	else if (error == "413")
-		Response::sendResponse("413 Content Too Large", "text/html", read_error_file(path, data), data);
-	else if (error == "413")
-		contentTooLarge(data);
-	else if (error == "500")
-		Response::sendResponse("500 Internal Server Error", "text/html", read_error_file(path, data), data);
-	else if (error == "501")
-		Response::sendResponse("501 Not Implemented", "text/html", readFile(path, data), data);
+	// check default error pages
+	useDefaultErrorPage(error, data);
 }

@@ -85,10 +85,11 @@ void Server::setupSocket(int &sockfd, struct sockaddr_in &addr, std::vector<Serv
 	std::string port = itbeg->getPort();
 	std::cout << "ip: " << ip << "; Port: " << port << std::endl;
 	int status = getaddrinfo(ip.c_str(), port.c_str(), &hints, &result);
-	if (status != 0) {
+	if (status != 0)
+	{
 		closeAllFileDescriptors();
-		std::cerr << "getaddrinfo error: " << gai_strerror(status) << std::endl;
-		throw Response::Error();
+		// std::cerr << "getaddrinfo error: " << gai_strerror(status) << std::endl;
+		throw Response::ErrorSocket("getaddrinfo error: " + std::string(gai_strerror(status)));
 	}
 	
 	struct sockaddr_in *resolved_addr = reinterpret_cast<struct sockaddr_in*>(result->ai_addr);
@@ -99,15 +100,15 @@ void Server::setupSocket(int &sockfd, struct sockaddr_in &addr, std::vector<Serv
 		closeAllFileDescriptors();
 		freeaddrinfo(result);
 		std::cout << "\nBIND: ";
-		throw Response::ErrorCreatingSocket(strerror(errno));
+		throw Response::ErrorSocket(strerror(errno));
 	}
 
 	if (listen(sockfd, 10) < 0)
 	{
 		closeAllFileDescriptors();
 		freeaddrinfo(result);
-		std::cout <<"LISTEN: " << strerror(errno);
-		throw Response::Error();
+		// std::cout << "LISTEN: " << strerror(errno);
+		throw Response::ErrorSocket("listen error: " + std::string(strerror(errno)));
 	}
 	freeaddrinfo(result);
 }
@@ -178,7 +179,7 @@ bool handleRequest(std::string buffer, t_serverData *&data, Cookie &cookie, std:
 	else if(typeRequest == "DELETE" && request_allowed("DELETE", data))
 		parseAndDeleteRequest(buffer, data, typeRequest);
 	else
-		errorPage("405", data);
+		errorPage(NULL, "405", data);
 	return(false);
 }
 
@@ -189,7 +190,7 @@ bool read_one_chunk(t_serverData *data, struct epoll_event ev, int epoll_fd)
 	if (bytes_read < 0) 
 	{
 		std::cout << "Error " << errno << " reading from socket " << data->sockfd << ": " << strerror(errno) << std::endl;
-		errorPage("400", data);
+		errorPage(NULL, "400", data);
 	} 
 	else if (bytes_read == 0) 
 	{
@@ -197,7 +198,7 @@ bool read_one_chunk(t_serverData *data, struct epoll_event ev, int epoll_fd)
 		if(epoll_ctl(epoll_fd, EPOLL_CTL_DEL, data->sockfd, &ev) < 0)
 		{
 			std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
-			errorPage("500", data);
+			errorPage(NULL, "500", data);
 		}
 		close(data->sockfd);
 		return (false); 
@@ -234,7 +235,7 @@ void manage_tserver(t_serverData *&data, struct epoll_event *events, int i, int 
 	if(epoll_ctl(epoll_fd, EPOLL_CTL_MOD, data->sockfd, events) < 0)
 	{
 		std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
-		errorPage("500", data);
+		errorPage(NULL, "500", data);
 	}
 	close(data->sockfd);
 	GlobalLinkedList::update_data(data);
@@ -314,16 +315,10 @@ void Server::createListenAddr(ConfigParser &config)
 							std::cout << BMAGENTA "Inside epollout CGI" RESET << std::endl;
 							std::string response = httpGetResponse("200 Ok", "text/html", info->body, info, "");
 							if(send(info->sockfd, response.c_str(), response.size(), 0) < 0)
-							{
-								std::cout << "error sending CGI response\n";
-								errorPage("500", info);
-							}
+								errorPage("error sending CGI response\n", "500", info);
 							events[i].events = EPOLLIN;
 							if(epoll_ctl(epoll_fd, EPOLL_CTL_MOD, info->cgi->cgifd, events) < 0)
-							{
-								std::cerr << "error changing mode epoll ctl " << errno << " " << strerror(errno) << std::endl;
-								errorPage("500", data);
-							}
+								errorPage("error changing mode epoll ctl " + std::string(strerror(errno)), "500", data);
 							fdEpollLink.erase(info->sockfd);
 							close(info->cgi->cgifd);
 							delete info->cgi;
@@ -343,7 +338,7 @@ void Server::createListenAddr(ConfigParser &config)
 					}
 					catch(const std::exception& e)
 					{
-						std::cout << RED << "Error catch" << RESET << std::endl;
+						std::cout << RED << "Error catch: " << e.what() << RESET << std::endl;
 						if(info->isCgi)
 						{
 							std::cout << GREEN "CGI EXIST BUT RETURN WITH FD "<< fd << RESET << std::endl;

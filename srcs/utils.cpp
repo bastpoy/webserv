@@ -156,7 +156,7 @@ int getContentLength(std::string header, t_serverData *data)
 	int max_body = atoi(data->maxBody.c_str());
 	int intSize = atoi(size.c_str());
 	if(intSize > max_body)
-		errorPage("413", data);
+		errorPage(NULL, "413", data);
 	return(intSize);
 }
 
@@ -210,9 +210,7 @@ std::string readFile(std::string filePath, t_serverData *data)
 	std::string code;
 	checkAccessFile(code, filePath, data);
 	if (!inputFile.is_open())
-	{
-		errorPage("404", data);
-	}
+		errorPage("Error read file", "404", data);
 	std::stringstream buffer;
 	buffer << inputFile.rdbuf();
 	return (buffer.str());
@@ -243,7 +241,7 @@ bool request_allowed(std::string typeRequest, t_serverData *data)
 	std::vector<std::string>::iterator it = std::find(data->requestAllow.begin(), data->requestAllow.end(), typeRequest);
 	if(it != data->requestAllow.end() || !data->requestAllow.size())
 		return(true);
-	errorPage("405", data);
+	errorPage(NULL, "403", data);
 	return (false);
 }
 
@@ -284,6 +282,6 @@ void	checkLocationPath(Location &location, std::vector<Location> &locations)
 	for (std::vector<Location>::iterator it = locations.begin(); it != locations.end(); it++)
 	{
 		if (it->getPath() == location.getPath())
-			throw Response::ConfigurationFileLocationPath();
+			throw Response::ConfigurationFileLocation("Path already exist");
 	}
 }
