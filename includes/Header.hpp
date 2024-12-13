@@ -135,7 +135,7 @@ void	parseAndDeleteRequest(std::string buffer, t_serverData *data, std::string t
 void	closeAllFileDescriptors(); 
 void	errorCloseEpollFd(int &epoll_fd, int errCode);
 void	notFoundFavicon(t_serverData *data);
-void	errorPage(std::string error, t_serverData *data);
+void	errorPage(std::string msg, std::string error, t_serverData *data);
 
 // get.cpp
 void		redirRequest(std::string location, int fd, t_serverData *data);

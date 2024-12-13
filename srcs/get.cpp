@@ -33,7 +33,7 @@ std::string pathLocation(std::string &content, std::string &uri, std::vector<Loc
 	}
 	else
 	{
-		errorPage("404", data);
+		errorPage(NULL, "404", data);
 		throw Response::ErrorRequest("No index file found");
 	}
 }
@@ -69,7 +69,7 @@ std::string check_location(std::string &uri, std::string &content, std::vector<L
 					return data->path + uri;
 				}
 				else
-					errorPage("404", data);
+					errorPage(NULL, "404", data);
 			}
 			else
 			{
@@ -80,7 +80,7 @@ std::string check_location(std::string &uri, std::string &content, std::vector<L
 					if(!data->path.empty())
 						return pathLocation(content, uri, it, data, data->path);
 					else
-						errorPage("404", data);
+						errorPage(NULL, "404", data);
 				}
 			}
 		}
@@ -89,38 +89,36 @@ std::string check_location(std::string &uri, std::string &content, std::vector<L
 	return ("");
 }
 
-void checkAccessFile(std::string &code, std::string &filePath, t_serverData *data)
+void	checkAccessFile(std::string &code, std::string &filePath, t_serverData *data)
 {
 	if(access(filePath.c_str(), F_OK) != 0)
 	{
 		std::cout << "here" << std::endl;
-		errorPage("404", data);
+		errorPage(NULL, "404", data);
 	}
 	else if (access(filePath.c_str(), R_OK) != 0)
-		errorPage("403", data);
+		errorPage(NULL, "403", data);
 	else
 		code = "200 OK";
 }
 
-void checkAccessDir(std::string &code, std::string &dirPath, t_serverData *data)
+void	checkAccessDir(std::string &code, std::string &dirPath, t_serverData *data)
 {
 	struct stat	pathStat;
 	if(stat(dirPath.c_str(), &pathStat) != 0)
-		errorPage("404", data);
+		errorPage(NULL, "404", data);
 	else if (!S_ISDIR(pathStat.st_mode))
-		errorPage("404", data);
+		errorPage(NULL, "404", data);
 	else if (access(dirPath.c_str(), R_OK) != 0)
-		errorPage("403", data);
+		errorPage(NULL, "403", data);
 	else
 		code = "200 OK";
 }
 
-void process_extension(std::string &filePath, std::string &code, std::string uri, std::string buffer, std::string &content, Cookie &cookie, t_serverData *data, std::map<int, t_serverData*> &fdEpollLink)
+void	process_extension(std::string &filePath, std::string &code, std::string uri, std::string buffer, std::string &content, Cookie &cookie, t_serverData *data, std::map<int, t_serverData*> &fdEpollLink)
 {
 	if(data->path.empty())
-	{
-		errorPage("403", data);
-	}
+		errorPage(NULL, "403", data);
 	if(isExtension(uri) || is_cgi_extension(uri))
 	{
 		filePath = data->path + uri;
@@ -204,7 +202,7 @@ void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::strin
 	if(filePath.empty())
 	{
 		if(data->path.empty())
-			errorPage("403", data);
+			errorPage(NULL, "403", data);
 		// if i have a file to download
 		else if(isExtensionDownload(uri) || check_download(data, filePath, uri))
 		{
@@ -238,7 +236,7 @@ void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::strin
 			content = generateAutoIndexPage(uri, files);
 		}
 		else
-			errorPage("403", data);
+			errorPage(NULL, "403", data);
 	}
 	if (isDirectory(filePath))
 		checkAccessDir(code, filePath, data);
@@ -248,10 +246,7 @@ void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::strin
 	response = display_user_connection(cookie, data, response);
 	// std::cout << MAGENTA "handling request\n" << response << RESET << std::endl;
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
-	{
-		std::cout << strerror(errno) << std::endl;
-		errorPage("500", data);
-	}
+		errorPage(std::string(strerror(errno)), "500", data);
 }
 
 void parseAndGetRequest(std::string buffer, t_serverData *data, Cookie &cookie, std::map<int, t_serverData*> &fdEpollLink)

@@ -28,7 +28,7 @@ void insertValue(std::string temp, std::map<std::string, std::string> &values, t
 	}
 	else
 	{
-		errorPage("400", data);
+		errorPage(NULL, "400", data);
 		throw Response::ErrorBodyPostRequest();
 	}
 }
@@ -91,14 +91,14 @@ void translateJson(t_serverData *data)
 	std::ifstream inFile("./www/data/form/keyvalue.txt");
 	if(!inFile.is_open())
 	{
-		errorPage("400", data);
+		errorPage(NULL, "400", data);
 		std::cout << "error opening the file for data " << strerror(errno) << std::endl;
 	}
 	int jsonFile = open("./www/data/form/keyvalue.json", O_WRONLY | O_CREAT, 0644);
 	if(jsonFile < 0)
 	{
 		inFile.close();
-		errorPage("400", data);
+		errorPage(NULL, "400", data);
 		throw Response::ErrorOpeningFile("Json File: " + std::string(strerror(errno)));
 	}
 	while(std::getline(inFile, line))
@@ -149,7 +149,7 @@ std::string getFileName(std::string body, t_serverData *data)
 	size_t pos = body.find(file);
 	if(pos == std::string::npos)
 	{
-		errorPage("400", data);
+		errorPage(NULL, "400", data);
 		throw Response::ErrorBodyPostRequest();
 	}
 	std::string fileName = body.substr(pos + file.size(), body.size());
@@ -173,9 +173,7 @@ void postRequest(t_serverData *data, Cookie &cookie)
 			fileName = "./www/upload/" + fileName;
 			std::ofstream output(fileName.c_str(), std::ios::binary);
 			if(!output.is_open())
-			{
-				errorPage("500", data);
-			}
+				errorPage(NULL, "500", data);
 			truncate_file(data->body, data);
 			output.write(data->body.c_str(), data->body.size());
 			
@@ -193,5 +191,5 @@ void postRequest(t_serverData *data, Cookie &cookie)
 		}
 	}
 	else
-		errorPage("500" , data);
+		errorPage(NULL, "500" , data);
 }

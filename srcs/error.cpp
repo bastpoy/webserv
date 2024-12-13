@@ -64,10 +64,7 @@ void	notFoundFavicon(t_serverData *data)
 							+ contentFile;
 	//send response
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
-	{
-		std::cout << strerror(errno) << std::endl;
-		errorPage("500", data);
-	}
+		errorPage(std::string(strerror(errno)), "500", data);
 	throw Response::ErrorRequest("favicon.ico not found");
 }
 
@@ -83,10 +80,7 @@ static void	contentTooLarge(t_serverData *data)
 							"\r\n" + jsonContent;
 
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
-	{
-		std::cout << strerror(errno) << std::endl;
-		errorPage("500", data);
-	}
+		errorPage(std::string(strerror(errno)), "500", data);
 	throw Response::ErrorRequest("Content too large");
 }
 
@@ -209,8 +203,10 @@ void useDefaultErrorPage(const std::string &error, t_serverData *data)
  * @param data The server data
  * @details This function will display an error page based on the error code.
 */
-void errorPage(std::string error, t_serverData *data)
+void errorPage(std::string msg, std::string error, t_serverData *data)
 {
+	if (msg.empty())
+		std::cout << msg << std::endl;
 	// Check location error pages first
 	for (std::vector<Location>::iterator it = data->location.begin(); it != data->location.end(); ++it)
 	{

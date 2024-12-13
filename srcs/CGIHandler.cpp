@@ -111,37 +111,46 @@ t_cgi * new_cgi(int fd, int pid, time_t time, int parentSocket)
 // 	// data->cgi = new_cgi(fd[0], pid, cgi->cgiTimeout, data->sockfd);
 // }
 
-void executeCGI(std::string uri, t_serverData *data, std::map<int, t_serverData*> &fdEpollLink)
+void	executeCGI(std::string uri, t_serverData *data, std::map<int, t_serverData*> &fdEpollLink)
 {
-	int													fd[2];
-	std::string											extension = CGIExtension(uri);
-	std::map<std::string, std::string>::const_iterator	it = data->cgiPath.find(extension);
+	int			fd[2];
+	std::string	extension = CGIExtension(uri);
+	std::map<std::string, std::string>::const_iterator it = data->cgiPath.find(extension);
 
+	std::cout << RED "extension is " << extension << RESET << std::endl;
 	if (it == data->cgiPath.end())
-		throw Response::DisplayErrorPage("Can't find extension: " + extension, "501", data);
-	if (pipe(fd) < 0)
-		throw Response::DisplayErrorPage("Pipe creation failed: " + std::string(strerror(errno)), "500", data);
+		errorPage("Error : can't find extension " + extension, "501", data);
+	if(pipe(fd) < 0)
+		errorPage("Error creating pipe: " + std::string(strerror(errno)), "500", data);
 	int pid = fork();
 	if (pid < 0)
-		throw Response::DisplayErrorPage("Fork failed: " + std::string(strerror(errno)), "500", data);
-	if (pid == 0)
+		std::cout << "Fork failed" << std::endl; 
+	else if (pid == 0)
 	{
-		char *script[] = {strdup(it->second.c_str()), strdup(uri.c_str()), NULL};
-		if (dup2(fd[1], STDOUT_FILENO) < 0)
-			throw Response::DisplayErrorPage("Dup inside CGI failed: " + std::string(strerror(errno)), "500", data);
+		char **script = (char **)malloc(sizeof(char*) * 3);
+		
+		script[0] = strdup(it->second.c_str());
+		script[1] = strdup(uri.c_str());
+		script[2] = NULL;
+		if(dup2(fd[1], STDOUT_FILENO) < 0)
+			errorPage("Error dup inside CGI: " + std::string(strerror(errno)), "500", data);
 		close(fd[0]);
 		close(fd[1]);
 		execve(it->second.c_str(), script, NULL);
-		throw Response::ErrorCGI("Execve failed");
+		std::cout << "failed to execve, path was : " << uri << std::endl;
+		perror("execve");
+		std::exit(EXIT_FAILURE);
 	}
 	close(fd[1]);
-	t_cgi *cgi = new_cgi(fd[0], pid, time(NULL) + 5, data->sockfd);
-	struct epoll_event client_event = fillDataCgi(data, cgi, fdEpollLink);
-	if (epoll_ctl(3, EPOLL_CTL_ADD, fd[0], &client_event) < 0)
-		throw Response::DisplayErrorPage("Epoll add failed: " + std::string(strerror(errno)), "500", data);
-	data->cgi = cgi;
-}
+	struct epoll_event client_event;
 
+	t_cgi *cgi = new_cgi(fd[0], pid, time(NULL) + 5, data->sockfd);
+	client_event = fillDataCgi(data, cgi, fdEpollLink);
+	if(epoll_ctl(3, EPOLL_CTL_ADD, fd[0], &client_event) < 0)
+		errorPage("Error adding epoll ctl: " + std::string(strerror(errno)), "500", data);
+	data->isCgi = true;
+	// data->cgi = new_cgi(fd[0], pid, cgi->cgiTimeout, data->sockfd);
+}
 
 std::string HandleCgiRequest(std::string uri, t_serverData *data, std::map<int, t_serverData*> &fdEpollLink)
 {
@@ -157,10 +166,7 @@ std::string fileToString(const char *filePath)
 	std::ifstream inputFile(filePath);
 
 	if (!inputFile.is_open())
-	{
-		throw std::runtime_error("Failed to open the file: " + std::string(filePath));
-	}
-
+		throw Response::ErrorOpeningFile("Failed to open the file: " + std::string(filePath));
 	std::stringstream buffer;
 	buffer << inputFile.rdbuf();
 	return (buffer.str());
@@ -213,7 +219,7 @@ void handleTimeout(t_serverData *data)
 		std::string response = httpGetResponse("200 Ok", "text/html", readFile("./www/error/error408.html", data), data, "");
 
 		if (send(data->sockfd, response.c_str(), response.size(), 0) < 0)
-			throw Response::DisplayErrorPage("Error sending main: " + std::string(strerror(errno)), "500", data);
+			errorPage("Error sending main: " + std::string(strerror(errno)), "500", data);
 		close(data->cgi->cgifd);
 		close(data->sockfd);
 		delete data->cgi;
@@ -269,17 +275,11 @@ void read_cgi(t_serverData *data, struct epoll_event *events, int i, int epoll_f
 	std::cout << YELLOW "Reading cgi" << RESET << std::endl;
 	bytes_read = read(data->cgi->cgifd, buffer, 4096);
 	if(bytes_read < 1)
-	{
 		std::cerr << RED "error reading the cgi: " << strerror(errno) << RESET << std::endl; 
-	}
 	//i put the content of the cgi response in the body
 	data->body.append(buffer, bytes_read);
 	//switching to epollout
 	events[i].events = EPOLLOUT;
 	if(epoll_ctl(epoll_fd, EPOLL_CTL_MOD, data->cgi->cgifd, events) < 0)
-	// if(epoll_ctl(epoll_fd, EPOLL_CTL_MOD, data->sockfd, events) < 0)
-	{
-		std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
-		errorPage("500", data);
-	}
+		errorPage("Error epoll ctl catch: " + std::string(strerror(errno)), "500", data);
 }

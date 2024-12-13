@@ -14,10 +14,7 @@ void Response::sendResponse(std::string statusCode, std::string contentType, std
 	response += "\r\n" + content;
 
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
-	{
-		std::cout << strerror(errno) << std::endl;
-		errorPage("500", data);
-	}
+		errorPage(std::string(strerror(errno)), "500", data);
 	throw Response::responseOk();
 }
 
@@ -70,10 +67,7 @@ void redirRequest(std::string location, int fd, t_serverData *data)
 	else
 		response += "Connection: close\r\n\r\n";
 	if(send(fd, response.c_str(), response.size(), 0) < 0)
-	{
-		std::cout << strerror(errno) << std::endl;
-		errorPage("500", data);
-	}
+		errorPage(std::string(strerror(errno)), "500", data);
 }
 
 void httpPostResponse(std::string code , std::string contentType, std::string content, t_serverData *data, Cookie &cookie, std::string id)
@@ -97,10 +91,7 @@ void httpPostResponse(std::string code , std::string contentType, std::string co
 	response +=	"Content-Length: " + to_string(content.size()) + "\r\n"
 				"\r\n" + content;
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
-	{
-		std::cout << strerror(errno) << std::endl;
-		errorPage("500", data);
-	}
+		errorPage(std::string(strerror(errno)), "500", data);
 }
 
 const char*	Response::ErrorOpeningFile::what() const throw()
@@ -123,6 +114,11 @@ const char* Response::ConfigurationFileServer::what() const throw()
 	return _msg.c_str();
 }
 
+const char* Response::ErrorRequest::what() const throw()
+{
+	return _msg.c_str();
+}
+
 const char* Response::ErrorSocket::what() const throw()
 {
 	return _msg.c_str();
@@ -140,7 +136,7 @@ const char* Response::ErrorEpoll::what() const throw()
 
 const char* Response::DisplayErrorPage::what() const throw()
 {
-	errorPage(_code, _data);
+	errorPage(NULL, _code, _data);
 	return _msg.c_str();
 }
 
