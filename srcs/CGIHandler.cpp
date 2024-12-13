@@ -167,7 +167,7 @@ void read_cgi(t_serverData *data, struct epoll_event *events, int i, int epoll_f
 
 	std::cout << YELLOW "Reading cgi" << RESET << std::endl;
 	bytes_read = read(data->cgi->cgifd, buffer, 4096);
-	std::cout << buffer << std::endl;
+	// std::cout << buffer << std::endl;
 	if(bytes_read < 1)
 	{
 		std::cerr << RED "error reading the cgi: " << strerror(errno) << RESET << std::endl; 

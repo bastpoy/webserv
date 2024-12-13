@@ -124,15 +124,15 @@ void process_extension(std::string &filePath, std::string &code, std::string uri
 	if(isExtension(uri) || is_cgi_extension(uri))
 	{
 		filePath = data->path + uri;
+		std::string path = data->path + "pages/cookie/connexion.html";
 		if (is_cgi_extension(filePath))
 		{
 			std::cout << BLUE "It's a CGI " RESET << filePath << std::endl; // Debug
 			checkAccessFile(code, filePath, data);
 			content = HandleCgiRequest(filePath.c_str(), data, fdEpollLink);
 		}
-		else if(filePath  == "./www/pages/cookie/connexion.html" && check_cookie_validity(cookie, get_cookie_id(buffer)))
+		else if(filePath  == path && check_cookie_validity(cookie, get_cookie_id(buffer)))
 		{
-			std::cout << "no nead to reconnect cause user already exist\n";
 			redirRequest("/", data->sockfd, data);
 			throw Response::responseOk();
 		}
@@ -143,7 +143,7 @@ void process_extension(std::string &filePath, std::string &code, std::string uri
 
 bool is_download(t_serverData *data, std::string uri)
 {
-	std::string downloadPath = "./www/upload";
+	std::string downloadPath = data->path + "upload";
 	std::string path = data->path + uri;
 
 	size_t pos = path.find_last_of("/?");
@@ -166,7 +166,7 @@ bool is_download(t_serverData *data, std::string uri)
 
 bool check_download(t_serverData *data, std::string &filePath, std::string uri)
 {
-	std::string downloadPath = "./www/upload";
+	std::string downloadPath = data->path + "upload";
 	std::string path = data->path + uri;
 
 	size_t pos = path.find_last_of("/?");
@@ -244,7 +244,6 @@ void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::strin
 	if (isDirectory(filePath))
 		checkAccessDir(code, filePath, data);
 	checkAccessFile(code, filePath, data);
-	std::cout << MAGENTA << data->path << std::endl;
 	// add user cookie connection at the end
 	content = display_user_connection(cookie, data, content);
 	//get the response
