@@ -245,13 +245,26 @@ std::vector<std::string>	Server::getKeywords(void)
 	std::vector<std::string>	locKeywords;
 
 	for (int i = 0; i < _locKeywordsSize; i++)
-		locKeywords.push_back(_locKeywords[i][0]);
+		locKeywords.push_back(_locKeywords[i]);
 	return (locKeywords);
 }
 
 /* ================ */
 /*		FILL		*/
 /* ================ */
+
+static void findKeywordIndex(const std::string& line, Location	&location, const std::vector<std::string>& keywords, const std::vector<void (Location::*)(std::string)> &functions)
+{
+	int	kSzie = static_cast<int> (keywords.size());
+	int	i = 0;
+
+	while (i < kSzie && line.find(keywords[i]) == std::string::npos)
+		i++;
+	if (i < kSzie)
+		(location.*functions[i])(line);
+	else if (i > (kSzie - 1) && line.find("}") == std::string::npos && !line.empty())
+		throw Response::ConfigurationFileServer("Unknown attribute: " + line);
+}
 
 /**
  * @brief	Gonna Fill all Location data info detected in a location instance
@@ -263,29 +276,20 @@ std::vector<std::string>	Server::getKeywords(void)
 void	Server::fillLocation(std::ifstream &file, std::string line, std::vector<Location> &locations)
 {
 	Location	location;
-	std::vector<std::string> _locKeywords = getKeywords();
-	std::vector<void (Location::*)(std::string)> locationFunctions = getLocationFunctions();
 	bool		bracket = false;
 
 	if (line.find("{") != std::string::npos)
 		bracket = true;
 	location.setPath(line);
 	checkLocationPath(location, locations);
-	while(getline(file, line))
+	while(getline(file, line) && ConfigParser::parseLine(line))
 	{
-		int i = 0;
-		ConfigParser::parseLine(line);
 		if (line.find("{") != std::string::npos)
 		{
 			bracket = true;
 			continue;
 		}
-		while (i < getKeywordsSize() && line.find(_locKeywords[i]) == std::string::npos)
-			i++;
-		if (i < getKeywordsSize())
-			(location.*locationFunctions[i])(line);
-		else if (i > (getKeywordsSize() - 1) && line.find("}") == std::string::npos && !line.empty())
-			throw Response::ConfigurationFileLocation("Unknown attribute: " + line);
+		findKeywordIndex(line, location, getKeywords(), getLocationFunctions());
 		if (line.find("}") != std::string::npos)
 		{
 			if (bracket == false)
@@ -299,14 +303,14 @@ void	Server::fillLocation(std::ifstream &file, std::string line, std::vector<Loc
 
 void	Server::functionConfig(void)
 {
-	_locKeywords[0].push_back("root");
-	_locKeywords[1].push_back("client_max_body_size");
-	_locKeywords[2].push_back("autoindex");
-	_locKeywords[3].push_back("index");
-	_locKeywords[4].push_back("return");
-	_locKeywords[5].push_back("error_page");
-	_locKeywords[6].push_back("cgi_path");
-	_locKeywords[7].push_back("allowed_methods");
+	_locKeywords.push_back("root");
+	_locKeywords.push_back("client_max_body_size");
+	_locKeywords.push_back("autoindex");
+	_locKeywords.push_back("index");
+	_locKeywords.push_back("return");
+	_locKeywords.push_back("error_page");
+	_locKeywords.push_back("cgi_path");
+	_locKeywords.push_back("allowed_methods");
 
 	_locationFunctions.push_back(&Location::setRoot);
 	_locationFunctions.push_back(&Location::setMaxBody);
@@ -326,7 +330,7 @@ void	Server::printConfig()
 {
 	std::vector<Location>::iterator	itbeg = _location.begin();
 	std::vector<Location>::iterator	itend = _location.end();
-	
+
 	if (!getPort().empty())
 		std::cout << "listen\t\t" YELLOW << getPort() << RESET << std::endl;
 	if (!getIP().empty())
