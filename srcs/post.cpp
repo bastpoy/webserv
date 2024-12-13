@@ -115,6 +115,10 @@ void parsePostBody(std::string &body, t_serverData *data, Cookie &cookie)
 	std::string key;
 	std::string value;
 	size_t pos1 =  body.find_first_of('&');
+	if(pos1 == std::string::npos)
+	{
+		errorPage("Error formatiing post request", "400", data);
+	}
 
 	while(pos1 != std::string::npos)
 	{
@@ -211,7 +215,6 @@ std::string getFileName(std::string body, t_serverData *data)
 	fileName = fileName.substr(0, pos);
 	return (fileName);
 }
-
 
 void postRequest(t_serverData *data, Cookie &cookie)
 {

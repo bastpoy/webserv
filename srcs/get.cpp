@@ -93,10 +93,10 @@ void	checkAccessFile(std::string &code, std::string &filePath, t_serverData *dat
 {
 	if(access(filePath.c_str(), F_OK) != 0)
 	{
-		errorPage(NULL, "404", data);
+		errorPage("", "404", data);
 	}
 	else if (access(filePath.c_str(), R_OK) != 0)
-		errorPage(NULL, "403", data);
+		errorPage("", "403", data);
 	else
 		code = "200 OK";
 }
@@ -105,11 +105,11 @@ void	checkAccessDir(std::string &code, std::string &dirPath, t_serverData *data)
 {
 	struct stat	pathStat;
 	if(stat(dirPath.c_str(), &pathStat) != 0)
-		errorPage(NULL, "404", data);
+		errorPage("", "404", data);
 	else if (!S_ISDIR(pathStat.st_mode))
-		errorPage(NULL, "404", data);
+		errorPage("", "404", data);
 	else if (access(dirPath.c_str(), R_OK) != 0)
-		errorPage(NULL, "403", data);
+		errorPage("", "403", data);
 	else
 		code = "200 OK";
 }
@@ -117,7 +117,7 @@ void	checkAccessDir(std::string &code, std::string &dirPath, t_serverData *data)
 void	process_extension(std::string &filePath, std::string &code, std::string uri, std::string buffer, std::string &content, Cookie &cookie, t_serverData *data, std::map<int, t_serverData*> &fdEpollLink)
 {
 	if(data->path.empty())
-		errorPage(NULL, "403", data);
+		errorPage("", "403", data);
 	if(isExtension(uri) || is_cgi_extension(uri))
 	{
 		filePath = data->path + uri;
@@ -244,7 +244,6 @@ void getRequest(std::string &uri, t_serverData *&data, Cookie &cookie, std::stri
 		std::cout << MAGENTA << filePath << RESET << std::endl;
 		display_message("pages/post/post.html", data);
 	}
-	
 	if (isDirectory(filePath))
 		checkAccessDir(code, filePath, data);
 	checkAccessFile(code, filePath, data);

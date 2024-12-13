@@ -55,62 +55,6 @@ t_cgi * new_cgi(int fd, int pid, time_t time, int parentSocket)
 	return (newcgi);
 }
 
-// void	executeCGI2(std::string uri, t_serverData *data, std::map<int, t_serverData*> &fdEpollLink)
-// {
-// 	int			fd[2];
-// 	std::string	extension = CGIExtension(uri);
-// 	std::map<std::string, std::string>::const_iterator it = data->cgiPath.find(extension);
-
-// 	std::cout << RED "extension is " << extension << RESET << std::endl;
-// 	if (it == data->cgiPath.end())
-// 	{
-// 		std::cout << "Error : can't find extension " << extension << std::endl;
-// 		errorPage("501", data);
-// 	}
-// 	if(pipe(fd) < 0)
-// 	{
-// 		std::cout << "error creating pipe " << strerror(errno) << std::endl;
-// 		errorPage("500", data);
-// 	}
-
-// 	int pid = fork();
-// 	if (pid < 0)
-// 	{
-// 		std::cout << "Fork failed" << std::endl; 
-// 	}
-// 	else if (pid == 0)
-// 	{
-// 		char **script = (char **)malloc(sizeof(char*) * 3);
-		
-// 		script[0] = strdup(it->second.c_str());
-// 		script[1] = strdup(uri.c_str());
-// 		script[2] = NULL;
-// 		if(dup2(fd[1], STDOUT_FILENO) < 0)
-// 		{
-// 			std::cout << "Error dup inside CGI" << strerror(errno) << std::endl;
-// 			errorPage("500", data);
-// 		}
-// 		close(fd[0]);
-// 		close(fd[1]);
-// 		execve(it->second.c_str(), script, NULL);
-// 		std::cout << "failed to execve, path was : " << uri << std::endl;
-// 		perror("execve");
-// 		std::exit(EXIT_FAILURE);
-// 	}
-// 	close(fd[1]);
-// 	struct epoll_event client_event;
-
-// 	t_cgi *cgi = new_cgi(fd[0], pid, time(NULL) + 5, data->sockfd);
-// 	client_event = fillDataCgi(data, cgi, fdEpollLink);
-// 	if(epoll_ctl(3, EPOLL_CTL_ADD, fd[0], &client_event) < 0)
-// 	{
-// 		std::cout << "error adding epoll ctl " << strerror(errno) << std::endl;
-// 		errorPage("500", data);
-// 	}
-// 	data->isCgi = true;
-// 	// data->cgi = new_cgi(fd[0], pid, cgi->cgiTimeout, data->sockfd);
-// }
-
 void	executeCGI(std::string uri, t_serverData *&data, std::map<int, t_serverData*> &fdEpollLink)
 {
 	int			fd[2];
