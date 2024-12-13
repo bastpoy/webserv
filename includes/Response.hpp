@@ -6,7 +6,7 @@
 class Response
 {
 	public:
-		static std::string	sendResponse(std::string statusCode, std::string contentType, std::string content, t_serverData *data);
+		static void	sendResponse(std::string statusCode, std::string contentType, std::string content, t_serverData *data);
 
 		class ErrorOpeningFile : public std::exception{
 			private:

@@ -36,7 +36,6 @@ void displayDeletePage(std::string path, t_serverData *data)
 	html += "</ul>\n</div><a href=\"../../index.html\" id=\"return\">Go Back Home</a>\n";
 	html += "</body>\n</html>";
 	content += html;
-	std::cout << MAGENTA << html << RESET << std::endl;
 	response = httpGetResponse("200 Ok", contentType, content, data, "");
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 	{

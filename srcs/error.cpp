@@ -55,7 +55,7 @@ void errorCloseEpollFd(int &epoll_fd, int errCode)
 
 void	notFoundFavicon(t_serverData *data)
 {
-	std::string contentFile = readFile("./www/error/404.html", data);
+	std::string contentFile = readFile(data->path + "error/404.html", data);
 
 	std::string response = "HTTP/1.1 404 Not Found\r\n"
 							"Content-Type: text/html\r\n"
@@ -70,6 +70,7 @@ void	notFoundFavicon(t_serverData *data)
 	}
 	throw Response::Error();
 }
+
 static void	contentTooLarge(t_serverData *data)
 {
 	std::string jsonContent = 
@@ -145,25 +146,23 @@ void errorPage(std::string error, t_serverData *data)
 			choose_error_page(error, data, path);
 		}
 	}
+	std::string path = data->path + "error/" + error + ".html";
 	if (error == "400")
-		Response::sendResponse("400 Bad Request", "text/html", read_error_file("./www/error/400.html", data), data);
+		Response::sendResponse("400 Bad Request", "text/html", read_error_file(path, data), data);
 	else if (error == "403")
-		Response::sendResponse("403 Forbidden", "text/html", read_error_file("./www/error/403.html", data), data);
+		Response::sendResponse("403 Forbidden", "text/html", read_error_file(path, data), data);
 	else if (error == "404")
-	{
-		std::cout << "ici batard\n";
-		Response::sendResponse("404 Not Found", "text/html", read_error_file("./www/error/404.html", data), data);
-	}
+		Response::sendResponse("404 Not Found", "text/html", read_error_file(path, data), data);
 	else if (error == "405")
-		Response::sendResponse("405 Method Not Allowed", "text/html", read_error_file("./www/error/405.html", data), data);
+		Response::sendResponse("405 Method Not Allowed", "text/html", read_error_file(path, data), data);
 	else if (error == "413")
-		Response::sendResponse("413 Content Too Large", "text/html", read_error_file("./www/error/413.html", data), data);
+		Response::sendResponse("413 Content Too Large", "text/html", read_error_file(path, data), data);
 	else if (error == "413")
 		contentTooLarge(data);
 	else if (error == "500")
-		Response::sendResponse("500 Internal Server Error", "text/html", read_error_file("./www/error/500.html", data), data);
+		Response::sendResponse("500 Internal Server Error", "text/html", read_error_file(path, data), data);
 	else if (error == "501")
-		Response::sendResponse("501 Not Implemented", "text/html", readFile("./www/error/501.html", data), data);
+		Response::sendResponse("501 Not Implemented", "text/html", readFile(path, data), data);
 	else if (error == "504")
-		Response::sendResponse("504 Gateway Timeout", "text/html", readFile("./www/error/504.html", data), data);
+		Response::sendResponse("504 Gateway Timeout", "text/html", readFile(path, data), data);
 }

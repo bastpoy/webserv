@@ -85,7 +85,8 @@
 #define ON_WHITE	"\e[47m"
 
 // Values
-#define TIME_OUT_CGI_MS 10000000
+#define TIME_OUT_CGI_MS 10000
+
 
 /* ================ */
 /*		CLASS		*/
@@ -114,11 +115,10 @@ std::vector<std::string>	listDirectory(const std::string& directory);
 std::string					generateAutoIndexPage(const std::string directory, const std::vector<std::string>& files);
 
 // CGIHandler.cpp
-void check_timeout_cgi(t_serverData *info, std::map<int, t_serverData*> &fdEpollLink);
+void check_timeout_cgi(t_serverData *info, std::map<int, t_serverData*> &fdEpollLink, struct epoll_event *events, int i, int epoll_fd);
 void read_cgi(t_serverData *data, struct epoll_event *events, int i, int epoll_fd);
+std::string HandleCgiRequest(std::string uri, t_serverData *&data, std::map<int, t_serverData*> &fdEpollLink);
 
-// std::string	cgiProtocol(std::string uri, std::string &code, t_serverData *data);
-std::string HandleCgiRequest(std::string uri, t_serverData *data, std::map<int, t_serverData*> &fdEpollLink);
 
 // cookie.cpp
 std::string	newSessionCookie(std::map<std::string, std::string> values,Cookie &cookie, t_serverData *data);
@@ -142,7 +142,7 @@ void		redirRequest(std::string location, int fd, t_serverData *data);
 std::string	check_location(std::string &uri, std::string &content, std::vector<Location> &location, t_serverData *data);
 std::string	getContentType(std::string &path, std::string typeRequest, t_serverData * data);
 void		checkAccessFile(std::string &code, std::string &filePath, t_serverData *data);
-void		parseAndGetRequest(std::string buffer, t_serverData *data, Cookie &cookie, std::map<int, t_serverData*> &fdEpollLink);
+void		parseAndGetRequest(std::string buffer, t_serverData *&data, Cookie &cookie, std::map<int, t_serverData*> &fdEpollLink);
 
 // ParsingUtils.cpp
 void		checkLocationPath(Location &location, std::vector<Location> &locations);

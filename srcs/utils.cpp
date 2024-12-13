@@ -198,7 +198,6 @@ std::string readFile(std::string filePath, t_serverData *data)
 
 	if (!inputFile.is_open())
 	{
-		std::cout << "error read file\n";
 		errorPage("404", data);
 	}
 

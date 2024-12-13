@@ -1,0 +1,42 @@
+HTTP/1.1 200 OK
+Content-Length: 1217
+Connection: keep-alive
+Content-Type: text/html
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Détails Requête GET & Téléchargement</title>
+	<link rel="stylesheet" href="../../styles.css">
+</head>
+<body>
+	<h1>🌐 GET Request</h1>
+	<div class="container">
+		<form method="get">
+			<div class="form-group">
+				<label for="url">Request URL</label>
+				<input type="text" id="url" placeholder="Enter the URL request" required>
+			</div>
+			<button type="submit">Sent GET Request</button>
+		</form>
+
+		<!-- Section Téléchargement de Fichier -->
+		<form action="/upload" method="get" class="file-download-section">
+			<h2>🗂️ Download File</h2>
+			<div class="file-options">
+				<input type="text" id="fileName" name="fileName" placeholder="Name of file to download" required>
+			</div>
+			<button type="submit">Download File</button>
+		</form>
+	</div>
+	<a href="../../index.html" id="return">Go Back Home</a>
+	<div class='user-info'>
+		<h2>User Connection Details</h2>
+		<p><strong>Email:</strong> asf </p>
+		<p><strong>Password:</strong> asdf </p>
+	</div>
+</body>
+</html>
+--
