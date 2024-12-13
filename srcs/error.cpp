@@ -50,8 +50,7 @@ void errorCloseEpollFd(int &epoll_fd, int errCode)
 	else if(errCode == 7)
 		std::cout << "Error creating epoll instance: ";
 	closeAllFileDescriptors();
-	std::cout << errno << " " << strerror(errno) << std::endl;
-	throw Response::Error();
+	throw Response::ErrorEpoll("close epoll fd" + std::string(strerror(errno)));
 }
 
 void	notFoundFavicon(t_serverData *data)
@@ -69,7 +68,7 @@ void	notFoundFavicon(t_serverData *data)
 		std::cout << strerror(errno) << std::endl;
 		errorPage("500", data);
 	}
-	throw Response::Error();
+	throw Response::ErrorRequest("favicon.ico not found");
 }
 
 static void	contentTooLarge(t_serverData *data)
@@ -88,7 +87,7 @@ static void	contentTooLarge(t_serverData *data)
 		std::cout << strerror(errno) << std::endl;
 		errorPage("500", data);
 	}
-	throw Response::Error();
+	throw Response::ErrorRequest("Content too large");
 }
 
 /**

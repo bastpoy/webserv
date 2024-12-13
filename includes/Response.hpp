@@ -43,9 +43,24 @@ class Response
 				virtual ~ConfigurationFileServer() throw() {}
 		};
 
-		class Error : public std::exception{ // TODO - A enlever
+		class ErrorRequest : public std::exception{
+			private:
+				std::string _msg;
 			public:
+				explicit ErrorRequest(const std::string &msg):
+					_msg("Request failed: " + msg) {}
 				virtual const char* what() const throw();
+				virtual ~ErrorRequest() throw() {}
+		};
+
+		class ErrorEpoll : public std::exception{
+			private:
+				std::string _msg;
+			public:
+				explicit ErrorEpoll(const std::string &msg):
+					_msg("Epoll: " + msg) {}
+				virtual const char* what() const throw();
+				virtual ~ErrorEpoll() throw() {}
 		};
 
 		class DisplayErrorPage : public std::exception{
@@ -55,7 +70,7 @@ class Response
 				t_serverData *_data;
 			public:
 				explicit DisplayErrorPage(const std::string &msg, const std::string &code, t_serverData *data):
-					_msg("Display Page: " + msg), _code(code), _data(data) {} //TODO - change the message
+					_msg("Display Page: " + msg), _code(code), _data(data) {}
 				virtual const char* what() const throw();
 				virtual ~DisplayErrorPage() throw() {}
 		};
@@ -70,14 +85,14 @@ class Response
 				virtual ~ErrorCGI() throw() {}
 		};
 
-		class ErrorCreatingSocket : public std::exception{
+		class ErrorSocket : public std::exception{
 			private:
 				std::string _msg;
 			public:
-				explicit ErrorCreatingSocket(const std::string &msg):
+				explicit ErrorSocket(const std::string &msg):
 					_msg("Creating socket: " + msg) {}
 				virtual const char* what() const throw();
-				virtual ~ErrorCreatingSocket() throw() {}
+				virtual ~ErrorSocket() throw() {}
 		};
 
 		class ErrorBodyPostRequest : public std::exception{

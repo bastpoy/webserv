@@ -83,10 +83,11 @@ void Server::setupSocket(int &sockfd, struct sockaddr_in &addr, std::vector<Serv
 	std::string port = itbeg->getPort();
 	std::cout << "ip: " << ip << "; Port: " << port << std::endl;
 	int status = getaddrinfo(ip.c_str(), port.c_str(), &hints, &result);
-	if (status != 0) {
+	if (status != 0)
+	{
 		closeAllFileDescriptors();
-		std::cerr << "getaddrinfo error: " << gai_strerror(status) << std::endl;
-		throw Response::Error();
+		// std::cerr << "getaddrinfo error: " << gai_strerror(status) << std::endl;
+		throw Response::ErrorSocket("getaddrinfo error: " + std::string(gai_strerror(status)));
 	}
 	
 	struct sockaddr_in *resolved_addr = reinterpret_cast<struct sockaddr_in*>(result->ai_addr);
@@ -97,15 +98,15 @@ void Server::setupSocket(int &sockfd, struct sockaddr_in &addr, std::vector<Serv
 		closeAllFileDescriptors();
 		freeaddrinfo(result);
 		std::cout << "\nBIND: ";
-		throw Response::ErrorCreatingSocket(strerror(errno));
+		throw Response::ErrorSocket(strerror(errno));
 	}
 
 	if (listen(sockfd, 10) < 0)
 	{
 		closeAllFileDescriptors();
 		freeaddrinfo(result);
-		std::cout <<"LISTEN: " << strerror(errno);
-		throw Response::Error();
+		// std::cout << "LISTEN: " << strerror(errno);
+		throw Response::ErrorSocket("listen error: " + std::string(strerror(errno)));
 	}
 	freeaddrinfo(result);
 }

@@ -34,7 +34,7 @@ std::string pathLocation(std::string &content, std::string &uri, std::vector<Loc
 	else
 	{
 		errorPage("404", data);
-		throw Response::Error();
+		throw Response::ErrorRequest("No index file found");
 	}
 }
 
@@ -54,7 +54,7 @@ std::string check_location(std::string &uri, std::string &content, std::vector<L
 			{
 				std::cout << "inside location redirection" << std::endl;
 				redirRequest(it->getRedir().begin()->second, data->sockfd, data);
-				throw Response::Error();
+				throw Response::ErrorRequest("Redirection");
 			}
 			if(isExtension(uri))
 			{

@@ -39,10 +39,8 @@ void putFormData(std::map<std::string, std::string> values)
 
 	int fd = open("./www/data/form/keyvalue.txt", O_WRONLY | O_APPEND | O_CREAT, 0644);
 	if(fd < 0)
-	{
-		std::cout << "Error during opening file:" << strerror(errno) << std::endl;
-		throw Response::Error();
-	}
+		throw Response::ErrorOpeningFile(std::string(strerror(errno)));
+		// std::cout << "Error during opening file:" << strerror(errno) << std::endl;
 	while(it != values.end())
 	{
 		write(fd, "\"", 1);
@@ -101,7 +99,7 @@ void translateJson(t_serverData *data)
 	{
 		inFile.close();
 		errorPage("400", data);
-		throw Response::Error();
+		throw Response::ErrorOpeningFile("Json File: " + std::string(strerror(errno)));
 	}
 	while(std::getline(inFile, line))
 	{

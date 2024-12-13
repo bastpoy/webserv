@@ -27,13 +27,9 @@ std::string httpGetResponse(std::string code, std::string contentType, std::stri
 	std::string response = "HTTP/1.1 " + code + "\r\n" ;
 	response += "Content-Length: " + to_string(content.size()) + "\r\n";
 	if (is_keep_alive(data->header))
-	{
 		response += "Connection: keep-alive\r\n";
-	}
 	else
-	{
 		response += "Connection: close\r\n";
-	}
 	if(data->isDownload)
 	{
 		size_t pos = filePath.find_last_of("/");
@@ -44,10 +40,7 @@ std::string httpGetResponse(std::string code, std::string contentType, std::stri
 		data->isDownload = false;
 	}
 	else
-	{
 		response += "Content-Type: " + contentType + "\r\n";
-	}
-	// std::cout << BLUE << response << RESET << std::endl;
 	response += "\r\n" + content;
 	return (response);
 }
@@ -103,10 +96,8 @@ void httpPostResponse(std::string code , std::string contentType, std::string co
 		response += "Connection: close\r\n";
 	response +=	"Content-Length: " + to_string(content.size()) + "\r\n"
 				"\r\n" + content;
-	data->sockfd = -1;
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 	{
-		std::cout << MAGENTA "Je suis ici" RESET << std::endl;
 		std::cout << strerror(errno) << std::endl;
 		errorPage("500", data);
 	}
@@ -132,7 +123,7 @@ const char* Response::ConfigurationFileServer::what() const throw()
 	return _msg.c_str();
 }
 
-const char* Response::ErrorCreatingSocket::what() const throw()
+const char* Response::ErrorSocket::what() const throw()
 {
 	return _msg.c_str();
 }
@@ -142,9 +133,9 @@ const char* Response::ErrorCGI::what() const throw()
 	return _msg.c_str();
 }
 
-const char* Response::Error::what() const throw()
+const char* Response::ErrorEpoll::what() const throw()
 {
-	return("");
+	return _msg.c_str();
 }
 
 const char* Response::DisplayErrorPage::what() const throw()
