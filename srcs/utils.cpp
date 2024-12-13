@@ -42,6 +42,17 @@ std::string CGIExtension(std::string path)
 	return ("");
 }
 
+void removeChar(std::string& str, char c)
+{
+	for (size_t i = 0; i < str.length(); ++i)
+	{
+		if (str[i] == c) {
+			str.erase(i, 1);
+			--i;
+		}
+	}
+}
+
 bool	ft_stoi(const std::string &str, int &result)
 {
 	bool isNegative = false;

@@ -1,5 +1,59 @@
 #include "Header.hpp"
 
+void display_message(std::string path, t_serverData *data)
+{
+	std::string 				filePath = data->path + path;
+	std::string					html;
+	std::string					response;
+	std::string					contentKeyValue;
+	std::vector<std::string>	substr;
+	std::ifstream file("./www/data/form/keyvalue.txt");
+	if (!file)
+		throw Response::Error();
+	std::string content = readFile(filePath, data);
+	std::string line;
+	while (std::getline(file, line))
+		contentKeyValue += line + '\n';
+	file.close();
+
+	html =
+		"\t<div class=\"test-section\">\n"
+		"\t\t<h2>Comments</h2>\n"
+		"\t\t<ul>\n" ;
+
+	substr = ft_split(contentKeyValue, '\n');
+	for (size_t i = 0; i < substr.size(); i++)
+	{
+		std::string	email = ft_split(substr[i], ':')[1];
+		std::string	message = ft_split(substr[++i], ':')[1];
+		std::string	name = ft_split(substr[++i], ':')[1];
+
+		removeChar(name, '"');
+		removeChar(email, '"');
+		email.erase(email.length() - 1);
+		removeChar(message, '"');
+		message.erase(message.length() - 1);
+
+		html +=
+			"\t\t\t<li class=\"file-download-section\">\n"
+			"\t\t\t\t<label style=\"text-transform:uppercase\">Username: " + name + "</label>"
+			"\t\t\t\t<p style=\"text-align:left\"><strong>Email: </strong>" + email + "</br>"
+			"<strong>Message: </strong>" + message + "</p>"
+			"\t\t\t</li>\n";
+	}
+
+	html += "\t\t</ul>\n\t</div><a href=\"../../index.html\" id=\"return\">Go Back Home</a>\n";
+	html += "</body>\n</html>";
+	content += html;
+	response = httpGetResponse("200 Ok", "text/html", content, data, "");
+	if (send(data->sockfd, response.c_str(), response.size(), 0) < 0)
+	{
+		std::cout << strerror(errno) << std::endl;
+		errorPage("500", data);
+	}
+}
+
+
 void replaceSpecialCharacter(std::string &value)
 {
 	if(value.find("%40") != std::string::npos)

@@ -241,6 +241,11 @@ void getRequest(std::string &uri, t_serverData *data, Cookie &cookie, std::strin
 	}
 	if(filePath.find("pages/delete/delete.html") != std::string::npos)
 		displayDeletePage("pages/delete/delete.html", data);
+	if(filePath.find("pages/post/post.html") != std::string::npos)
+	{
+		std::cout << MAGENTA << filePath << RESET << std::endl;
+		display_message("pages/post/post.html", data);
+	}
 	if (isDirectory(filePath))
 		checkAccessDir(code, filePath, data);
 	checkAccessFile(code, filePath, data);
