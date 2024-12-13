@@ -9,17 +9,18 @@
 <body>
 	<h1>📤 POST Request</h1>
 	<div class="container">
-		<form method="post" enctype="multipart/form-data" class="file-download-section">
-			<h2>🗂️ Upload File</h2>
+		<form class="file-download-section" method="post" enctype="multipart/form-data">
+			<h2 class="file">🗂️ Upload File</h2>
+			<label for="fileInput">Fichiers :</label>
 			<div class="form-group">
-				<input type="file" id="fileInput" name="files">
+				<input type="file" id="fileInput" name="files" multiple>
 			</div>
 			<button type="submit">Send File</button>
 		</form>
 
-		<form id="form-group" method="post" class="file-download-section">
-			<h2> Contact Form</h2>
-			<label for="name">Nom :</label>
+		<form class="file-download-section" method="post">
+			<h2 class="file">✉️ Contact Form</h2>
+			<label for="name">Username :</label>
 			<div class="form-group">
 				<input type="text" id="name" name="name" pattern="^[a-zA-Z0-9]+$" required>
 			</div>
@@ -34,6 +35,3 @@
 			<button type="submit">Envoyer</button>
 		</form>
 	</div>
-	<a href="../../index.html" id="return">Go Back Home</a>
-</body>
-</html>

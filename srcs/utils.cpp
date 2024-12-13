@@ -42,6 +42,17 @@ std::string CGIExtension(std::string path)
 	return ("");
 }
 
+void removeChar(std::string& str, char c)
+{
+	for (size_t i = 0; i < str.length(); ++i)
+	{
+		if (str[i] == c) {
+			str.erase(i, 1);
+			--i;
+		}
+	}
+}
+
 bool	ft_stoi(const std::string &str, int &result)
 {
 	bool isNegative = false;
@@ -196,11 +207,12 @@ std::string readFile(std::string filePath, t_serverData *data)
 {
 	std::ifstream inputFile(filePath.c_str(), std::ios::binary);
 
+	std::string code;
+	checkAccessFile(code, filePath, data);
 	if (!inputFile.is_open())
 	{
 		errorPage("404", data);
 	}
-
 	std::stringstream buffer;
 	buffer << inputFile.rdbuf();
 	return (buffer.str());

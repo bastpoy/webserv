@@ -149,7 +149,8 @@ void		checkLocationPath(Location &location, std::vector<Location> &locations);
 bool 		is_download(t_serverData *data, std::string uri);
 
 // post.cpp
-int 		getContentLength(std::string header, t_serverData *data);
+void		display_message(std::string path, t_serverData *data);
+int			getContentLength(std::string header, t_serverData *data);
 void		postRequest(t_serverData *data, Cookie &cookie);
 
 // cookie.cpp
@@ -180,6 +181,7 @@ bool						request_allowed(std::string typeRequest, t_serverData *data);
 std::string					CGIExtension(std::string path);
 bool						is_cgi_extension(std::string path);
 void						checkLocationPath(Location &location, std::vector<Location> &locations);
+void						removeChar(std::string& str, char c);
 
 
 template <typename T>

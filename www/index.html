@@ -26,11 +26,22 @@
 		<a href="pages/cgi-bin/script.sh"><button>bash</button></a>
 		<a href="pages/cgi-bin/script.tcl"><button>tcl</button></a>
 	</div>
-
 	<div class="test-section">
-		<h2>Session Tests</h2>
-		<a href="pages/cookie/connexion.html"><button>Log In</button></a>
-		<a href="pages/deconnexion"><button>Log Out</button></a>
+		<h2>Error Tests</h2>
+		<form action="/invalid-endpoint" method="POST">
+			<a href="pages/cgi-bin/sc"><button type="submit">400 - Bad Request</button></a>
+		</form>
+		<a href="index_forbidden.html"><button>403 - Forbidden</button></a>
+		<a href="invalid-path"><button>404 - Not Found</button></a>
+		<form method="INVALID">
+			<a href="index.html"><button type="submit">405 - Method Not Allowed</button></a>
+		</form>
+		<a href="pages/cgi-bin/long.py"><button>408 - Request Timeout</button></a>
+		<a href="pages/cgi-bin/script.sh"><button>410 - Gone</button></a>
+		<a href="pages/cgi-bin/script.tcl"><button>413 - Payload Too Large</button></a>
+		<a href="pages/cgi-bin/script.tcl"><button>500 - Internal Server Error</button></a>
+		<a href="pages/cgi-bin/script.tcl"><button>501 - Not Implemented</button></a>
+		<a href="pages/cgi-bin/script.tcl"><button>504 - Gateway Timeout</button></a>
 	</div>
 </body>
 </html>

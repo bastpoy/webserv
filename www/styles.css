@@ -24,6 +24,7 @@ body {
 	border: 1px solid #DEB887;
 }
 .test-section h2 {
+	text-align: left;
 	color: #CD853F;
 	border-bottom: 1px solid #D2691E;
 	padding-bottom: 10px;
@@ -32,6 +33,7 @@ body {
 	background-color: #FFEFD5;
 	border-radius: 10px;
 	padding: 25px;
+	margin-bottom: 20px;
 	box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 	border: 1px solid #DEB887;
 	align-items: center;
@@ -45,20 +47,17 @@ h1 {
 	padding-bottom: 10px;
 	margin-bottom: 20px;
 }
-h3 {
-	border-top: 1px solid #D2691E;
+h2 {
 	text-align: center;
-	display: block;
-	margin-bottom: 5px;
-	margin-top: 30px;
-	padding-top: 10px;
-	color: #CD853F;
-	font-weight: bold;
+}
+h2.file{
+	text-align: left;
 }
 p {
 	text-align: center;
 }
 .form-group {
+	display: flex;
 	margin-bottom: 15px;
 	display: flex;
 	gap: 10px;
@@ -67,7 +66,7 @@ a#return{
 	margin: auto;
 	width: fit-content;
 	padding: 5px 20px;
-	margin: 50px auto 0 auto;
+	margin: 20px auto;
 	text-align: center;
 	font-size: 15px;
 	display: block;
@@ -110,6 +109,7 @@ label {
 	font-weight: bold;
 }
 input, textarea{
+	display: block;
 	flex-grow: 1;
 	padding: 10px;
 	border: 1px solid #DEB887;
@@ -147,20 +147,12 @@ button:hover{
 	word-wrap: break-word;
 	font-style: italic;
 }
-
-#game {
-	margin: auto;
-	text-align: center;
-	display: inline-block; 
-	border: 2px solid #333; 
-	padding: 20px; 
-	margin: 20px;
+ul{
+	padding-left: 0;
 }
-#target {
-	width: 50px;
-	height: 50px;
-	background-color: red;
-	border-radius: 50%;
-	position: absolute;
-	cursor: pointer;
+li{
+	list-style-type: none;
+}
+.user-info {
+	text-align: center;
 }

@@ -93,7 +93,6 @@ void checkAccessFile(std::string &code, std::string &filePath, t_serverData *dat
 {
 	if(access(filePath.c_str(), F_OK) != 0)
 	{
-		std::cout << "here" << std::endl;
 		errorPage("404", data);
 	}
 	else if (access(filePath.c_str(), R_OK) != 0)
@@ -118,9 +117,7 @@ void checkAccessDir(std::string &code, std::string &dirPath, t_serverData *data)
 void process_extension(std::string &filePath, std::string &code, std::string uri, std::string buffer, std::string &content, Cookie &cookie, t_serverData *&data, std::map<int, t_serverData*> &fdEpollLink)
 {
 	if(data->path.empty())
-	{
 		errorPage("403", data);
-	}
 	if(isExtension(uri) || is_cgi_extension(uri))
 	{
 		filePath = data->path + uri;
@@ -202,7 +199,7 @@ void getRequest(std::string &uri, t_serverData *&data, Cookie &cookie, std::stri
 
 	if(filePath.empty())
 	{
-		if(data->path.empty())
+		if(data->path.empty() ) // TODO - Add la condition si on a pas le droit aussi, je crois
 			errorPage("403", data);
 		else if(isExtensionDownload(uri) || check_download(data, filePath, uri))
 		{
@@ -214,7 +211,9 @@ void getRequest(std::string &uri, t_serverData *&data, Cookie &cookie, std::stri
 		}
 		// if i have a file to download or uri
 		else if(isExtension(uri) || is_cgi_extension(uri))
+		{
 			process_extension(filePath, code, uri, buffer, content, cookie, data, fdEpollLink);
+		}
 		else if(uri == "pages/deconnexion/")
 		{
 			std::string id = get_cookie_id(buffer);
@@ -239,6 +238,11 @@ void getRequest(std::string &uri, t_serverData *&data, Cookie &cookie, std::stri
 	}
 	if(filePath.find("pages/delete/delete.html") != std::string::npos)
 		displayDeletePage("pages/delete/delete.html", data);
+	if(filePath.find("pages/post/post.html") != std::string::npos)
+	{
+		std::cout << MAGENTA << filePath << RESET << std::endl;
+		display_message("pages/post/post.html", data);
+	}
 	if (isDirectory(filePath))
 		checkAccessDir(code, filePath, data);
 	checkAccessFile(code, filePath, data);
