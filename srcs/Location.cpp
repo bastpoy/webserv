@@ -120,6 +120,8 @@ void	Location::setCgiPath(std::string line)
 	for (size_t i = 0; i < substr.size(); i++)
 	{
 		std::vector<std::string>	map = ft_split(substr[i], ':');
+		if (map.size() != 2)
+			throw Response::ConfigurationFileLocation("bad format of cgi_path");
 		std::string					language = map[0];
 		std::string					path = map[1];
 		_cgiPath.insert(std::make_pair(language, path));
@@ -171,8 +173,7 @@ std::vector<std::string> &Location::getAllowedMethods() { return (this->_allowed
 
 void Location::checkNotEmptys(void)
 {
-	if (getPath().empty()
-		&& getRoot().empty()
+	if (getRoot().empty()
 		&& getMaxBody().empty()
 		&& getAutoIndex().empty()
 		&& getIndex().empty()

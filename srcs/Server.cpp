@@ -348,7 +348,7 @@ void Server::createListenAddr(ConfigParser &config)
 					}
 					catch(const std::exception& e)
 					{
-						std::cout << RED << "Error catch" << RESET << std::endl;
+						std::cout << RED << "Error catch: " << e.what() << RESET << std::endl;
 						if(info->isCgi)
 						{
 							std::cout << GREEN "CGI EXIST BUT RETURN WITH FD "<< fd << RESET << std::endl;

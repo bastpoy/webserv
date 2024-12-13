@@ -9,7 +9,9 @@
 */
 struct epoll_event fillDataCgi(t_serverData *importData, t_cgi *cgi, std::map<int, t_serverData*> &fdEpollLink)
 {
-	t_serverData *data = new t_serverData;
+	t_serverData					*data = new t_serverData;
+	struct epoll_event				client_event;
+	std::pair<int, t_serverData*>	pair(data->sockfd, data);
 
 	data->sockfd = importData->sockfd;
 	data->port = importData->port;
@@ -28,15 +30,12 @@ struct epoll_event fillDataCgi(t_serverData *importData, t_cgi *cgi, std::map<in
 	data->cgi = cgi;
 	data->isDownload = importData->isDownload;
 
-	struct epoll_event client_event;
-
 	client_event.events = EPOLLIN;
 	client_event.data.ptr = static_cast<void*>(data);
 
-	std::pair<int, t_serverData*> pair(data->sockfd, data);
 	fdEpollLink.insert(pair);
 	GlobalLinkedList::insert(data);
-	return(client_event);
+	return (client_event);
 }
 
 /**
@@ -56,59 +55,93 @@ t_cgi * new_cgi(int fd, int pid, time_t time, int parentSocket)
 	return (newcgi);
 }
 
-void	executeCGI(std::string uri, t_serverData *data, std::map<int, t_serverData*> &fdEpollLink)
-{
-	int fd[2];
-	std::string extension = CGIExtension(uri);
-	std::map<std::string, std::string>::const_iterator it = data->cgiPath.find(extension);
-	if (it == data->cgiPath.end())
-	{
-		std::cout << "Error : can't find extension " << extension << std::endl;
-		errorPage("501", data);
-	}
-	if(pipe(fd) < 0)
-	{
-		std::cout << "error creating pipe " << strerror(errno) << std::endl;
-		errorPage("500", data);
-	}
+// void	executeCGI2(std::string uri, t_serverData *data, std::map<int, t_serverData*> &fdEpollLink)
+// {
+// 	int			fd[2];
+// 	std::string	extension = CGIExtension(uri);
+// 	std::map<std::string, std::string>::const_iterator it = data->cgiPath.find(extension);
 
+// 	std::cout << RED "extension is " << extension << RESET << std::endl;
+// 	if (it == data->cgiPath.end())
+// 	{
+// 		std::cout << "Error : can't find extension " << extension << std::endl;
+// 		errorPage("501", data);
+// 	}
+// 	if(pipe(fd) < 0)
+// 	{
+// 		std::cout << "error creating pipe " << strerror(errno) << std::endl;
+// 		errorPage("500", data);
+// 	}
+
+// 	int pid = fork();
+// 	if (pid < 0)
+// 	{
+// 		std::cout << "Fork failed" << std::endl; 
+// 	}
+// 	else if (pid == 0)
+// 	{
+// 		char **script = (char **)malloc(sizeof(char*) * 3);
+		
+// 		script[0] = strdup(it->second.c_str());
+// 		script[1] = strdup(uri.c_str());
+// 		script[2] = NULL;
+// 		if(dup2(fd[1], STDOUT_FILENO) < 0)
+// 		{
+// 			std::cout << "Error dup inside CGI" << strerror(errno) << std::endl;
+// 			errorPage("500", data);
+// 		}
+// 		close(fd[0]);
+// 		close(fd[1]);
+// 		execve(it->second.c_str(), script, NULL);
+// 		std::cout << "failed to execve, path was : " << uri << std::endl;
+// 		perror("execve");
+// 		std::exit(EXIT_FAILURE);
+// 	}
+// 	close(fd[1]);
+// 	struct epoll_event client_event;
+
+// 	t_cgi *cgi = new_cgi(fd[0], pid, time(NULL) + 5, data->sockfd);
+// 	client_event = fillDataCgi(data, cgi, fdEpollLink);
+// 	if(epoll_ctl(3, EPOLL_CTL_ADD, fd[0], &client_event) < 0)
+// 	{
+// 		std::cout << "error adding epoll ctl " << strerror(errno) << std::endl;
+// 		errorPage("500", data);
+// 	}
+// 	data->isCgi = true;
+// 	// data->cgi = new_cgi(fd[0], pid, cgi->cgiTimeout, data->sockfd);
+// }
+
+void executeCGI(std::string uri, t_serverData *data, std::map<int, t_serverData*> &fdEpollLink)
+{
+	int													fd[2];
+	std::string											extension = CGIExtension(uri);
+	std::map<std::string, std::string>::const_iterator	it = data->cgiPath.find(extension);
+
+	if (it == data->cgiPath.end())
+		throw Response::DisplayErrorPage("Can't find extension: " + extension, "501", data);
+	if (pipe(fd) < 0)
+		throw Response::DisplayErrorPage("Pipe creation failed: " + std::string(strerror(errno)), "500", data);
 	int pid = fork();
 	if (pid < 0)
+		throw Response::DisplayErrorPage("Fork failed: " + std::string(strerror(errno)), "500", data);
+	if (pid == 0)
 	{
-		std::cout << "Fork failed" << std::endl; 
-	}
-	else if (pid == 0)
-	{
-		char **script = (char **)malloc(sizeof(char*) * 3);
-		
-		script[0] = strdup(it->second.c_str());
-		script[1] = strdup(uri.c_str());
-		script[2] = NULL;
-		if(dup2(fd[1], STDOUT_FILENO) < 0)
-		{
-			std::cout << "Error dup inside CGI" << strerror(errno) << std::endl;
-			errorPage("500", data);
-		}
+		char *script[] = {strdup(it->second.c_str()), strdup(uri.c_str()), NULL};
+		if (dup2(fd[1], STDOUT_FILENO) < 0)
+			throw Response::DisplayErrorPage("Dup inside CGI failed: " + std::string(strerror(errno)), "500", data);
 		close(fd[0]);
 		close(fd[1]);
 		execve(it->second.c_str(), script, NULL);
-		std::cout << "failed to execve, path was : " << uri << std::endl;
-		perror("execve");
-		std::exit(EXIT_FAILURE);
+		throw Response::ErrorCGI("Execve failed");
 	}
 	close(fd[1]);
-	struct epoll_event client_event;
-
 	t_cgi *cgi = new_cgi(fd[0], pid, time(NULL) + 5, data->sockfd);
-	client_event = fillDataCgi(data, cgi, fdEpollLink);
-	if(epoll_ctl(3, EPOLL_CTL_ADD, fd[0], &client_event) < 0)
-	{
-		std::cout << "error adding epoll ctl " << strerror(errno) << std::endl;
-		errorPage("500", data);
-	}
-	data->isCgi = true;
-	// data->cgi = new_cgi(fd[0], pid, cgi->cgiTimeout, data->sockfd);
+	struct epoll_event client_event = fillDataCgi(data, cgi, fdEpollLink);
+	if (epoll_ctl(3, EPOLL_CTL_ADD, fd[0], &client_event) < 0)
+		throw Response::DisplayErrorPage("Epoll add failed: " + std::string(strerror(errno)), "500", data);
+	data->cgi = cgi;
 }
+
 
 std::string HandleCgiRequest(std::string uri, t_serverData *data, std::map<int, t_serverData*> &fdEpollLink)
 {
@@ -133,44 +166,99 @@ std::string fileToString(const char *filePath)
 	return (buffer.str());
 }
 
+// void check_timeout_cgi(t_serverData *info, std::map<int, t_serverData*> &fdEpollLink)
+// {
+// 	if(info)
+// 	{
+// 		if(info->cgi == NULL)
+// 		{
+// 			std::map<int, t_serverData*>::iterator it = fdEpollLink.begin();
+// 			//iterate through my corresponse map between fd and data struct
+// 			while (it != fdEpollLink.end()) 
+// 			{
+// 				//if i have a cgi inside my struct
+// 				if(it->second->cgi)
+// 				{
+// 					//if my cgi is timeout
+// 					if(it->second->cgi->cgiTimeout < time(NULL))
+// 					{
+// 						std::cout << "a cgi is TIMEOUT" << std::endl;
+// 						std::string response = httpGetResponse("200 Ok", "text/html", readFile("./www/error/error408.html", it->second), it->second, "");
+// 						if(send(it->second->sockfd, response.c_str(), response.size(), 0) < 0)
+// 						{
+// 							std::cout << RED "error send main "<< errno << " " << strerror(errno) << RESET << std::endl;
+// 							errorPage("500", info);
+// 						}
+// 						close(it->second->cgi->cgifd);
+// 						close(it->second->sockfd);
+// 						delete it->second->cgi;
+// 						it->second->cgi = NULL;
+// 						std::map<int, t_serverData*>::iterator toErase = it;
+// 						it++;
+// 						fdEpollLink.erase(toErase);
+// 						continue;
+// 					}
+// 				}
+// 				it++;
+// 			}
+// 		}
+// 	}
+// }
+
+void handleTimeout(t_serverData *data)
+{
+	if (data->cgi && data->cgi->cgiTimeout < time(NULL))
+	{
+		std::cout << "a cgi is TIMEOUT" << std::endl;
+		std::string response = httpGetResponse("200 Ok", "text/html", readFile("./www/error/error408.html", data), data, "");
+
+		if (send(data->sockfd, response.c_str(), response.size(), 0) < 0)
+			throw Response::DisplayErrorPage("Error sending main: " + std::string(strerror(errno)), "500", data);
+		close(data->cgi->cgifd);
+		close(data->sockfd);
+		delete data->cgi;
+		data->cgi = NULL;
+	}
+}
+
 void check_timeout_cgi(t_serverData *info, std::map<int, t_serverData*> &fdEpollLink)
 {
-	if(info)
+	if (info && info->cgi == NULL)
 	{
-		if(info->cgi == NULL)
+		for (std::map<int, t_serverData*>::iterator it = fdEpollLink.begin(); it != fdEpollLink.end(); ++it)
 		{
-			std::map<int, t_serverData*>::iterator it = fdEpollLink.begin();
-			//iterate through my corresponse map between fd and data struct
-			while (it != fdEpollLink.end()) 
-			{
-				//if i have a cgi inside my struct
-				if(it->second->cgi)
-				{
-					//if my cgi is timeout
-					if(it->second->cgi->cgiTimeout < time(NULL))
-					{
-						std::cout << "a cgi is TIMEOUT" << std::endl;
-						std::string response = httpGetResponse("200 Ok", "text/html", readFile("./www/error/error408.html", it->second), it->second, "");
-						if(send(it->second->sockfd, response.c_str(), response.size(), 0) < 0)
-						{
-							std::cout << RED "error send main "<< errno << " " << strerror(errno) << RESET << std::endl;
-							errorPage("500", info);
-						}
-						close(it->second->cgi->cgifd);
-						close(it->second->sockfd);
-						delete it->second->cgi;
-						it->second->cgi = NULL;
-						std::map<int, t_serverData*>::iterator toErase = it;
-						it++;
-						fdEpollLink.erase(toErase);
-						continue;
-					}
-				}
-				it++;
-			}
+			handleTimeout(it->second);
+			if (it->second->cgi == NULL)
+				fdEpollLink.erase(it++);
 		}
 	}
 }
+
+// void read_cgi(t_serverData *data, struct epoll_event *events, int i, int epoll_fd)
+// {
+// 	//I read my cgi which is finish
+// 	char buffer[4096];
+// 	int bytes_read;
+
+// 	std::cout << YELLOW "before reading cgi" << RESET << std::endl;
+// 	bytes_read = read(data->cgi->cgifd, buffer, 4096);
+// 	if(bytes_read < 1)
+// 	{
+// 		std::cerr << RED "error reading the cgi: " << strerror(errno) << RESET << std::endl; 
+// 	}
+// 	std::cout << GREEN "reading from the cgi fd" << RESET << std::endl;
+// 	//i put the content of the cgi response in the body
+// 	data->body.append(buffer, bytes_read);
+// 	//switching to epollout
+// 	events[i].events = EPOLLOUT;
+// 	std::cout << "le fd cgi avnat erreur: " << data->sockfd << std::endl;
+// 	// if(epoll_ctl(epoll_fd, EPOLL_CTL_MOD, data->cgi->cgifd, events) < 0)
+// 	if(epoll_ctl(epoll_fd, EPOLL_CTL_MOD, data->sockfd, events) < 0)
+// 	{
+// 		std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
+// 		// errorPage("500", data);
+// 	}
+// }
 
 void read_cgi(t_serverData *data, struct epoll_event *events, int i, int epoll_fd)
 {

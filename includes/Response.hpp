@@ -6,7 +6,7 @@
 class Response
 {
 	public:
-		static std::string	sendResponse(std::string statusCode, std::string contentType, std::string content, t_serverData *data);
+		static void	sendResponse(std::string statusCode, std::string contentType, std::string content, t_serverData *data);
 
 		class ErrorOpeningFile : public std::exception{
 			private:
@@ -23,22 +23,17 @@ class Response
 				virtual const char* what() const throw();
 		};
 
-		class ConfigurationFileLocation : public std::exception{
+		class ConfigurationFileLocation : public std::exception{ // Config Location
 			private:
 				std::string _msg;
 			public:
 				explicit ConfigurationFileLocation(const std::string &msg):
-					_msg("Location configuration (222) : " + msg) {}
+					_msg("Location configuration: " + msg) {}
 				virtual const char* what() const throw();
 				virtual ~ConfigurationFileLocation() throw() {}
 		};
 
-		class ConfigurationFileLocationPath : public std::exception{
-			public:
-				virtual const char* what() const throw();
-		};
-
-		class ConfigurationFileServer : public std::exception{
+		class ConfigurationFileServer : public std::exception{ // Config Server
 			private:
 				std::string _msg;
 			public:
@@ -48,9 +43,31 @@ class Response
 				virtual ~ConfigurationFileServer() throw() {}
 		};
 
-		class Error : public std::exception{
+		class Error : public std::exception{ // TODO - A enlever
 			public:
 				virtual const char* what() const throw();
+		};
+
+		class DisplayErrorPage : public std::exception{
+			private:
+				std::string _msg;
+				std::string _code;
+				t_serverData *_data;
+			public:
+				explicit DisplayErrorPage(const std::string &msg, const std::string &code, t_serverData *data):
+					_msg("Display Page: " + msg), _code(code), _data(data) {} //TODO - change the message
+				virtual const char* what() const throw();
+				virtual ~DisplayErrorPage() throw() {}
+		};
+
+		class ErrorCGI : public std::exception{
+			private:
+				std::string _msg;
+			public:
+				explicit ErrorCGI(const std::string &msg):
+					_msg("CGI: " + msg) {}
+				virtual const char* what() const throw();
+				virtual ~ErrorCGI() throw() {}
 		};
 
 		class ErrorCreatingSocket : public std::exception{

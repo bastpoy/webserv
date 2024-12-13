@@ -33,18 +33,14 @@ std::vector<Server>	&ConfigParser::getServers(void) { return(_servers); }
 std::vector<std::string>	ConfigParser::getKeywords(void)
 {
 	std::vector<std::string>	keywords;
+	const size_t					keywordsSize = _keywords.size();
 
-	for (int i = 0; i < _keywordsSize; ++i)
-		keywords.push_back(_keywords[i][0]);
+	for (size_t i = 0; i < keywordsSize; ++i)
+		keywords.push_back(_keywords[i]);
 	return (keywords);
 }
 
-int ConfigParser::getKeywordsSize(void) { return (_keywordsSize); }
-
-std::vector<t_serverData *> ConfigParser::getListData(void) const
-{
-	return(this->listData);
-}
+std::vector<t_serverData *> ConfigParser::getListData(void) const { return(this->listData); }
 
 /* ================ */
 /*		PARSING		*/
@@ -56,16 +52,16 @@ std::vector<t_serverData *> ConfigParser::getListData(void) const
 */
 void	ConfigParser::functionConfig(void)
 {
-	_keywords[0].push_back("listen");
-	_keywords[1].push_back("server_name");
-	_keywords[2].push_back("root");
-	_keywords[3].push_back("client_max_body_size");
-	_keywords[4].push_back("autoindex");
-	_keywords[5].push_back("index");
-	_keywords[6].push_back("return");
-	_keywords[7].push_back("error_page");
-	_keywords[8].push_back("cgi_path");
-	_keywords[9].push_back("allowed_methods");
+	_keywords.push_back("listen");
+	_keywords.push_back("server_name");
+	_keywords.push_back("root");
+	_keywords.push_back("client_max_body_size");
+	_keywords.push_back("autoindex");
+	_keywords.push_back("index");
+	_keywords.push_back("return");
+	_keywords.push_back("error_page");
+	_keywords.push_back("cgi_path");
+	_keywords.push_back("allowed_methods");
 
 	_serverFunctions.push_back(&Server::setListen);
 	_serverFunctions.push_back(&Server::setServerName);
@@ -112,15 +108,38 @@ bool ConfigParser::isFileEmpty(const std::string &filePath)
  * @param	keywords	The list of keywords.
  * @param	keywordsSize	The size of the list of keywords.
 */
-void checkTwoKeywordsSameLine(const std::string	line, std::vector<std::string> keywords, const int keywordsSize)
+void checkTwoKeywordsSameLine(const std::string	line, std::vector<std::string> keywords)
 {
 	int count = 0;
 
-	for (int i = 0; i < keywordsSize; ++i)
-		if (line.find(keywords[i]) != std::string::npos)
+	std::istringstream iss(line);
+	std::string word;
+	while (iss >> word)
+		if (std::find(keywords.begin(), keywords.end(), word) != keywords.end())
 			++count;
 	if (count >= 2)
 		throw Response::ConfigurationFileServer("Two keywords on the same line.");
+}
+
+/**
+ * @brief	This function will handle a new server.
+ * @note	If a new server is found, it will be added to the list of servers.
+ * @param	line		The line to check.
+ * @param	file		The file to read.
+ * @param	servers		The list of servers.
+ * @param	httpBlock	True if the http block is present.
+*/
+void	ConfigParser::handleNewServer(std::string& line, std::ifstream& file, std::vector<Server>& servers, bool httpBlock)
+{
+	if (line.find("server") != std::string::npos && httpBlock)
+	{
+		Server server;
+		getServerAttributs(file, server, line.find("{") != std::string::npos);
+		checkServerAttributs(server, servers);
+		addServer(server);
+	}
+	else if (line.find("server") != std::string::npos && !httpBlock)
+		throw Response::ConfigurationFileServer("http block is missing");
 }
 
 /**
@@ -141,20 +160,12 @@ void	ConfigParser::parseConfig(std::vector<Server> &servers)
 	while (getline(file, line))
 	{
 		rmComments(line);
-		checkTwoKeywordsSameLine(line, getKeywords(), getKeywordsSize());
+		checkTwoKeywordsSameLine(line, getKeywords());
 		if (line.find("http") != std::string::npos)
 			httpBlock = true;
 		if (line.find("{") != std::string::npos)
 			bracket = true;
-		if (line.find("server") != std::string::npos && httpBlock)
-		{
-			Server server;
-			getServerAttributs(file, server, getKeywords(), _serverFunctions, line.find("{") != std::string::npos);
-			checkServerAttributs(server, servers);
-			addServer(server);
-		}
-		else if (line.find("server") != std::string::npos && !httpBlock)
-			throw Response::ConfigurationFileServer("http block is missing");
+		handleNewServer(line, file, servers, httpBlock);
 		if (line.find("}") != std::string::npos)
 		{
 			if (bracket == false)
@@ -200,7 +211,7 @@ void	ConfigParser::checkSemicolon(std::string &line)
  * @note	It will remove all spaces at the beginning and end of the line.
  * @param	line	The line to parse.
 */
-void ConfigParser::parseLine(std::string &line)
+bool ConfigParser::parseLine(std::string &line)
 {
 	bool	present = line.find("{") != std::string::npos;
 
@@ -211,7 +222,7 @@ void ConfigParser::parseLine(std::string &line)
 	{
 		if (line.find("{") != line.size() - 1)
 			throw Response::ConfigurationFileServer("Unknown character after '{'");
-		return ;
+		return true;
 	}
 	checkSemicolon(line);
 	if (line.find(";") == std::string::npos
@@ -220,25 +231,44 @@ void ConfigParser::parseLine(std::string &line)
 		&& line.find("}") != std::string::npos
 		&& line.find('}') != line.size() - 1)
 		throw Response::ConfigurationFileServer("Unknown character after '}'");
+	return true;
 }
 
 /**
- * @brief	This function will find each attribute to parse and redirect to the good fill function.
- * @note	It will erase all spaces between key and value in the configuration file.
- * @param	file			The file to read.
- * @param	server			The server to fill.
- * @param	keywords		The list of keywords.
- * @param	serverFunctions	The list of functions to call.
- * @param	bracket			True if a bracket is present.
+ * @brief	This function will find the index of a keyword in a line.
+ * @note	If the keyword is not found, an exception will be thrown.
+ * @param	line		The line to check.
+ * @param	server		The server to fill.
+ * @param	keywords	The list of keywords.
+ * @param	Functions	The list of functions to call.
 */
-void ConfigParser::getServerAttributs(std::ifstream& file, Server &server, std::vector<std::string> keywords, std::vector<void (Server::*)(std::string)> serverFunctions, bool bracket)
+static void findKeywordIndex(const std::string& line, Server &server, const std::vector<std::string>& keywords, const std::vector<void (Server::*)(std::string)> &functions)
+{
+	int	kSzie = static_cast<int> (keywords.size());
+	int	i = 0;
+
+	while (i < kSzie && line.find(keywords[i]) == std::string::npos)
+		i++;
+	if (i < kSzie)
+		(server.*functions[i])(line);
+	else if (i > (kSzie - 1) && line.find("}") == std::string::npos && !line.empty())
+		throw Response::ConfigurationFileServer("Unknown attribute: " + line);
+}
+
+/**
+ * @brief	This function will fill the server attributes.
+ * @note	It will read the file line by line and fill the server attributes.
+ * @param	file		The file to read.
+ * @param	server		The server to fill.
+ * @param	bracket		True if a bracket is present.
+*/
+void ConfigParser::getServerAttributs(std::ifstream& file, Server &server, bool bracket)
 {
 	std::string	line;
 
-	while(getline(file, line))
+	while(getline(file, line) && parseLine(line))
 	{
-		int i = 0;
-		parseLine(line);
+		checkTwoKeywordsSameLine(line, getKeywords());
 		if (line.find("{") != std::string::npos && line.find("location") == std::string::npos)
 		{
 			bracket = true;
@@ -250,12 +280,7 @@ void ConfigParser::getServerAttributs(std::ifstream& file, Server &server, std::
 			server.fillLocation(file, line, server.getLocation());
 			continue ;
 		}
-		while (i < getKeywordsSize() && line.find(keywords[i]) == std::string::npos)
-			i++;
-		if (i < getKeywordsSize())
-			(server.*serverFunctions[i])(line);
-		else if (i > (getKeywordsSize() - 1) && line.find("}") == std::string::npos && !line.empty())
-			throw Response::ConfigurationFileServer("Unknown attribute: " + line);
+		findKeywordIndex(line, server, getKeywords(), _serverFunctions);
 		if (line.find("}") != std::string::npos)
 		{
 			if (bracket == false)

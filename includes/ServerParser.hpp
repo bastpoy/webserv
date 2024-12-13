@@ -30,14 +30,14 @@ typedef struct s_serverData
 	std::string							header;
 	std::string							body;
 	t_cgi								*cgi;
-    bool                                isDownload;
+	bool								isDownload;
 	bool								isCgi;
 	std::map<std::string, std::string>	errorPage;
 	std::map<std::string, std::string>	cgiPath;
 	std::map<std::string, std::string>	redir;
 	std::vector<Location>				location;
 	std::vector<std::string>			requestAllow;
-}t_serverData;
+}	t_serverData;
 
 /**
  * @brief	Class representing the main HTTP server.
@@ -65,7 +65,8 @@ class Server
 		std::set<int>						socketfd;
 		t_serverData						*data;
 
-		std::vector<std::string>						_locKeywords[8];
+		// std::vector<std::string>						_locKeywords[8];
+		std::vector<std::string>						_locKeywords;
 		std::vector<void (Location::*)(std::string)>	_locationFunctions;
 		static int const								_locKeywordsSize = 8;
 	
