@@ -23,6 +23,7 @@ body {
 	border: 1px solid #DEB887;
 }
 .test-section h2 {
+	text-align: left;
 	color: #CD853F;
 	border-bottom: 1px solid #D2691E;
 	padding-bottom: 10px;

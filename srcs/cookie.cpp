@@ -79,17 +79,29 @@ std::string display_user_connection(Cookie &cookie, t_serverData *data, std::str
 		if(!session_id.first.empty())
 		{
 			html =
-				"\t<div class='user-info'>\n"
-				"\t\t<h1>User Connection Details</h1>\n"
-				"\t\t<p><strong>Email:</strong> " + session_id.second.credentials.second + " </p>\n"
-				"\t\t<p><strong>Password:</strong> " + session_id.second.credentials.first + " </p>\n"
-				"\t\t<a href=\"pages/deconnexion\"><button>Log Out</button></a>\n"
+				"\t<div class=\"test-section\">\n"
+				"\t\t<h2>Session Tests</h2>\n"
+				"\t\t<p><strong>Username / Email: </strong></br>" + session_id.second.credentials.second + " </p>\n"
+				"\t\t<p><strong>Password: </strong></br>" + session_id.second.credentials.first + " </p>\n"
+				"\t\t<a href=\"/pages/deconnexion\"><button>Log Out</button></a>\n"
 				"\t</div>\n" ;
 
 			size_t pos = response.find("</body>");
 			if(pos != std::string::npos)
 				response = response.insert(pos, html);
 		}
+	}
+	else
+	{
+		html =
+			"\t<div class=\"test-section\">\n"
+			"\t\t<h2>Session Tests</h2>\n"
+			"\t\t<a href=\"pages/cookie/connexion.html\"><button>Log In</button></a>\n"
+			"\t</div>\n" ;
+
+		size_t pos = response.find("</body>");
+		if(pos != std::string::npos)
+			response = response.insert(pos, html);
 	}
 	return (response);
 }
