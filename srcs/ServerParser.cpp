@@ -72,6 +72,7 @@ void	Server::setServerName(std::string line)
 			if (!(result >= 0 && result <= 255))
 				throw Response::ConfigurationFileServer("IP out of range");
 		}
+		_ip = _server_name;
 		return ;
 	}
 }
@@ -175,7 +176,6 @@ void Server::setCgiPath(std::string line)
 		std::vector<std::string>	map = ft_split(substr[i], ':');
 		std::string					language = map[0];
 		std::string					path = map[1];
-		// std::cout << MAGENTA"Language: '" << language << "'\nPath: '" << path << "'" << RESET << std::endl;
 		_cgiPath.insert(std::make_pair(language, path));
 	}
 }
@@ -236,10 +236,9 @@ std::vector<std::string>			&Server::getAllowedMethods() { return (_allowedMethod
 
 std::vector<Location>	&Server::getLocation() { return (_location); }
 
-std::vector<void (Location::*)(std::string)>	Server::getLocationFunctions(void)
-{
-	return (_locationFunctions);
-}
+std::vector<void (Location::*)(std::string)>	Server::getLocationFunctions(void) { return (_locationFunctions); }
+
+int	Server::getKeywordsSize(void) { return (_locKeywordsSize); }
 
 std::vector<std::string>	Server::getKeywords(void)
 {
@@ -249,8 +248,6 @@ std::vector<std::string>	Server::getKeywords(void)
 		locKeywords.push_back(_locKeywords[i][0]);
 	return (locKeywords);
 }
-
-int	Server::getKeywordsSize(void) { return (_locKeywordsSize); }
 
 /* ================ */
 /*		FILL		*/
@@ -270,12 +267,14 @@ void	Server::fillLocation(std::ifstream &file, std::string line, std::vector<Loc
 	std::vector<void (Location::*)(std::string)> locationFunctions = getLocationFunctions();
 	bool		bracket = false;
 
+	if (line.find("{") != std::string::npos)
+		bracket = true;
 	location.setPath(line);
 	checkLocationPath(location, locations);
 	while(getline(file, line))
 	{
 		int i = 0;
-		ConfigParser::parseLine(line); //TODO - Retoucher et mettre dans utils
+		ConfigParser::parseLine(line);
 		if (line.find("{") != std::string::npos)
 		{
 			bracket = true;
@@ -328,7 +327,6 @@ void	Server::printConfig()
 	std::vector<Location>::iterator	itbeg = _location.begin();
 	std::vector<Location>::iterator	itend = _location.end();
 	
-	//print all server attributs
 	if (!getPort().empty())
 		std::cout << "listen\t\t" YELLOW << getPort() << RESET << std::endl;
 	if (!getIP().empty())
@@ -369,7 +367,6 @@ void	Server::printConfig()
 		std::cout << std::endl;
 	}
 	std::cout << std::endl;
-	//print every location of my current server
 	for (int i = 1; itbeg != itend; ++itbeg, ++i)
 		std::cout << BWHITE "\tLocation " << i << RESET << std::endl, (itbeg)->printConfig();
 

@@ -30,38 +30,36 @@ NAME		:=	webserv
 # Source directories and files
 SRCS_DIR	:=	srcs
 SRCS		=	srcs/autoIndex.cpp \
+				srcs/CGIHandler.cpp \
 				srcs/ConfigParser.cpp \
+				srcs/cookie.cpp \
+				srcs/delete.cpp \
+				srcs/error.cpp \
+				srcs/get.cpp \
 				srcs/Location.cpp \
 				srcs/main.cpp \
-				srcs/parsingUtils.cpp \
-				srcs/Response.cpp \
-				srcs/Utils.cpp \
-				srcs/Server.cpp \
-				srcs/CGIHandler.cpp \
-				srcs/ServerParser.cpp \
-				srcs/error.cpp \
 				srcs/post.cpp \
-				srcs/get.cpp \
-				srcs/delete.cpp \
-				srcs/signals.cpp \
-				srcs/cookie.cpp
+				srcs/Response.cpp \
+				srcs/Server.cpp \
+				srcs/ServerParser.cpp \
+				srcs/utils.cpp
 
 TEST_CONFS	=	conf/test/conflict_location.conf \
 				conf/test/conflict_servername.conf \
+				conf/test/do_not_exist.conf \
 				conf/test/empty.conf \
+				conf/test/empty_location.conf \
 				conf/test/forbidden_directive.conf \
 				conf/test/invalid_cgi_path.conf \
 				conf/test/invalid_ip.conf \
 				conf/test/invalid_port.conf \
-				conf/test/empty_location.conf \
 				conf/test/location_without_arg.conf \
 				conf/test/no_http_context.conf \
 				conf/test/no_open_context.conf \
 				conf/test/no_server.conf \
 				conf/test/single_line.conf \
 				conf/test/unclose_context.conf \
-				conf/test/unclose_directive.conf \
-				conf/test/do_not_exist.conf
+				conf/test/unclose_directive.conf
 
 FILE_TO_DELETE	:=	www/assets/files/file_to_delete
 
@@ -101,7 +99,7 @@ simple:
 	@clear
 	@make -j4 -s
 	@clear
-	valgrind ./webserv conf/Bastien.conf
+	./webserv conf/server.conf
 
 test:
 	@clear

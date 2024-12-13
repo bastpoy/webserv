@@ -20,7 +20,6 @@ void insertValue(std::string temp, std::map<std::string, std::string> &values, t
 
 	if(pos2 != std::string::npos)
 	{
-		// take the content before and after '='
 		std::string key = temp.substr(0, pos2);
 		std::string value = temp.substr(pos2 + 1, temp.size() - 1);
 		replaceSpecialCharacter(value);
@@ -34,11 +33,12 @@ void insertValue(std::string temp, std::map<std::string, std::string> &values, t
 	}
 }
 
-void putFormData(std::map<std::string, std::string> values)
+void putFormData(std::map<std::string, std::string> values, t_serverData *data)
 {
 	std::map<std::string, std::string>::iterator it = values.begin();
 
-	int fd = open("./www/data/form/keyvalue.txt", O_WRONLY | O_APPEND | O_CREAT, 0644);
+	std::string file = data->path + "data/form/keyvalue.txt";
+	int fd = open(file.c_str(), O_WRONLY | O_APPEND | O_CREAT, 0644);
 	if(fd < 0)
 	{
 		std::cout << "Error during opening file:" << strerror(errno) << std::endl;
@@ -70,46 +70,42 @@ void parsePostBody(std::string &body, t_serverData *data, Cookie &cookie)
 	while(pos1 != std::string::npos)
 	{
 		temp = body.substr(0, pos1);
-		//insert key pair values in values
 		insertValue(temp, values, data);
-		//update body
 		body = body.substr(pos1 + 1);
-		//search another key value pair
 		pos1 = body.find_first_of('&');
 	}
 	insertValue(body, values, data);
-    
-    if(values.find("password") != values.end())
-    {
-        std::string file = "./www/pages/post/post.html";
-        std::string id = newSessionCookie(values, cookie, data);
-        httpPostResponse("201 Created", "text/html", readFile(file, data), data, cookie, id);
-        Response::responseOk();
-    }
-    else
-        putFormData(values);
+	
+	if(values.find("password") != values.end())
+	{
+		std::string file = data->path + "pages/post/post.html";
+		std::string id = newSessionCookie(values, cookie, data);
+		httpPostResponse("201 Created", "text/html", readFile(file, data), data, cookie, id);
+		throw Response::responseOk();
+	}
+	else
+		putFormData(values, data);
 }
 
 void translateJson(t_serverData *data)
 {
 	std::string line;
 	int once = 0;
-	//open keyvalue file where all the data is store;
-	std::ifstream inFile("./www/data/form/keyvalue.txt");
+	std::string file = data->path + "data/form/keyvalue.txt";
+	std::ifstream inFile(file.c_str());
 	if(!inFile.is_open())
 	{
 		errorPage("400", data);
 		std::cout << "error opening the file for data " << strerror(errno) << std::endl;
 	}
-	// open the json file where I will translate the value
-	int jsonFile = open("./www/data/form/keyvalue.json", O_WRONLY | O_CREAT, 0644);
+	file = data->path + "data/form/keyvalue.json";
+	int jsonFile = open(file.c_str(), O_WRONLY | O_CREAT, 0644);
 	if(jsonFile < 0)
 	{
 		inFile.close();
 		errorPage("400", data);
 		throw Response::Error();
 	}
-	//parse my keyvalue file into keyvalue.json file
 	while(std::getline(inFile, line))
 	{
 		if(!once)
@@ -134,7 +130,6 @@ void translateJson(t_serverData *data)
 		{
 			write(jsonFile, line.c_str(), line.size());
 			write(jsonFile, "\n\t}", 3);
-			//test if its the last bloc1
 			if(std::getline(inFile, line))
 			{
 				write(jsonFile, ",\n", 2);
@@ -142,7 +137,6 @@ void translateJson(t_serverData *data)
 				write(jsonFile, line.c_str(), line.size());
 				write(jsonFile, "\n\t\t", 3);
 			}
-			//end of file
 			else
 			{
 				write(jsonFile, "\n\t]\n}", 5);
@@ -156,7 +150,6 @@ void translateJson(t_serverData *data)
 
 std::string getFileName(std::string body, t_serverData *data)
 {
-	//function to retrieve the filename to upload
 	std::string file = "filename=\"";
 	size_t pos = body.find(file);
 	if(pos == std::string::npos)
@@ -170,102 +163,40 @@ std::string getFileName(std::string body, t_serverData *data)
 	return (fileName);
 }
 
-bool read_full_body(t_serverData *data, std::string &body, int content_length) 
-{
-	// read the full body of the upload content
-	int total_read = body.size();
-	const int buffer_size = 1024;   // Use a large buffer if desired
-	char buffer[buffer_size];
-
-    std::cout << body << std::endl;
-	while (total_read < content_length) {
-		// Calculate how much more data we need to read
-		int bytes_to_read = std::min(content_length - total_read, buffer_size);
-        // std::cout << content_length - total_read << " " << buffer_size << " " << bytes_to_read << std::endl;
-		
-		// Read data into the buffer
-        // int bytes_read =  read(data->sockfd, buffer, bytes_to_read);
-		int bytes_read = recv(data->sockfd, buffer, bytes_to_read, 0);
-        // std::cout << "bytes read " << bytes_read << std::endl;
-		if (bytes_read < 0) 
-		{
-			std::cout << "Error reading from socket: " << strerror(errno) << std::endl;
-			errorPage("400", data);
-		} 
-		else if (bytes_read == 0) 
-		{
-			std::cout << "Connection closed by the client." << std::endl;
-			break; // Connection closed
-		}
-        // else if(bytes_read < buffer_size)
-        // {
-        //     std::cout << "je break alors que faut pas " << bytes_read << std::endl;
-		//     body.append(buffer, bytes_read);
-        //     // exit(1);
-		// 	break; // Connection closed
-        // }
-        // std::cout << bytes_to_read << " " << total_read << " " << content_length << std::endl;
-		// Append the read data to the body string
-		body.append(buffer, bytes_read);
-		total_read += bytes_read;
-	}
-    std::cout << "je suis sorti\n" << total_read << " " << content_length << std::endl;
-	// Check if we read the expected content length
-	return total_read == content_length;
-}
 
 void postRequest(t_serverData *data, Cookie &cookie)
 {
 	std::cout << "\nPOST REQUEST\n" << std::endl;
-	//search the body in the header
 	size_t pos = data->buffer.find("\r\n\r\n");
-	// If i have a body in the post request
 	if(pos != std::string::npos)
 	{
-		// retrieve the body and remove the \r\n\r\n before by adding + 4
-		// std::string body = buffer.substr(pos + 4, buffer.size());
-		// std::string header = buffer.substr(0, pos);
-		// If I have an upload
 		if(data->header.find("multipart/form-data") != std::string::npos)
 		{
-			std::string file = "./www/pages/post/post.html";
+			std::string file = data->path + "pages/post/post.html";
 			std::cout << "UPLOADING FILE" << std::endl;
-			//get the size of the file to upload
-			// int size = getContentLength(data->header, data);
 			std::string fileName = getFileName(data->body, data);
-			fileName = "./www/upload/" + fileName;
-			//read all the data of the upload file
-			// read_full_body(data, body, size);
+			fileName = data->path + "upload/" + fileName;
 			std::ofstream output(fileName.c_str(), std::ios::binary);
 			if(!output.is_open())
 			{
 				errorPage("500", data);
-				throw Response::ErrorOpeningFile(NULL);
 			}
-            //truncate the beginning and the end of my file and remove boundaries
-            truncate_file(data->body, data);
-			//put the download data inside a file
-            output.write(data->body.c_str(), data->body.size());
-            
-            // std::cout << body << std::endl;
-            std::string id = get_cookie_id(data->buffer);
+			truncate_file(data->body, data);
+			output.write(data->body.c_str(), data->body.size());
+			
+			std::string id = get_cookie_id(data->buffer);
 			httpPostResponse("201 Created", "text/html", readFile(file, data), data, cookie, id);
 		}
-		// If i have a form
 		else
 		{
-			std::string file = "./www/data/form/keyvalue.json";
+			std::string file = data->path + "/data/form/keyvalue.json";
 			std::cout << "POSTING DATA" << std::endl;
-			//parse the actual body of the post request
 			parsePostBody(data->body, data, cookie);
-			//put all the data from the body inside a file
 			translateJson(data);
-			//send responseiPOST
-            std::string id = get_cookie_id(data->buffer);
+			std::string id = get_cookie_id(data->buffer);
 			httpPostResponse("201 Created", "application/json", readFile(file, data), data, cookie, id);
 		}
 	}
-	// error post body
 	else
 		errorPage("500" , data);
 }

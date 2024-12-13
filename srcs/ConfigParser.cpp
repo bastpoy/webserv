@@ -21,7 +21,7 @@ void ConfigParser::addServer(Server &server)
 
 void ConfigParser::setListData(t_serverData *data)
 {
-    this->listData.push_back(data);
+	this->listData.push_back(data);
 }
 
 /* ================ */
@@ -43,13 +43,17 @@ int ConfigParser::getKeywordsSize(void) { return (_keywordsSize); }
 
 std::vector<t_serverData *> ConfigParser::getListData(void) const
 {
-    return(this->listData);
+	return(this->listData);
 }
 
 /* ================ */
 /*		PARSING		*/
 /* ================ */
 
+/**
+ * @brief	This function will set the keywords and the functions to call for each keyword.
+ * @note	Each keyword is associated with a function to call in the Server class.
+*/
 void	ConfigParser::functionConfig(void)
 {
 	_keywords[0].push_back("listen");
@@ -75,16 +79,25 @@ void	ConfigParser::functionConfig(void)
 	_serverFunctions.push_back(&Server::setAllowedMethods);
 }
 
-void	ConfigParser::checkServerAttributs(Server &server, std::vector<Server> &servers) //TODO - Mettre dans utils
+/**
+ * @brief	This function will check if the server name already exist in the configuration file.
+ * @note	Each server name must be unique.
+ * @param	server		The server to check.
+ * @param	servers		The list of servers.
+*/
+void	ConfigParser::checkServerAttributs(Server &server, std::vector<Server> &servers)
 {
 	for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); it++)
-	{
 		if (it->getServerName() == server.getServerName())
 			throw Response::ConfigurationFileServer("Server name already exist");
-	}
 }
 
-bool ConfigParser::isFileEmpty(const std::string &filePath) //TODO - Mettre dans utils
+/**
+ * @brief	This function will check if the file is empty.
+ * @note	An empty file will throw an exception.
+ * @param	filePath	The path to the file.
+*/
+bool ConfigParser::isFileEmpty(const std::string &filePath)
 {
 	std::ifstream file(filePath.c_str(), std::ios::ate);
 	if (!file.is_open())
@@ -92,6 +105,13 @@ bool ConfigParser::isFileEmpty(const std::string &filePath) //TODO - Mettre dans
 	return file.tellg() == 0;
 }
 
+/**
+ * @brief	This function will check if two keywords are on the same line.
+ * @note	If two keywords are on the same line, an exception will be thrown.
+ * @param	line		The line to check.
+ * @param	keywords	The list of keywords.
+ * @param	keywordsSize	The size of the list of keywords.
+*/
 void checkTwoKeywordsSameLine(const std::string	line, std::vector<std::string> keywords, const int keywordsSize)
 {
 	int count = 0;
@@ -103,6 +123,11 @@ void checkTwoKeywordsSameLine(const std::string	line, std::vector<std::string> k
 		throw Response::ConfigurationFileServer("Two keywords on the same line.");
 }
 
+/**
+ * @brief	This function will parse the configuration file.
+ * @note	It will read the file line by line and parse each line.
+ * @param	servers		The list of servers.
+*/
 void	ConfigParser::parseConfig(std::vector<Server> &servers)
 {
 	std::string		line;
@@ -121,14 +146,12 @@ void	ConfigParser::parseConfig(std::vector<Server> &servers)
 			httpBlock = true;
 		if (line.find("{") != std::string::npos)
 			bracket = true;
-		// fill new server block
 		if (line.find("server") != std::string::npos && httpBlock)
 		{
 			Server server;
-			getServerAttributs(file, server, getKeywords(), _serverFunctions);
+			getServerAttributs(file, server, getKeywords(), _serverFunctions, line.find("{") != std::string::npos);
 			checkServerAttributs(server, servers);
 			addServer(server);
-            std::cout << "end parsing" << std::endl;
 		}
 		else if (line.find("server") != std::string::npos && !httpBlock)
 			throw Response::ConfigurationFileServer("http block is missing");
@@ -142,7 +165,12 @@ void	ConfigParser::parseConfig(std::vector<Server> &servers)
 	throw Response::ConfigurationFileServer("Missing '}'");
 }
 
-void	ConfigParser::rmComments(std::string &line) //TODO - Mettre dans utils
+/**
+ * @brief	This function will remove comments from a line.
+ * @note	Comments are defined by a '#' character.
+ * @param	line	The line to remove comments from.
+*/
+void	ConfigParser::rmComments(std::string &line)
 {
 	size_t commentPos = line.find('#');
 
@@ -150,7 +178,12 @@ void	ConfigParser::rmComments(std::string &line) //TODO - Mettre dans utils
 		line = line.substr(0, commentPos);
 }
 
-void	ConfigParser::checkSemicolon(std::string &line) //TODO - Mettre dans utils
+/**
+ * @brief	This function will check if a semicolon is present at the end of a line.
+ * @note	If a semicolon is missing, an exception will be thrown.
+ * @param	line	The line to check.
+*/
+void	ConfigParser::checkSemicolon(std::string &line)
 {
 	bool conditions = line.find("}") == std::string::npos && line.find("location") == std::string::npos && !line.empty();
 
@@ -162,25 +195,25 @@ void	ConfigParser::checkSemicolon(std::string &line) //TODO - Mettre dans utils
 		line.erase(line.size() - 1);
 }
 
-void ConfigParser::parseLine(std::string &line) //TODO - Mettre dans utils
+/**
+ * @brief	This function will parse a line.
+ * @note	It will remove all spaces at the beginning and end of the line.
+ * @param	line	The line to parse.
+*/
+void ConfigParser::parseLine(std::string &line)
 {
 	bool	present = line.find("{") != std::string::npos;
 
 	rmComments(line);
-
-	// Supprime les espaces inutiles au début et à la fin
-	line.erase(0, line.find_first_not_of(" \t")); // Trim début
-	line.erase(line.find_last_not_of(" \t") + 1); // Trim fin
-
+	line.erase(0, line.find_first_not_of(" \t"));
+	line.erase(line.find_last_not_of(" \t") + 1);
 	if (present)
 	{
 		if (line.find("{") != line.size() - 1)
 			throw Response::ConfigurationFileServer("Unknown character after '{'");
 		return ;
 	}
-
 	checkSemicolon(line);
-
 	if (line.find(";") == std::string::npos
 		&& line.find("location") == std::string::npos
 		&& !line.empty()
@@ -190,15 +223,17 @@ void ConfigParser::parseLine(std::string &line) //TODO - Mettre dans utils
 }
 
 /**
- * @brief	This function will find each attribute to parse and redirectto the good fill function.
- * @note	It will erase all spaces between key and value in the configuration file.ADJ_FREQUENCY
- * @author	Amandine, Bastien, Ozan.
+ * @brief	This function will find each attribute to parse and redirect to the good fill function.
+ * @note	It will erase all spaces between key and value in the configuration file.
+ * @param	file			The file to read.
+ * @param	server			The server to fill.
+ * @param	keywords		The list of keywords.
+ * @param	serverFunctions	The list of functions to call.
+ * @param	bracket			True if a bracket is present.
 */
-void ConfigParser::getServerAttributs(std::ifstream& file, Server &server, std::vector<std::string> keywords, std::vector<void (Server::*)(std::string)> serverFunctions)
+void ConfigParser::getServerAttributs(std::ifstream& file, Server &server, std::vector<std::string> keywords, std::vector<void (Server::*)(std::string)> serverFunctions, bool bracket)
 {
 	std::string	line;
-	bool		bracket = false;
-
 
 	while(getline(file, line))
 	{
@@ -229,13 +264,15 @@ void ConfigParser::getServerAttributs(std::ifstream& file, Server &server, std::
 		}
 	}
 	throw Response::ConfigurationFileServer("Missing '}'");
-
 }
 
 /* ================ */
 /*		DEBUG		*/
 /* ================ */
 
+/**
+ * @brief	This function will print the configuration.
+*/
 void ConfigParser::printConfig(void)
 {
 	std::vector<Server>::iterator	itbeg = _servers.begin();

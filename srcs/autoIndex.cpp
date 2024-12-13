@@ -1,18 +1,23 @@
 #include "Header.hpp"
 
-bool isDirectory(const std::string& path)
+/**
+ * @brief	Check if a path is a directory.
+ * @param	path	The path to check.
+*/
+bool	isDirectory(const std::string& path)
 {
 	struct stat statbuf;
 	std::string full = "./www/" + path;
 	if (stat(full.c_str(), &statbuf) != 0)
-    {
-        return false;
-    }
-    std::cout << "true " << path << " and full " << full << std::endl;
+		return false;
+	std::cout << "true " << path << " and full " << full << std::endl;
 	return S_ISDIR(statbuf.st_mode);
 }
 
-
+/**
+ * @brief	List the content of a directory.
+ * @param	directory	The directory to list.
+*/
 std::vector<std::string> listDirectory(const std::string& directory)
 {
 	std::vector<std::string> files;
@@ -27,6 +32,11 @@ std::vector<std::string> listDirectory(const std::string& directory)
 	return files;
 }
 
+/**
+ * @brief	Generate an autoindex page.
+ * @param	directory	The directory to generate the page for.
+ * @param	files		The list of files in the directory.
+*/
 std::string generateAutoIndexPage(const std::string directory, const std::vector<std::string>& files)
 {
 	std::string html;

@@ -1,9 +1,5 @@
 #include "Header.hpp"
 
-/* ================ */
-/*	CANONICAL FORMS	*/
-/* ================ */
-
 Location::Location() {}
 
 Location::~Location() {}
@@ -11,6 +7,11 @@ Location::~Location() {}
 /* ================ */
 /*		SETTER		*/
 /* ================ */
+void	Location::setPath1(std::string path)
+{
+	path.erase(std::remove(path.begin(), path.end(), ' '), path.end());
+	this->_path = path;
+}
 
 void	Location::setPath(std::string line)
 {
@@ -121,7 +122,6 @@ void	Location::setCgiPath(std::string line)
 		std::vector<std::string>	map = ft_split(substr[i], ':');
 		std::string					language = map[0];
 		std::string					path = map[1];
-		// std::cout << MAGENTA"Language: '" << language << "'\nPath: '" << path << "'" << RESET << std::endl;
 		_cgiPath.insert(std::make_pair(language, path));
 	}
 }

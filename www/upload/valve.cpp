@@ -1,22 +1,23 @@
 #include "../../header/database/valve.hpp"
 
-int Valve::_nextId = 0;
-
-Valve::Valve()
+Valve::Valve(QString name, QString type, int value, bool state, QPixmap image, QString valveType, ComponentBook &components): Component(name, type, value, state, image)
 {
-    this->_state = false;
-    this->_value = 10;
-    this->_id = _nextId++;
+    _valveType = valveType;
+    components.addComponentBook1(_id, this);
     qDebug() << "defautl  valve constructor" << _id;
 }
 
-int Valve::getValue()
+//getter
+QString const &Valve::getValveType() const
 {
-    return (this->_value);
+    return (this->_valveType);
 }
 
-PneuValve::PneuValve(QString name)
+//setter
+void Valve::setValveType(QString valveType)
 {
-    this->_name = name;
+    _valveType = valveType;
 }
 
+
+--
