@@ -4,7 +4,6 @@
 #define BUFER_SIZE 4096
 #define FD_NUMBER 100
 
-
 struct epoll_event Server::fillEpoolDataIterator(int sockfd, std::vector<Server>::iterator itbeg, ConfigParser &config)
 {
 	t_serverData *data = new t_serverData;
@@ -33,6 +32,7 @@ struct epoll_event Server::fillEpoolDataIterator(int sockfd, std::vector<Server>
 	data->cgi = NULL;
 	data->isDownload = false;
 	data->isCgi = NULL;
+	data->testCgi = false;
 
 	event.events = EPOLLIN; // Monitor for input events
 	//I stock the info server on the event ptr data
@@ -64,6 +64,7 @@ struct epoll_event Server::fillEpoolDataInfo(int &client_fd, t_serverData *info)
 	data->cgi = NULL;
 	data->isDownload = info->isDownload;
 	data->isCgi = info->isCgi;
+	data->testCgi = info->testCgi;
 
 	struct epoll_event client_event;
 	client_event.events = EPOLLIN;
@@ -155,7 +156,7 @@ int acceptConnection(int &fd, int &epoll_fd, struct sockaddr_in &client_addr)
 	return(client_fd);
 }
 
-bool handleRequest(std::string buffer, t_serverData *data, Cookie &cookie, std::map<int, t_serverData*> &fdEpollLink) 
+bool handleRequest(std::string buffer, t_serverData *&data, Cookie &cookie, std::map<int, t_serverData*> &fdEpollLink) 
 {
 	std::string firstLine = data->header.substr(0, data->header.find("\n"));
 	std::string typeRequest = firstLine.substr(0, data->header.find(" "));
@@ -215,7 +216,7 @@ bool read_one_chunk(t_serverData *data, struct epoll_event ev, int epoll_fd)
 	return (false);
 }
 
-void proceed_response(t_serverData *data, Cookie &cookie, std::map<int, t_serverData*> &fdEpollLink)
+void proceed_response(t_serverData *&data, Cookie &cookie, std::map<int, t_serverData*> &fdEpollLink)
 {
 	if(!data->buffer.empty())
 	{
@@ -268,10 +269,6 @@ void Server::createListenAddr(ConfigParser &config)
 		{
 			t_serverData *info = static_cast<t_serverData*>(events[i].data.ptr);
 			int fd = info->sockfd;
-			std::cout << YELLOW "i " << i << " num " << num_fds << " poll fd " << events[i].data.fd << " fd " << fd << " status: " << events[i].events << RESET << std::endl; 
-			if(info->cgi)
-				std::cout << YELLOW " fd cgi: " << info->cgi->cgifd << RESET << std::endl;
-			// check if my fd is equal to a socket for handcheck
 			if(this->socketfd.find(fd) != this->socketfd.end())
 			{
 				struct sockaddr_in client_addr;
@@ -321,20 +318,23 @@ void Server::createListenAddr(ConfigParser &config)
 								std::cout << "error sending CGI response\n";
 								errorPage("500", info);
 							}
-							if(epoll_ctl(epoll_fd, EPOLL_CTL_DEL, info->cgi->cgifd, NULL) < 0)
+							events[i].events = EPOLLIN;
+							if(epoll_ctl(epoll_fd, EPOLL_CTL_MOD, info->cgi->cgifd, events) < 0)
 							{
-								std::cerr << "error deleting epoll ctl " << strerror(errno) << std::endl;
+								std::cerr << "error changing mode epoll ctl " << errno << " " << strerror(errno) << std::endl;
 								errorPage("500", data);
 							}
 							fdEpollLink.erase(info->sockfd);
 							close(info->cgi->cgifd);
 							delete info->cgi;
 							info->cgi = NULL;
-
 						}
 						// CGI of parent socket waiting for the fork to finish
-						else if(info->isCgi != NULL)
+						else if(info->isCgi)
+						{
+							check_timeout_cgi(info, fdEpollLink, events, i, epoll_fd);
 							continue;
+						}
 						// parse the data
 						else
 							proceed_response(info, cookie, fdEpollLink);
@@ -347,22 +347,13 @@ void Server::createListenAddr(ConfigParser &config)
 						if(info->isCgi)
 						{
 							std::cout << GREEN "CGI EXIST BUT RETURN WITH FD "<< fd << RESET << std::endl;
-							events[i].events = EPOLLOUT;
-							if(epoll_ctl(epoll_fd, EPOLL_CTL_MOD, info->sockfd, events) < 0)
-							{
-								std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
-								errorPage("500", info);
-							}
 							continue;
 						}
 						manage_tserver(info, events, i, epoll_fd);
 						std::cerr << e.what() << '\n';
 					}
 				}
-				//check if i have a cgi running in all my fd open
-				check_timeout_cgi(info, fdEpollLink);
 			}
 		}
-		std::cout << "-----------------------------------\n" << std::endl;
 	}
 }

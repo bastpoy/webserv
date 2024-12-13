@@ -70,6 +70,7 @@ void	notFoundFavicon(t_serverData *data)
 	}
 	throw Response::Error();
 }
+
 static void	contentTooLarge(t_serverData *data)
 {
 	std::string jsonContent = 

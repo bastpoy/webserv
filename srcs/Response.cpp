@@ -1,6 +1,6 @@
 #include "Header.hpp"
 
-std::string Response::sendResponse(std::string statusCode, std::string contentType, std::string content, t_serverData *data)
+void Response::sendResponse(std::string statusCode, std::string contentType, std::string content, t_serverData *data)
 {
 	std::string	response;
 	response = "HTTP/1.1 " + statusCode + " \r\n";
@@ -15,7 +15,6 @@ std::string Response::sendResponse(std::string statusCode, std::string contentTy
 
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 	{
-		// std::cout << "here" << std::endl;
 		std::cout << strerror(errno) << std::endl;
 		errorPage("500", data);
 	}
@@ -103,6 +102,7 @@ void httpPostResponse(std::string code , std::string contentType, std::string co
 		response += "Connection: close\r\n";
 	response +=	"Content-Length: " + to_string(content.size()) + "\r\n"
 				"\r\n" + content;
+	data->sockfd = -1;
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 	{
 		std::cout << strerror(errno) << std::endl;

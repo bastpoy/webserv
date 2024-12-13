@@ -30,8 +30,9 @@ typedef struct s_serverData
 	std::string							header;
 	std::string							body;
 	t_cgi								*cgi;
-    bool								isDownload;
+	bool								isDownload;
 	void								*isCgi;
+	bool								testCgi;
 	std::map<std::string, std::string>	errorPage;
 	std::map<std::string, std::string>	cgiPath;
 	std::map<std::string, std::string>	redir;

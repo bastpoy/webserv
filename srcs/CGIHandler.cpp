@@ -56,7 +56,7 @@ t_cgi * new_cgi(int fd, int pid, time_t time, int parentSocket)
 	return (newcgi);
 }
 
-void	executeCGI(std::string uri, t_serverData *data, std::map<int, t_serverData*> &fdEpollLink)
+void	executeCGI(std::string uri, t_serverData *&data, std::map<int, t_serverData*> &fdEpollLink)
 {
 	int fd[2];
 	std::string extension = CGIExtension(uri);
@@ -71,7 +71,6 @@ void	executeCGI(std::string uri, t_serverData *data, std::map<int, t_serverData*
 		std::cout << "error creating pipe " << strerror(errno) << std::endl;
 		errorPage("500", data);
 	}
-
 	int pid = fork();
 	if (pid < 0)
 	{
@@ -91,9 +90,7 @@ void	executeCGI(std::string uri, t_serverData *data, std::map<int, t_serverData*
 		}
 		close(fd[0]);
 		close(fd[1]);
-		//std::cout << it->second << " " << uri << std::endl;
 		execve(it->second.c_str(), script, NULL);
-		//std::cout << "failed to execve, path was : " << uri << " " << strerror(errno) << std::endl;
 		perror("execve");
 		std::exit(EXIT_FAILURE);
 	}
@@ -110,7 +107,7 @@ void	executeCGI(std::string uri, t_serverData *data, std::map<int, t_serverData*
 	data->isCgi = cgi;
 }
 
-std::string HandleCgiRequest(std::string uri, t_serverData *data, std::map<int, t_serverData*> &fdEpollLink)
+std::string HandleCgiRequest(std::string uri, t_serverData *&data, std::map<int, t_serverData*> &fdEpollLink)
 {
 	std::cout << "hi whats up cgi handler here path is |" << uri << "|" << std::endl;
 
@@ -119,43 +116,46 @@ std::string HandleCgiRequest(std::string uri, t_serverData *data, std::map<int, 
 	return "";
 }
 
-
-void check_timeout_cgi(t_serverData *info, std::map<int, t_serverData*> &fdEpollLink)
+void check_timeout_cgi(t_serverData *info, std::map<int, t_serverData*> &fdEpollLink, struct epoll_event *events, int i, int epoll_fd)
 {
-	if(info)
+	std::map<int, t_serverData*>::iterator it = fdEpollLink.begin();
+	//iterate through my corresponse map between fd and data struct
+	while (it != fdEpollLink.end()) 
 	{
-		if(info->cgi == NULL)
+		//if i have a cgi inside my struct
+		if(it->second->cgi)
 		{
-			std::map<int, t_serverData*>::iterator it = fdEpollLink.begin();
-			//iterate through my corresponse map between fd and data struct
-			while (it != fdEpollLink.end()) 
+			//if my cgi is timeout
+			if(it->second->cgi->cgiTimeout < time(NULL))
 			{
-				//if i have a cgi inside my struct
-				if(it->second->cgi)
+				std::cout << RED "a cgi is TIMEOUT" << RESET << std::endl;
+				std::string response = httpGetResponse("200 Ok", "text/html", readFile("./www/error/408.html", it->second), it->second, "");
+				if(send(it->second->sockfd, response.c_str(), response.size(), 0) < 0)
 				{
-					//if my cgi is timeout
-					if(it->second->cgi->cgiTimeout < time(NULL))
-					{
-						std::cout << "a cgi is TIMEOUT" << std::endl;
-						std::string response = httpGetResponse("200 Ok", "text/html", readFile("./www/error/error408.html", it->second), it->second, "");
-						if(send(it->second->sockfd, response.c_str(), response.size(), 0) < 0)
-						{
-							std::cout << RED "error send main "<< errno << " " << strerror(errno) << RESET << std::endl;
-							errorPage("500", info);
-						}
-						close(it->second->cgi->cgifd);
-						close(it->second->sockfd);
-						delete it->second->cgi;
-						it->second->cgi = NULL;
-						std::map<int, t_serverData*>::iterator toErase = it;
-						it++;
-						fdEpollLink.erase(toErase);
-						continue;
-					}
+					std::cout << RED "error send main "<< errno << " " << strerror(errno) << RESET << std::endl;
+					errorPage("500", info);
 				}
+				close(it->second->cgi->cgifd);
+				//kill the pipe
+				kill(it->second->cgi->cgipid, SIGKILL);
+				int status;
+				waitpid(it->second->cgi->cgipid, &status, 0);
+
+				events[i].events = EPOLLIN;
+				if(epoll_ctl(epoll_fd, EPOLL_CTL_MOD, it->second->sockfd, events) < 0)
+				{
+					std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
+					errorPage("500", it->second);
+				}
+				delete it->second->cgi;
+				it->second->cgi = NULL;
+				std::map<int, t_serverData*>::iterator toErase = it;
 				it++;
+				fdEpollLink.erase(toErase);
+				continue;
 			}
 		}
+		it++;
 	}
 }
 
