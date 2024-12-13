@@ -54,65 +54,65 @@ t_cgi * new_cgi(int fd, int pid, time_t time, int parentSocket)
 	return (newcgi);
 }
 
-// void	executeCGI2(std::string uri, t_serverData *data, std::map<int, t_serverData*> &fdEpollLink)
-// {
-// 	int			fd[2];
-// 	std::string	extension = CGIExtension(uri);
-// 	std::map<std::string, std::string>::const_iterator it = data->cgiPath.find(extension);
+void	executeCGI2(std::string uri, t_serverData *data, std::map<int, t_serverData*> &fdEpollLink)
+{
+	int			fd[2];
+	std::string	extension = CGIExtension(uri);
+	std::map<std::string, std::string>::const_iterator it = data->cgiPath.find(extension);
 
-// 	std::cout << RED "extension is " << extension << RESET << std::endl;
-// 	if (it == data->cgiPath.end())
-// 	{
-// 		std::cerr << "Error : can't find extension " << extension << std::endl;
-// 		errorPage("501", data);
-// 		throw Response::Error();
-// 	}
-// 	if(pipe(fd) < 0)
-// 	{
-// 		std::cerr << "error creating pipe " << strerror(errno) << std::endl;
-// 		errorPage("500", data);
-// 	}
+	std::cout << RED "extension is " << extension << RESET << std::endl;
+	if (it == data->cgiPath.end())
+	{
+		std::cerr << "Error : can't find extension " << extension << std::endl;
+		errorPage("501", data);
+		throw Response::Error();
+	}
+	if(pipe(fd) < 0)
+	{
+		std::cerr << "error creating pipe " << strerror(errno) << std::endl;
+		errorPage("500", data);
+	}
 
-// 	int pid = fork();
-// 	if (pid < 0)
-// 	{
-// 		std::cout << "Fork failed" << std::endl; 
-// 	}
-// 	else if (pid == 0)
-// 	{
-// 		char **script = (char **)malloc(sizeof(char*) * 3);
+	int pid = fork();
+	if (pid < 0)
+	{
+		std::cout << "Fork failed" << std::endl; 
+	}
+	else if (pid == 0)
+	{
+		char **script = (char **)malloc(sizeof(char*) * 3);
 		
-// 		script[0] = strdup(it->second.c_str());
-// 		script[1] = strdup(uri.c_str());
-// 		script[2] = NULL;
-// 		if(dup2(fd[1], STDOUT_FILENO) < 0)
-// 		{
-// 			std::cerr << "Error dup inside CGI" << strerror(errno) << std::endl;
-// 			errorPage("500", data);
-// 		}
-// 		close(fd[0]);
-// 		close(fd[1]);
-// 		execve(it->second.c_str(), script, NULL);
-// 		std::cerr << "failed to execve, path was : " << uri << std::endl;
-// 		std::cout << MAGENTA << "it: " << it->first << RESET << std::endl;
-// 		perror("execve");
-// 		std::exit(EXIT_FAILURE);
-// 	}
-// 	close(fd[1]);
-// 	struct epoll_event client_event;
+		script[0] = strdup(it->second.c_str());
+		script[1] = strdup(uri.c_str());
+		script[2] = NULL;
+		if(dup2(fd[1], STDOUT_FILENO) < 0)
+		{
+			std::cerr << "Error dup inside CGI" << strerror(errno) << std::endl;
+			errorPage("500", data);
+		}
+		close(fd[0]);
+		close(fd[1]);
+		execve(it->second.c_str(), script, NULL);
+		std::cerr << "failed to execve, path was : " << uri << std::endl;
+		std::cout << MAGENTA << "it: " << it->first << RESET << std::endl;
+		perror("execve");
+		std::exit(EXIT_FAILURE);
+	}
+	close(fd[1]);
+	struct epoll_event client_event;
 
-// 	t_cgi *cgi = new_cgi(fd[0], pid, time(NULL) + 5, data->sockfd);
-// 	client_event = fillDataCgi(data, cgi, fdEpollLink);
-// 	std::cout << "le fd remove est " << data->sockfd << " new cgi: " << fd[0] << std::endl;
+	t_cgi *cgi = new_cgi(fd[0], pid, time(NULL) + 5, data->sockfd);
+	client_event = fillDataCgi(data, cgi, fdEpollLink);
+	std::cout << "le fd remove est " << data->sockfd << " new cgi: " << fd[0] << std::endl;
 
-// 	if(epoll_ctl(3, EPOLL_CTL_ADD, fd[0], &client_event) < 0)
-// 	{
-// 		std::cerr << "error adding epoll ctl " << strerror(errno) << std::endl;
-// 		errorPage("500", data);
-// 	}
-// 	data->cgi = new_cgi(fd[0], pid, cgi->cgiTimeout, data->sockfd);
-// 	std::cout << "cgi fd: " << data->sockfd << std::endl;
-// }
+	if(epoll_ctl(3, EPOLL_CTL_ADD, fd[0], &client_event) < 0)
+	{
+		std::cerr << "error adding epoll ctl " << strerror(errno) << std::endl;
+		errorPage("500", data);
+	}
+	data->cgi = new_cgi(fd[0], pid, cgi->cgiTimeout, data->sockfd);
+	std::cout << "cgi fd: " << data->sockfd << std::endl;
+}
 
 void executeCGI(std::string uri, t_serverData *data, std::map<int, t_serverData*> &fdEpollLink)
 {
@@ -121,17 +121,17 @@ void executeCGI(std::string uri, t_serverData *data, std::map<int, t_serverData*
 	std::map<std::string, std::string>::const_iterator	it = data->cgiPath.find(extension);
 
 	if (it == data->cgiPath.end())
-		errorPage("501", data);
+		throw Response::DisplayErrorPage("Can't find extension: " + extension, "501", data);
 	if (pipe(fd) < 0)
-		throw Response::ErrorAndDisplayPage("Pipe creation failed: " + std::string(strerror(errno)), "500", data);
+		throw Response::DisplayErrorPage("Pipe creation failed: " + std::string(strerror(errno)), "500", data);
 	int pid = fork();
 	if (pid < 0)
-		throw Response::ErrorAndDisplayPage("Fork failed: " + std::string(strerror(errno)), "500", data);
+		throw Response::DisplayErrorPage("Fork failed: " + std::string(strerror(errno)), "500", data);
 	if (pid == 0)
 	{
 		char *script[] = {strdup(it->second.c_str()), strdup(uri.c_str()), NULL};
 		if (dup2(fd[1], STDOUT_FILENO) < 0)
-			throw Response::ErrorAndDisplayPage("Dup inside CGI failed: " + std::string(strerror(errno)), "500", data);
+			throw Response::DisplayErrorPage("Dup inside CGI failed: " + std::string(strerror(errno)), "500", data);
 		close(fd[0]);
 		close(fd[1]);
 		execve(it->second.c_str(), script, NULL);
@@ -141,7 +141,7 @@ void executeCGI(std::string uri, t_serverData *data, std::map<int, t_serverData*
 	t_cgi *cgi = new_cgi(fd[0], pid, time(NULL) + 5, data->sockfd);
 	struct epoll_event client_event = fillDataCgi(data, cgi, fdEpollLink);
 	if (epoll_ctl(3, EPOLL_CTL_ADD, fd[0], &client_event) < 0)
-		throw Response::ErrorAndDisplayPage("Epoll add failed: " + std::string(strerror(errno)), "500", data);
+		throw Response::DisplayErrorPage("Epoll add failed: " + std::string(strerror(errno)), "500", data);
 	data->cgi = cgi;
 }
 
@@ -217,7 +217,7 @@ void handleTimeout(t_serverData *data)
 		std::string response = httpGetResponse("200 Ok", "text/html", readFile("./www/error/error408.html", data), data, "");
 
 		if (send(data->sockfd, response.c_str(), response.size(), 0) < 0)
-			throw Response::ErrorAndDisplayPage("Error sending main: " + std::string(strerror(errno)), "500", data);
+			throw Response::DisplayErrorPage("Error sending main: " + std::string(strerror(errno)), "500", data);
 		close(data->cgi->cgifd);
 		close(data->sockfd);
 		delete data->cgi;
