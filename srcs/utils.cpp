@@ -207,11 +207,12 @@ std::string readFile(std::string filePath, t_serverData *data)
 {
 	std::ifstream inputFile(filePath.c_str(), std::ios::binary);
 
+	std::string code;
+	checkAccessFile(code, filePath, data);
 	if (!inputFile.is_open())
 	{
 		errorPage("404", data);
 	}
-
 	std::stringstream buffer;
 	buffer << inputFile.rdbuf();
 	return (buffer.str());
