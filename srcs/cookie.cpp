@@ -78,18 +78,17 @@ std::string display_user_connection(Cookie &cookie, t_serverData *data, std::str
 		std::pair<std::string, t_session> session_id = cookie.get_session_id(id);
 		if(!session_id.first.empty())
 		{
-			html =    
+			html =
 				"\t<div class='user-info'>\n"
-				"\t\t<h2>User Connection Details</h2>\n"
+				"\t\t<h1>User Connection Details</h1>\n"
 				"\t\t<p><strong>Email:</strong> " + session_id.second.credentials.second + " </p>\n"
 				"\t\t<p><strong>Password:</strong> " + session_id.second.credentials.first + " </p>\n"
+				"\t\t<a href=\"pages/deconnexion\"><button>Log Out</button></a>\n"
 				"\t</div>\n" ;
 
 			size_t pos = response.find("</body>");
 			if(pos != std::string::npos)
-			{
 				response = response.insert(pos, html);
-			}
 		}
 	}
 	return (response);

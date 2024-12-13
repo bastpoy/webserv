@@ -1,3 +1,3 @@
 #!/bin/bash
 
-echo "<html><head><title>Test CGI - Shell</title><link rel=\"stylesheet\" href=\"../../styles.css\"></head><body style=\"text-align:center\"><nav style=\"padding:15px;\"><a href=\"../../index.html\" style=\"font-size: 20px;margin:1rem;width:150px;padding:5px;\">Home</a><a href=\"../../cgi.html\" style=\"font-size: 20px;margin:1rem;width:150px;padding:5px;\">CGI</a></nav><h1>Bash CGI executed with success !</h1><p>Server has correctly handle .sh file</p><a href=\"../../index.html\" id=\"return\">Go Back Home</a></body></html>"
+echo "<html><head><title>Test CGI - Shell</title><link rel=\"stylesheet\" href=\"../../styles.css\"></head><body><a href=\"../../index.html\" style=\"font-size: 20px;margin:1rem;wi<h1>Bash CGI executed with success !</h1><p>Server has correctly handle .sh file</p><a href=\"../../index.html\" id=\"return\">Go Back Home</a></body></html>"

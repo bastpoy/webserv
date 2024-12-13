@@ -10,7 +10,9 @@
 	<h1>🌐 DELETE Request</h1>
 	<div class="container">
 		<label for="fileName">Enter the file name to delete:</label>
-		<input type="text" id="fileName" placeholder="your_file_to_delete.txt">
+		<div class="form-group">
+			<input type="text" id="fileName" placeholder="your_file_to_delete.txt">
+		</div>
 		<button id="deleteButton">Delete File</button>
 <script>
 	document.getElementById('deleteButton').addEventListener('click', function() {

@@ -10,21 +10,29 @@
 <body>
 	<h1>POST Request</h1>
 	<div class="container">
-		<form id="fileForm" method="post" enctype="multipart/form-data">
-			<div>
-				<label for="fileInput">Fichiers :</label>
+		<form class="file-download-section" method="post" enctype="multipart/form-data">
+			<h2 class="file">🗂️ Upload File</h2>
+			<label for="fileInput">Fichiers :</label>
+			<div class="form-group">
 				<input type="file" id="fileInput" name="files" multiple>
 			</div>
 			<button type="submit">Send File</button>
 		</form>
 
-		<form id="form-group" method="post">
+		<form class="file-download-section" method="post">
+			<h2 class="file">🗂️ Contact Form</h2>
 			<label for="name">Nom :</label>
-			<input type="text" id="name" name="name" pattern="^[a-zA-Z0-9]+$" required>
+			<div class="form-group">
+				<input type="text" id="name" name="name" pattern="^[a-zA-Z0-9]+$" required>
+			</div>
 			<label for="email">Email :</label>
-			<input type="email" id="email" name="email" pattern="^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" required>
+			<div class="form-group">
+				<input type="email" id="email" name="email" pattern="^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" required>
+			</div>
 			<label for="message">Message :</label>
-			<textarea id="message" name="message" rows="4" pattern="^[a-zA-Z0-9]+$" required></textarea>
+			<div class="form-group">
+				<textarea id="message" name="message" rows="4" pattern="^[a-zA-Z0-9]+$" required></textarea>
+			</div>
 			<button type="submit">Envoyer</button>
 		</form>
 	</div>
