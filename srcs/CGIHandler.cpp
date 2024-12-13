@@ -11,7 +11,6 @@ struct epoll_event fillDataCgi(t_serverData *importData, t_cgi *cgi, std::map<in
 {
 	t_serverData					*data = new t_serverData;
 	struct epoll_event				client_event;
-	std::pair<int, t_serverData*>	pair(data->sockfd, data);
 
 	data->sockfd = importData->sockfd;
 	data->port = importData->port;
@@ -33,6 +32,7 @@ struct epoll_event fillDataCgi(t_serverData *importData, t_cgi *cgi, std::map<in
 	client_event.events = EPOLLIN;
 	client_event.data.ptr = static_cast<void*>(data);
 
+	std::pair<int, t_serverData*>	pair(data->sockfd, data);
 	fdEpollLink.insert(pair);
 	GlobalLinkedList::insert(data);
 	return (client_event);
