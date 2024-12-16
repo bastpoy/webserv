@@ -33,7 +33,7 @@ std::string pathLocation(std::string &content, std::string &uri, std::vector<Loc
 	}
 	else
 	{
-		errorPage(NULL, "404", data);
+		errorPage("", "404", data);
 		throw Response::ErrorRequest("No index file found");
 	}
 }
@@ -69,7 +69,7 @@ std::string check_location(std::string &uri, std::string &content, std::vector<L
 					return data->path + uri;
 				}
 				else
-					errorPage(NULL, "404", data);
+					errorPage("", "404", data);
 			}
 			else
 			{
@@ -80,7 +80,7 @@ std::string check_location(std::string &uri, std::string &content, std::vector<L
 					if(!data->path.empty())
 						return pathLocation(content, uri, it, data, data->path);
 					else
-						errorPage(NULL, "404", data);
+						errorPage("", "404", data);
 				}
 			}
 		}
@@ -200,7 +200,7 @@ void getRequest(std::string &uri, t_serverData *&data, Cookie &cookie, std::stri
 	if(filePath.empty())
 	{
 		if(data->path.empty())
-			errorPage(NULL, "403", data);
+			errorPage("", "403", data);
 		// if i have a file to download
 		else if(isExtensionDownload(uri) || check_download(data, filePath, uri))
 		{
@@ -235,7 +235,7 @@ void getRequest(std::string &uri, t_serverData *&data, Cookie &cookie, std::stri
 			content = generateAutoIndexPage(uri, files);
 		}
 		else
-			errorPage(NULL, "403", data);
+			errorPage("", "403", data);
 	}
 	if (filePath.find("pages/delete/delete.html") != std::string::npos)
 		displayDeletePage("pages/delete/delete.html", data);

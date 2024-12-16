@@ -120,7 +120,7 @@ void check_timeout_cgi(t_serverData *info, std::map<int, t_serverData*> &fdEpoll
 				if(send(it->second->sockfd, response.c_str(), response.size(), 0) < 0)
 				{
 					std::cout << RED "error send main "<< errno << " " << strerror(errno) << RESET << std::endl;
-					errorPage(NULL, "500", info);
+					errorPage("", "500", info);
 				}
 				close(it->second->cgi->cgifd);
 				//kill the pipe
@@ -132,7 +132,7 @@ void check_timeout_cgi(t_serverData *info, std::map<int, t_serverData*> &fdEpoll
 				if(epoll_ctl(epoll_fd, EPOLL_CTL_MOD, it->second->sockfd, events) < 0)
 				{
 					std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
-					errorPage(NULL, "500", it->second);
+					errorPage("", "500", it->second);
 				}
 				delete it->second->cgi;
 				it->second->cgi = NULL;
@@ -164,6 +164,6 @@ void read_cgi(t_serverData *data, struct epoll_event *events, int i, int epoll_f
 	if(epoll_ctl(epoll_fd, EPOLL_CTL_MOD, data->cgi->cgifd, events) < 0)
 	{
 		std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
-		errorPage(NULL, "500", data);
+		errorPage("", "500", data);
 	}
 }

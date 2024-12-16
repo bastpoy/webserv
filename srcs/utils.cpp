@@ -156,7 +156,7 @@ int getContentLength(std::string header, t_serverData *data)
 	int max_body = atoi(data->maxBody.c_str());
 	int intSize = atoi(size.c_str());
 	if(intSize > max_body)
-		errorPage(NULL, "413", data);
+		errorPage("", "413", data);
 	return(intSize);
 }
 
@@ -241,7 +241,7 @@ bool request_allowed(std::string typeRequest, t_serverData *data)
 	std::vector<std::string>::iterator it = std::find(data->requestAllow.begin(), data->requestAllow.end(), typeRequest);
 	if(it != data->requestAllow.end() || !data->requestAllow.size())
 		return(true);
-	errorPage(NULL, "403", data);
+	errorPage("", "403", data);
 	return (false);
 }
 

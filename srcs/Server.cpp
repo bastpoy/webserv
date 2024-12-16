@@ -179,7 +179,7 @@ bool handleRequest(std::string buffer, t_serverData *&data, Cookie &cookie, std:
 	else if(typeRequest == "DELETE" && request_allowed("DELETE", data))
 		parseAndDeleteRequest(buffer, data, typeRequest);
 	else
-		errorPage(NULL, "405", data);
+		errorPage("", "405", data);
 	return(false);
 }
 
@@ -190,7 +190,7 @@ bool read_one_chunk(t_serverData *data, struct epoll_event ev, int epoll_fd)
 	if (bytes_read < 0) 
 	{
 		std::cout << "Error " << errno << " reading from socket " << data->sockfd << ": " << strerror(errno) << std::endl;
-		errorPage(NULL, "400", data);
+		errorPage("", "400", data);
 	} 
 	else if (bytes_read == 0) 
 	{
@@ -198,7 +198,7 @@ bool read_one_chunk(t_serverData *data, struct epoll_event ev, int epoll_fd)
 		if(epoll_ctl(epoll_fd, EPOLL_CTL_DEL, data->sockfd, &ev) < 0)
 		{
 			std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
-			errorPage(NULL, "500", data);
+			errorPage("", "500", data);
 		}
 		close(data->sockfd);
 		return (false); 
@@ -235,7 +235,7 @@ void manage_tserver(t_serverData *&data, struct epoll_event *events, int i, int 
 	if(epoll_ctl(epoll_fd, EPOLL_CTL_MOD, data->sockfd, events) < 0)
 	{
 		std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
-		errorPage(NULL, "500", data);
+		errorPage("", "500", data);
 	}
 	close(data->sockfd);
 	GlobalLinkedList::update_data(data);
