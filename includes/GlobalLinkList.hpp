@@ -26,16 +26,6 @@ public:
 			tail = newNode;
 		}
 	}
-	
-	static void print() 
-	{
-		Node* current = head;
-		while (current != NULL) {
-			std::cout << current->data << " ";
-			current = current->next;
-		}
-		std::cout << std::endl;
-	}
 
 	static void update_data(t_serverData *data) 
 	{

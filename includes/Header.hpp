@@ -117,7 +117,7 @@ std::string					generateAutoIndexPage(const std::string directory, const std::ve
 // CGIHandler.cpp
 void check_timeout_cgi(t_serverData *info, std::map<int, t_serverData*> &fdEpollLink, struct epoll_event *events, int i, int epoll_fd);
 void read_cgi(t_serverData *data, struct epoll_event *events, int i, int epoll_fd);
-std::string HandleCgiRequest(std::string uri, t_serverData *&data, std::map<int, t_serverData*> &fdEpollLink);
+std::string HandleCgiRequest(std::string uri, t_serverData *&data, std::map<int, t_serverData*> &fdEpollLink, std::string code);
 
 
 // cookie.cpp
@@ -191,4 +191,4 @@ std::string to_string(T value) {
 	return oss.str();
 }
 
-#endif /* HEADER_HPP */
+#endif

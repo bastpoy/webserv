@@ -32,7 +32,9 @@ typedef struct s_serverData
 	t_cgi								*cgi;
 	bool								isDownload;
 	void								*isCgi;
-	bool								testCgi;
+	bool 								isHeader;
+	int									contentLength;
+	std::vector<std::string>			envCgi;
 	std::map<std::string, std::string>	errorPage;
 	std::map<std::string, std::string>	cgiPath;
 	std::map<std::string, std::string>	redir;
@@ -116,4 +118,4 @@ class Server
 		void	printConfig();
 };
 
-#endif /* SERVERPARSER_HPP */
+#endif

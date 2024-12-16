@@ -32,7 +32,8 @@ struct epoll_event Server::fillEpoolDataIterator(int sockfd, std::vector<Server>
 	data->cgi = NULL;
 	data->isDownload = false;
 	data->isCgi = NULL;
-	data->testCgi = false;
+	data->isHeader = false;
+	data->contentLength = 0;
 
 	event.events = EPOLLIN; // Monitor for input events
 	//I stock the info server on the event ptr data
@@ -64,7 +65,8 @@ struct epoll_event Server::fillEpoolDataInfo(int &client_fd, t_serverData *info)
 	data->cgi = NULL;
 	data->isDownload = info->isDownload;
 	data->isCgi = info->isCgi;
-	data->testCgi = info->testCgi;
+	data->isHeader = info->isHeader;
+	data->contentLength = info->contentLength;
 
 	struct epoll_event client_event;
 	client_event.events = EPOLLIN;
@@ -204,16 +206,20 @@ bool read_one_chunk(t_serverData *data, struct epoll_event ev, int epoll_fd)
 		return (false); 
 	}
 	data->buffer.append(buffer, bytes_read);
-	size_t pos = data->buffer.find("\r\n\r\n");
-	if(pos != std::string::npos)
+	if(data->isHeader == false)
 	{
-		data->header = data->buffer.substr(0, pos + 4);
-		std::cout << GREEN << data->header << RESET << std::endl;
+		size_t pos = data->buffer.find("\r\n\r\n");
+		if(pos != std::string::npos)
+		{
+			data->header = data->buffer.substr(0, pos + 4);
+			data->isHeader = true;
+			data->contentLength = getContentLength(data->header, data);
+		}
 	}
-	if(static_cast<int>(data->buffer.size() - data->header.size()) == getContentLength(data->buffer, data))
+	if(static_cast<int>(data->buffer.size() - data->header.size()) == data->contentLength)
 		return (true);
-	if(static_cast<int>(data->buffer.size()) == getContentLength(data->buffer, data))
-		return true;
+	if(static_cast<int>(data->buffer.size()) == data->contentLength)
+		return (true);
 	return (false);
 }
 

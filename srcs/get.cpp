@@ -116,16 +116,14 @@ void	checkAccessDir(std::string &code, std::string &dirPath, t_serverData *data)
 
 void	process_extension(std::string &filePath, std::string &code, std::string uri, std::string buffer, std::string &content, Cookie &cookie, t_serverData *data, std::map<int, t_serverData*> &fdEpollLink)
 {
-	if(data->path.empty())
-		errorPage("", "403", data);
 	if(isExtension(uri) || is_cgi_extension(uri))
 	{
 		filePath = data->path + uri;
 		std::string path = data->path + "pages/cookie/connexion.html";
 		if (is_cgi_extension(filePath))
 		{
-			checkAccessFile(code, filePath, data);
-			content = HandleCgiRequest(filePath.c_str(), data, fdEpollLink);
+			// checkAccessFile(code, filePath, data);
+			content = HandleCgiRequest(filePath.c_str(), data, fdEpollLink, code);
 		}
 		else if(filePath  == path && check_cookie_validity(cookie, get_cookie_id(buffer)))
 		{
@@ -210,9 +208,9 @@ void getRequest(std::string &uri, t_serverData *&data, Cookie &cookie, std::stri
 			}
 			content = readFile(filePath, data);
 		}
-		// if i have a file to download or uri
 		else if(isExtension(uri) || is_cgi_extension(uri))
 		{
+			std::cout << "herehere\n";
 			process_extension(filePath, code, uri, buffer, content, cookie, data, fdEpollLink);
 		}
 		else if(uri == "pages/deconnexion/")

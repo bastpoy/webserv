@@ -230,7 +230,9 @@ void postRequest(t_serverData *data, Cookie &cookie)
 			fileName = data->path + "upload/" + fileName;
 			std::ofstream output(fileName.c_str(), std::ios::binary);
 			if(!output.is_open())
+			{
 				errorPage("", "500", data);
+			}
 			truncate_file(data->body, data);
 			output.write(data->body.c_str(), data->body.size());
 			

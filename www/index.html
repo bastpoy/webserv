@@ -33,11 +33,27 @@
 		</form>
 		<a href="index_forbidden.html"><button>403 - Forbidden</button></a>
 		<a href="invalid-path"><button>404 - Not Found</button></a>
-		<form method="INVALID">
+		<form id="putForm">
 			<a href="index.html"><button type="submit">405 - Method Not Allowed</button></a>
 		</form>
 		<a href="pages/cgi-bin/long.py"><button>408 - Request Timeout</button></a>
-		<a href="pages/cgi-bin/script.tcl"><button>413 - Payload Too Large</button></a>
 	</div>
+	<script>
+		document.getElementById('putForm').addEventListener('submit', function(e) {
+			e.preventDefault();
+			
+			fetch('/putForm', {
+			method: 'PUT',
+			headers: {
+				'Content-Type': 'text/html',
+			}
+		})
+		.then(response => response.text())
+		.then(html => {
+			document.body.innerHTML = html; // Replace entire body with server response
+		})
+		.catch(error => console.error('Error:', error));
+			});
+	</script>
 </body>
 </html>

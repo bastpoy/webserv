@@ -12,7 +12,6 @@ void Response::sendResponse(std::string statusCode, std::string contentType, std
 		response += "Connection: close\r\n";
 	std::cout << response << std::endl;
 	response += "\r\n" + content;
-
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 		errorPage(std::string(strerror(errno)), "500", data);
 	throw Response::responseOk();
@@ -91,9 +90,11 @@ void httpPostResponse(std::string code , std::string contentType, std::string co
 		response += "Connection: close\r\n";
 	response +=	"Content-Length: " + to_string(content.size()) + "\r\n"
 				"\r\n" + content;
-	data->sockfd = -1;
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
+	{
+		std::cout << "tamere " << strerror(errno) << std::endl;
 		errorPage(std::string(strerror(errno)), "500", data);
+	}
 }
 
 const char*	Response::ErrorOpeningFile::what() const throw()

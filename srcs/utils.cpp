@@ -19,7 +19,6 @@ bool is_cgi_extension(std::string path)
 	while (i < nbCGIExtensions)
 	{
 		size_t	pos = path.find(CGIExtensions[i]);
-		std::string extension = CGIExtensions[i];
 		if (pos != std::string::npos)
 			return (true);
 		i++;
@@ -160,7 +159,6 @@ int getContentLength(std::string header, t_serverData *data)
 	return(intSize);
 }
 
-
 bool isExtension(std::string path)
 {
 	if(path.find(".html") == std::string::npos &&
@@ -241,7 +239,7 @@ bool request_allowed(std::string typeRequest, t_serverData *data)
 	std::vector<std::string>::iterator it = std::find(data->requestAllow.begin(), data->requestAllow.end(), typeRequest);
 	if(it != data->requestAllow.end() || !data->requestAllow.size())
 		return(true);
-	errorPage("", "403", data);
+	errorPage("", "405", data);
 	return (false);
 }
 
@@ -263,6 +261,7 @@ void truncate_file(std::string &file, t_serverData *data)
 	pos = file.find(boundary + "--");
 	if(pos != std::string::npos)
 		file.erase(pos - 1, (boundary + "--").size());
+	std::cout << "re pelo la" << std::endl;
 }
 
 void	signal_handler(int signal)

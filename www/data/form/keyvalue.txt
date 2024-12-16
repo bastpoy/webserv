@@ -7,3 +7,6 @@
 "email" : "avialleguerin@gmail.com",
 "message" : "Super site",
 "name" : "Avg38"
+"email" : "bastien.poyet@outlook.fr",
+"message" : "test message",
+"name" : "bastien"

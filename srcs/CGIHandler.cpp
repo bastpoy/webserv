@@ -76,6 +76,14 @@ void	executeCGI(std::string uri, t_serverData *&data, std::map<int, t_serverData
 		script[0] = strdup(it->second.c_str());
 		script[1] = strdup(uri.c_str());
 		script[2] = NULL;
+
+		char **env = (char**)malloc(sizeof(char*) * data->envCgi.size());
+		for(size_t i = 0 ; i < data->envCgi.size(); i++)
+		{
+			env[i] = strdup(data->envCgi[i].c_str());
+			std::cout << env[i] << std::endl;
+		}
+
 		if(dup2(fd[1], STDOUT_FILENO) < 0)
 			errorPage("Error dup inside CGI: " + std::string(strerror(errno)), "500", data);
 		close(fd[0]);
@@ -94,10 +102,40 @@ void	executeCGI(std::string uri, t_serverData *&data, std::map<int, t_serverData
 	data->isCgi = cgi;
 }
 
-std::string HandleCgiRequest(std::string uri, t_serverData *&data, std::map<int, t_serverData*> &fdEpollLink)
+void parse_uri_cgi(t_serverData *&data, std::string uri)
+{
+	size_t pos = uri.find("?");
+	if(pos != std::string::npos)
+	{
+		uri = uri.substr(pos + 1);
+		size_t pos1 = uri.find("&");
+		while(pos1 != std::string::npos)
+		{
+			data->envCgi.push_back(uri.substr(0, pos1));
+			uri = uri.substr(pos1 + 1);
+			pos1 = uri.find("&");
+		}
+		data->envCgi.push_back(uri.substr(0, pos1));
+	}
+	std::vector<std::string>::iterator it = data->envCgi.begin();
+	while(it != data->envCgi.end())
+	{
+		std::cout << *it << std::endl; 
+		it++;
+	}
+}
+
+std::string HandleCgiRequest(std::string uri, t_serverData *&data, std::map<int, t_serverData*> &fdEpollLink, std::string code)
 {
 	std::cout << "hi whats up cgi handler here path is |" << uri << "|" << std::endl;
-
+	size_t pos = uri.find("?");
+	if(pos != std::string::npos)
+	{
+		std::string filePath = data->path + uri.substr(0, pos);
+		std::cout << BLUE << uri.substr(0, pos) << RESET << std::endl;
+		checkAccessFile(code, uri, data);
+	}
+	parse_uri_cgi(data, uri);
 	executeCGI(uri, data, fdEpollLink);
 	throw Response::responseOk();
 	return "";
