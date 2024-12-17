@@ -58,6 +58,7 @@ t_cgi * new_cgi(int fd, int pid, time_t time, int parentSocket)
 void	executeCGI(std::string uri, t_serverData *&data, std::map<int, t_serverData*> &fdEpollLink)
 {
 	int			fd[2];
+	std::cout << GREEN << uri << RESET << std::endl;
 	std::string	extension = CGIExtension(uri);
 	std::map<std::string, std::string>::const_iterator it = data->cgiPath.find(extension);
 
@@ -72,23 +73,26 @@ void	executeCGI(std::string uri, t_serverData *&data, std::map<int, t_serverData
 	else if (pid == 0)
 	{
 		char **script = (char **)malloc(sizeof(char*) * 3);
-		
 		script[0] = strdup(it->second.c_str());
 		script[1] = strdup(uri.c_str());
 		script[2] = NULL;
 
-		char **env = (char**)malloc(sizeof(char*) * data->envCgi.size());
+		std::cout << "|" << script[0]<< "|" << std::endl;
+		std::cout << "|" << script[1]<< "|" << std::endl;
+
+		char **env = (char**)malloc(sizeof(char*) * (data->envCgi.size() + 1));
 		for(size_t i = 0 ; i < data->envCgi.size(); i++)
 		{
 			env[i] = strdup(data->envCgi[i].c_str());
 			std::cout << env[i] << std::endl;
 		}
+		env[data->envCgi.size()] = NULL;
 
 		if(dup2(fd[1], STDOUT_FILENO) < 0)
 			errorPage("Error dup inside CGI: " + std::string(strerror(errno)), "500", data);
 		close(fd[0]);
 		close(fd[1]);
-		execve(it->second.c_str(), script, NULL);
+		execve(it->second.c_str(), script, env);
 		perror("execve");
 		std::exit(EXIT_FAILURE);
 	}
@@ -117,26 +121,23 @@ void parse_uri_cgi(t_serverData *&data, std::string uri)
 		}
 		data->envCgi.push_back(uri.substr(0, pos1));
 	}
-	std::vector<std::string>::iterator it = data->envCgi.begin();
-	while(it != data->envCgi.end())
-	{
-		std::cout << *it << std::endl; 
-		it++;
-	}
 }
 
 std::string HandleCgiRequest(std::string uri, t_serverData *&data, std::map<int, t_serverData*> &fdEpollLink, std::string code)
 {
 	std::cout << "hi whats up cgi handler here path is |" << uri << "|" << std::endl;
+	
+	std::string filePath;
 	size_t pos = uri.find("?");
 	if(pos != std::string::npos)
 	{
-		std::string filePath = data->path + uri.substr(0, pos);
-		std::cout << BLUE << uri.substr(0, pos) << RESET << std::endl;
-		checkAccessFile(code, uri, data);
+		filePath = uri.substr(0, pos);
+		checkAccessFile(code, filePath, data);
 	}
+	else
+		filePath = uri;
 	parse_uri_cgi(data, uri);
-	executeCGI(uri, data, fdEpollLink);
+	executeCGI(filePath, data, fdEpollLink);
 	throw Response::responseOk();
 	return "";
 }

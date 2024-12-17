@@ -194,7 +194,7 @@ bool read_one_chunk(t_serverData *data, struct epoll_event ev, int epoll_fd)
 		std::cout << "Error " << errno << " reading from socket " << data->sockfd << ": " << strerror(errno) << std::endl;
 		errorPage("", "400", data);
 	} 
-	else if (bytes_read == 0) 
+	else if (bytes_read == 0)
 	{
 		std::cout << RED "Connection closed by the client. (recv = 0) " << data->sockfd << RESET << std::endl;
 		if(epoll_ctl(epoll_fd, EPOLL_CTL_DEL, data->sockfd, &ev) < 0)
