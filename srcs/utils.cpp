@@ -218,7 +218,6 @@ std::string read_error_file(std::string path, t_serverData *data)
 {
 	std::ifstream file(path.c_str(), std::ios::binary);
 	if(!file.is_open()){
-		std::cout << "here\n";
 		Response::sendResponse("500", "text/html", "<h1>500 Internal Server Error</h1>", data);
 	}
 	return std::string(
@@ -261,7 +260,6 @@ void truncate_file(std::string &file, t_serverData *data)
 	pos = file.find(boundary + "--");
 	if(pos != std::string::npos)
 		file.erase(pos - 1, (boundary + "--").size());
-	std::cout << "re pelo la" << std::endl;
 }
 
 void	signal_handler(int signal)

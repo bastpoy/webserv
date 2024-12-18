@@ -101,66 +101,6 @@ static void	choose_error_page(std::string error, t_serverData *data, std::string
 	else if (error == "501") Response::sendResponse("501 Not Implemented", "text/html", read_error_file(path, data), data);
 }
 
-// void errorPage(std::string error, t_serverData *data)
-// {
-// 	std::vector<Location>::iterator it1 = data->location.begin();
-// 	if(it1 != data->location.end())
-// 	{
-// 		it1->setPath(it1->getPath().substr(1, it1->getPath().size() - 1));
-// 		std::string uri = data->buffer.substr(data->buffer.find('/') + 1, data->buffer.size() - data->buffer.find('/'));
-// 		uri = uri.substr(0, uri.find(' '));
-// 		while(it1 != data->location.end())
-// 		{
-// 			if(!it1->getPath().empty() && uri.find(it1->getPath()) != std::string::npos)
-// 			{
-// 				std::cout << RED << "match location" << RESET << std::endl;
-// 				if(it1->getErrorPage().find(error) != it1->getErrorPage().end())
-// 				{
-// 					std::string second = it1->getErrorPage().find(error)->second;
-// 					std::string path;
-// 					if(!it1->getRoot().empty())
-// 						path = it1->getRoot() + second;
-// 					else
-// 						path = data->path + second;
-// 					std::cout << RED "LOCATION ERROR MATCH" << RESET << std::endl;
-// 					choose_error_page(error, data, path);
-// 				}
-// 			}
-// 			it1++;
-// 		}
-// 	}
-// 	if(data->errorPage.size())
-// 	{
-// 		std::map<std::string, std::string>::iterator it = data->errorPage.find(error);
-// 		if(it != data->errorPage.end())
-// 		{
-// 			std::string path = data->path + it->second;
-// 			choose_error_page(error, data, path);
-// 		}
-// 	}
-// 	if (error == "400")
-// 		Response::sendResponse("400 Bad Request", "text/html", read_error_file("./www/error/400.html", data), data);
-// 	else if (error == "403")
-// 		Response::sendResponse("403 Forbidden", "text/html", read_error_file("./www/error/403.html", data), data);
-// 	else if (error == "404")
-// 	{
-// 		std::cout << "ici batard\n";
-// 		Response::sendResponse("404 Not Found", "text/html", read_error_file("./www/error/404.html", data), data);
-// 	}
-// 	else if (error == "405")
-// 		Response::sendResponse("405 Method Not Allowed", "text/html", read_error_file("./www/error/405.html", data), data);
-// 	else if (error == "413")
-// 		Response::sendResponse("413 Content Too Large", "text/html", read_error_file("./www/error/413.html", data), data);
-// 	else if (error == "413")
-// 		contentTooLarge(data);
-// 	else if (error == "500")
-// 		Response::sendResponse("500 Internal Server Error", "text/html", read_error_file("./www/error/500.html", data), data);
-// 	else if (error == "501")
-// 		Response::sendResponse("501 Not Implemented", "text/html", readFile("./www/error/501.html", data), data);
-// 	else if (error == "504")
-// 		Response::sendResponse("504 Gateway Timeout", "text/html", readFile("./www/error/504.html", data), data);
-// }
-
 /**
  * @brief Will find the correct error page to display for a location
  * @param error The error code
@@ -169,7 +109,7 @@ static void	choose_error_page(std::string error, t_serverData *data, std::string
 */
 void chooseErrorPageForLocation(const std::string &error, t_serverData *data, Location &loc)
 {
-	std::string uri = data->buffer.substr(data->buffer.find('/') + 1, data->buffer.find(' ') - data->buffer.find('/'));
+	std::string uri = data->buffer.substr(data->buffer.find('/') + 1, data->buffer.find(" HTTP") - data->buffer.find('/'));
 	if (uri.find(loc.getPath()) != std::string::npos && loc.getErrorPage().find(error) != loc.getErrorPage().end())
 	{
 		std::string second = loc.getErrorPage().find(error)->second;
@@ -210,7 +150,7 @@ void errorPage(std::string msg, std::string error, t_serverData *data)
 	// Check location error pages first
 	for (std::vector<Location>::iterator it = data->location.begin(); it != data->location.end(); ++it)
 	{
-		it->setPath(it->getPath().substr(1));	// Strip leading '/'
+		// it->setPath1(it->getPath().substr(1));	// Strip leading '/'
 		if (!it->getPath().empty())
 			chooseErrorPageForLocation(error, data, *it);
 	}

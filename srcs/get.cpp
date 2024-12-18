@@ -3,17 +3,17 @@
 std::string pathLocation(std::string &content, std::string &uri, std::vector<Location>::iterator it, t_serverData *data, std::string root)
 {
 	std::string filePath;
+	// std::string 
 	if(!it->getIndex().empty())
 	{
-		std::cout << "Index in my location" << std::endl;
 		filePath = root + uri + it->getIndex();
+		std::cout << RED << "filepath: " << filePath << " " << root << RESET << std::endl;
 		content = readFile(filePath, data);
 		return filePath;
 	}
 	else if(!it->getAutoIndex().empty() && it->getAutoIndex() == "on")
 	{
 		filePath = root + uri;
-		std::cout << "filepath: " << filePath << std::endl;
 		std::vector<std::string> files = listDirectory(filePath);
 		content = generateAutoIndexPage(uri, files);
 		return root + uri;
@@ -34,7 +34,7 @@ std::string pathLocation(std::string &content, std::string &uri, std::vector<Loc
 	else
 	{
 		errorPage("", "404", data);
-		throw Response::ErrorRequest("No index file found");
+		return("");
 	}
 }
 
@@ -43,16 +43,17 @@ std::string check_location(std::string &uri, std::string &content, std::vector<L
 	std::vector<Location>::iterator it = location.begin();
 	if(it == location.end())
 		return("");
-	//modify locationPath to remove the first '/' 
-	it->setPath1(it->getPath().substr(1, it->getPath().size() - 1));
 	//iterate throught my different server location
 	while(it != location.end())
 	{
+		//modify locationPath to remove the first '/'
+		it->setPath1(it->getPath().substr(1));
+		std::cout << YELLOW << it->getRoot() << " " << it->getPath() << RESET << std::endl;
 		if(!it->getPath().empty() && uri.find(it->getPath()) != std::string::npos)
 		{
+			std::cout << "have redirection\n";
 			if(it->getRedir().size())
 			{
-				std::cout << "inside location redirection" << std::endl;
 				redirRequest(it->getRedir().begin()->second, data->sockfd, data);
 				throw Response::ErrorRequest("Redirection");
 			}
@@ -92,9 +93,7 @@ std::string check_location(std::string &uri, std::string &content, std::vector<L
 void	checkAccessFile(std::string &code, std::string &filePath, t_serverData *data)
 {
 	if(access(filePath.c_str(), F_OK) != 0)
-	{
 		errorPage("", "404", data);
-	}
 	else if (access(filePath.c_str(), R_OK) != 0)
 		errorPage("", "403", data);
 	else
@@ -210,7 +209,6 @@ void getRequest(std::string &uri, t_serverData *&data, Cookie &cookie, std::stri
 		}
 		else if(isExtension(uri) || is_cgi_extension(uri))
 		{
-			std::cout << "herehere\n";
 			process_extension(filePath, code, uri, buffer, content, cookie, data, fdEpollLink);
 		}
 		else if(uri == "pages/deconnexion/")
@@ -238,10 +236,7 @@ void getRequest(std::string &uri, t_serverData *&data, Cookie &cookie, std::stri
 	if (filePath.find("pages/delete/delete.html") != std::string::npos)
 		displayDeletePage("pages/delete/delete.html", data);
 	if (filePath.find("pages/post/post.html") != std::string::npos)
-	{
-		std::cout << MAGENTA << filePath << RESET << std::endl;
 		display_message("pages/post/post.html", data);
-	}
 	if (isDirectory(filePath))
 		checkAccessDir(code, filePath, data);
 	checkAccessFile(code, filePath, data);

@@ -276,6 +276,7 @@ void Server::createListenAddr(ConfigParser &config)
 		{
 			t_serverData *info = static_cast<t_serverData*>(events[i].data.ptr);
 			int fd = info->sockfd;
+			// std::cout << "fd: " << fd << " " << events[i].data.fd << " status: " << events[i].events << std::endl; 
 			if(this->socketfd.find(fd) != this->socketfd.end())
 			{
 				struct sockaddr_in client_addr;

@@ -41,7 +41,7 @@ void	Location::setRoot(std::string line)
 		path = path + "/";
 	if(path.at(0) != '.')
 		path = "." + path;
-	_path = path;
+	_root = path;
 }
 
 void	Location::setMaxBody(std::string line)

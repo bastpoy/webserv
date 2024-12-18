@@ -58,11 +58,9 @@ t_cgi * new_cgi(int fd, int pid, time_t time, int parentSocket)
 void	executeCGI(std::string uri, t_serverData *&data, std::map<int, t_serverData*> &fdEpollLink)
 {
 	int			fd[2];
-	std::cout << GREEN << uri << RESET << std::endl;
 	std::string	extension = CGIExtension(uri);
 	std::map<std::string, std::string>::const_iterator it = data->cgiPath.find(extension);
 
-	std::cout << RED "extension is " << extension << RESET << std::endl;
 	if (it == data->cgiPath.end())
 		errorPage("Error : can't find extension " + extension, "501", data);
 	if(pipe(fd) < 0)
@@ -77,14 +75,10 @@ void	executeCGI(std::string uri, t_serverData *&data, std::map<int, t_serverData
 		script[1] = strdup(uri.c_str());
 		script[2] = NULL;
 
-		std::cout << "|" << script[0]<< "|" << std::endl;
-		std::cout << "|" << script[1]<< "|" << std::endl;
-
 		char **env = (char**)malloc(sizeof(char*) * (data->envCgi.size() + 1));
 		for(size_t i = 0 ; i < data->envCgi.size(); i++)
 		{
 			env[i] = strdup(data->envCgi[i].c_str());
-			std::cout << env[i] << std::endl;
 		}
 		env[data->envCgi.size()] = NULL;
 
