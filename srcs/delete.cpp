@@ -45,11 +45,11 @@ void displayDeletePage(std::string path, t_serverData *data)
 }
 
 
-void deleteRequest(std::string &uri, t_serverData *data, std::string typeRequest)
+void deleteRequest(std::string &uri, t_serverData *data, std::string typeRequest, std::map<int, t_serverData*> &fdEpollLink)
 {
 	std::string code;
 	std::string content;
-	std::string filePath = check_location(uri, content, data->location, data);
+	std::string filePath = check_location(uri, content, data->location, data, fdEpollLink);
 	std::string response;
 	std::string contentType = getContentType(uri, typeRequest, data);
 	//if i have a location
@@ -68,7 +68,7 @@ void deleteRequest(std::string &uri, t_serverData *data, std::string typeRequest
 	}
 }
 
-void parseAndDeleteRequest(std::string buffer, t_serverData *data, std::string typeRequest)
+void parseAndDeleteRequest(std::string buffer, t_serverData *data, std::string typeRequest, std::map<int, t_serverData*> &fdEpollLink)
 {
 	std::cout << "DELETE RESPONSE" << std::endl;
 
@@ -78,5 +78,5 @@ void parseAndDeleteRequest(std::string buffer, t_serverData *data, std::string t
 		close(data->sockfd);
 	else if(path.find("?") != std::string::npos)
 		errorPage("", "501", data);
-	deleteRequest(path, data, typeRequest);
+	deleteRequest(path, data, typeRequest, fdEpollLink);
 }

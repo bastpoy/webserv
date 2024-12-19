@@ -117,7 +117,7 @@ void parse_uri_cgi(t_serverData *&data, std::string uri)
 	}
 }
 
-std::string HandleCgiRequest(std::string uri, t_serverData *&data, std::map<int, t_serverData*> &fdEpollLink, std::string code)
+void HandleCgiRequest(std::string uri, t_serverData *&data, std::map<int, t_serverData*> &fdEpollLink, std::string code)
 {
 	std::cout << "hi whats up cgi handler here path is |" << uri << "|" << std::endl;
 	
@@ -133,7 +133,6 @@ std::string HandleCgiRequest(std::string uri, t_serverData *&data, std::map<int,
 	parse_uri_cgi(data, uri);
 	executeCGI(filePath, data, fdEpollLink);
 	throw Response::responseOk();
-	return "";
 }
 
 void check_timeout_cgi(t_serverData *info, std::map<int, t_serverData*> &fdEpollLink, struct epoll_event *events, int i, int epoll_fd)

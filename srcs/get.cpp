@@ -38,9 +38,24 @@ std::string pathLocation(std::string &content, std::string &uri, std::vector<Loc
 	}
 }
 
-std::string check_location(std::string &uri, std::string &content, std::vector<Location> &location, t_serverData *data)
+std::string process_extension_location(std::string &content, std::string base, std::string &uri, t_serverData *data, std::map<int, t_serverData*> &fdEpollLink)
+{
+	std::string filePath;
+
+	if(is_cgi_extension(uri))
+	{
+		filePath = base + uri;
+		HandleCgiRequest(filePath.c_str(), data, fdEpollLink, "");
+	}
+	std::cout << "inside extension\n";
+	content = readFile(base + uri, data);
+	return base + uri;
+}
+
+std::string check_location(std::string &uri, std::string &content, std::vector<Location> &location, t_serverData *data, std::map<int, t_serverData*> &fdEpollLink)
 {
 	std::vector<Location>::iterator it = location.begin();
+	std::string filePath;
 	if(it == location.end())
 		return("");
 	//iterate throught my different server location
@@ -48,27 +63,19 @@ std::string check_location(std::string &uri, std::string &content, std::vector<L
 	{
 		//modify locationPath to remove the first '/'
 		it->setPath1(it->getPath().substr(1));
-		std::cout << YELLOW << it->getRoot() << " " << it->getPath() << RESET << std::endl;
 		if(!it->getPath().empty() && uri.find(it->getPath()) != std::string::npos)
 		{
-			std::cout << "have redirection\n";
 			if(it->getRedir().size())
 			{
 				redirRequest(it->getRedir().begin()->second, data->sockfd, data);
 				throw Response::ErrorRequest("Redirection");
 			}
-			if(isExtension(uri))
+			else if(isExtension(uri) || is_cgi_extension(uri))
 			{
 				if(!it->getRoot().empty())
-				{
-					content = readFile(it->getRoot() + uri, data);
-					return it->getRoot() + uri;
-				}
+					return process_extension_location(content, it->getRoot(), uri, data, fdEpollLink);
 				else if(!data->path.empty())
-				{
-					content = readFile(data->path + uri, data);
-					return data->path + uri;
-				}
+					return process_extension_location(content, data->path, uri, data, fdEpollLink);
 				else
 					errorPage("", "404", data);
 			}
@@ -93,7 +100,10 @@ std::string check_location(std::string &uri, std::string &content, std::vector<L
 void	checkAccessFile(std::string &code, std::string &filePath, t_serverData *data)
 {
 	if(access(filePath.c_str(), F_OK) != 0)
+	{
+		std::cout << "la " << filePath << std::endl;
 		errorPage("", "404", data);
+	}
 	else if (access(filePath.c_str(), R_OK) != 0)
 		errorPage("", "403", data);
 	else
@@ -121,8 +131,7 @@ void	process_extension(std::string &filePath, std::string &code, std::string uri
 		std::string path = data->path + "pages/cookie/connexion.html";
 		if (is_cgi_extension(filePath))
 		{
-			// checkAccessFile(code, filePath, data);
-			content = HandleCgiRequest(filePath.c_str(), data, fdEpollLink, code);
+			HandleCgiRequest(filePath.c_str(), data, fdEpollLink, code);
 		}
 		else if(filePath  == path && check_cookie_validity(cookie, get_cookie_id(buffer)))
 		{
@@ -130,7 +139,9 @@ void	process_extension(std::string &filePath, std::string &code, std::string uri
 			throw Response::responseOk();
 		}
 		else
+		{
 			content = readFile(filePath, data);
+		}
 	}
 }
 
@@ -192,7 +203,7 @@ void getRequest(std::string &uri, t_serverData *&data, Cookie &cookie, std::stri
 	std::string code;
 	std::string contentType = getContentType(uri, "GET", data);
 	// check if I have a location block that match the query
-	std::string filePath = check_location(uri, content, data->location, data);
+	std::string filePath = check_location(uri, content, data->location, data, fdEpollLink);
 
 	if(filePath.empty())
 	{

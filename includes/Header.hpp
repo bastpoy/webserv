@@ -117,7 +117,7 @@ std::string					generateAutoIndexPage(const std::string directory, const std::ve
 // CGIHandler.cpp
 void check_timeout_cgi(t_serverData *info, std::map<int, t_serverData*> &fdEpollLink, struct epoll_event *events, int i, int epoll_fd);
 void read_cgi(t_serverData *data, struct epoll_event *events, int i, int epoll_fd);
-std::string HandleCgiRequest(std::string uri, t_serverData *&data, std::map<int, t_serverData*> &fdEpollLink, std::string code);
+void HandleCgiRequest(std::string uri, t_serverData *&data, std::map<int, t_serverData*> &fdEpollLink, std::string code);
 
 
 // cookie.cpp
@@ -129,7 +129,7 @@ std::string	get_cookie_id(std::string buffer);
 // delete.cpp
 void	deleteRequest(std::string &path, t_serverData *data);
 void	displayDeletePage(std::string path, t_serverData *data);
-void	parseAndDeleteRequest(std::string buffer, t_serverData *data, std::string typeRequest);
+void	parseAndDeleteRequest(std::string buffer, t_serverData *data, std::string typeRequest, std::map<int, t_serverData*> &fdEpollLink);
 
 // error.cpp
 void	closeAllFileDescriptors(); 
@@ -139,7 +139,7 @@ void	errorPage(std::string msg, std::string error, t_serverData *data);
 
 // get.cpp
 void		redirRequest(std::string location, int fd, t_serverData *data);
-std::string	check_location(std::string &uri, std::string &content, std::vector<Location> &location, t_serverData *data);
+std::string	check_location(std::string &uri, std::string &content, std::vector<Location> &location, t_serverData *data, std::map<int, t_serverData*> &fdEpollLink);
 std::string	getContentType(std::string &path, std::string typeRequest, t_serverData * data);
 void		checkAccessFile(std::string &code, std::string &filePath, t_serverData *data);
 void		parseAndGetRequest(std::string buffer, t_serverData *&data, Cookie &cookie, std::map<int, t_serverData*> &fdEpollLink);
