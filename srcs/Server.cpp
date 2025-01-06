@@ -170,7 +170,7 @@ bool handleRequest(std::string buffer, t_serverData *&data, Cookie &cookie, std:
 	{
 		if(data->redir.size())
 		{
-			std::cout << "REDIRECTION GET" << std::endl;
+			// std::cout << "REDIRECTION GET" << std::endl;
 			redirRequest(data->redir.begin()->second, data->sockfd, data);
 		}
 		else
@@ -193,10 +193,9 @@ bool read_one_chunk(t_serverData *data, struct epoll_event ev, int epoll_fd)
 	{
 		std::cout << "Error " << errno << " reading from socket " << data->sockfd << ": " << strerror(errno) << std::endl;
 		errorPage("", "400", data);
-	} 
+	}
 	else if (bytes_read == 0)
 	{
-		std::cout << RED "Connection closed by the client. (recv = 0) " << data->sockfd << RESET << std::endl;
 		if(epoll_ctl(epoll_fd, EPOLL_CTL_DEL, data->sockfd, &ev) < 0)
 		{
 			std::cout << RED "Error epoll ctl catch: "<< errno << " " << strerror(errno) << RESET << std::endl;
@@ -225,6 +224,11 @@ bool read_one_chunk(t_serverData *data, struct epoll_event ev, int epoll_fd)
 
 void proceed_response(t_serverData *&data, Cookie &cookie, std::map<int, t_serverData*> &fdEpollLink)
 {
+	int max_body = atoi(data->maxBody.c_str());
+	if(data->contentLength > max_body)
+	{
+		errorPage("", "413", data);
+	}
 	if(!data->buffer.empty())
 	{
 		size_t pos = data->buffer.find("\r\n\r\n");
@@ -265,8 +269,6 @@ void Server::createListenAddr(ConfigParser &config)
 
 	struct epoll_event events[MAX_EVENTS];
 
-	std::cout << "\nWaiting for connection...\n";
-
 	while (true) {
 		int num_fds = epoll_wait(epoll_fd, events, MAX_EVENTS, -1);
 		if (num_fds == -1) 
@@ -275,7 +277,6 @@ void Server::createListenAddr(ConfigParser &config)
 		{
 			t_serverData *info = static_cast<t_serverData*>(events[i].data.ptr);
 			int fd = info->sockfd;
-			// std::cout << "fd: " << fd << " " << events[i].data.fd << " status: " << events[i].events << std::endl; 
 			if(this->socketfd.find(fd) != this->socketfd.end())
 			{
 				struct sockaddr_in client_addr;
@@ -317,7 +318,6 @@ void Server::createListenAddr(ConfigParser &config)
 						//if I have already a cgi and ready to return information
 						if(info->cgi)
 						{
-							std::cout << BMAGENTA "Inside epollout CGI" RESET << std::endl;
 							std::string response = httpGetResponse("200 Ok", "text/html", info->body, info, "");
 							if(send(info->sockfd, response.c_str(), response.size(), 0) < 0)
 								errorPage("error sending CGI response\n", "500", info);
@@ -343,14 +343,13 @@ void Server::createListenAddr(ConfigParser &config)
 					}
 					catch(const std::exception& e)
 					{
-						std::cout << RED << "Error catch: " << e.what() << RESET << std::endl;
+						// std::cout << RED << "Error catch: " << e.what() << RESET << std::endl;
 						if(info->isCgi)
 						{
-							std::cout << GREEN "CGI EXIST BUT RETURN WITH FD "<< fd << RESET << std::endl;
 							continue;
 						}
 						manage_tserver(info, events, i, epoll_fd);
-						std::cerr << e.what() << '\n';
+						// std::cerr << e.what() << '\n';
 					}
 				}
 			}

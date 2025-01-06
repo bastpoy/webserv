@@ -191,6 +191,7 @@ void getRequest(std::string &uri, t_serverData *&data, Cookie &cookie, std::stri
 	std::string contentType = getContentType(uri, "GET", data);
 	// check if I have a location block that match the query
 	std::string filePath = check_location(uri, content, data->location, data, fdEpollLink);
+	// std::cout << "uri: " << uri << std::endl;
 
 	if(filePath.empty())
 	{
@@ -252,7 +253,7 @@ void parseAndGetRequest(std::string buffer, t_serverData *&data, Cookie &cookie,
 	std::string path = buffer.substr(buffer.find('/') + 1, buffer.size() - buffer.find('/'));
 	path = path.substr(0, path.find(' '));
 
-	std::cout << "GET RESPONSE " << path <<  std::endl;
+	// std::cout << "GET RESPONSE " << path <<  std::endl;
 	if(path.find("favicon.ico") != std::string::npos)
 	{
 		return notFoundFavicon(data);

@@ -10,7 +10,6 @@ void Response::sendResponse(std::string statusCode, std::string contentType, std
 		response += "Connection: keep-alive\r\n";
 	else
 		response += "Connection: close\r\n";
-	std::cout << response << std::endl;
 	response += "\r\n" + content;
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 		errorPage(std::string(strerror(errno)), "500", data);

@@ -218,14 +218,13 @@ std::string getFileName(std::string body, t_serverData *data)
 
 void postRequest(t_serverData *data, Cookie &cookie)
 {
-	std::cout << "\nPOST REQUEST\n" << std::endl;
+	// std::cout << "\nPOST REQUEST\n" << std::endl;
 	size_t pos = data->buffer.find("\r\n\r\n");
 	if(pos != std::string::npos)
 	{
 		if(data->header.find("multipart/form-data") != std::string::npos)
 		{
 			std::string file = data->path + "pages/post/post.html";
-			std::cout << "UPLOADING FILE" << std::endl;
 			std::string fileName = getFileName(data->body, data);
 			fileName = data->path + "upload/" + fileName;
 			std::ofstream output(fileName.c_str(), std::ios::binary);
@@ -242,7 +241,6 @@ void postRequest(t_serverData *data, Cookie &cookie)
 		else
 		{
 			std::string file = data->path + "/data/form/keyvalue.json";
-			std::cout << "POSTING DATA" << std::endl;
 			parsePostBody(data->body, data, cookie);
 			translateJson(data);
 			std::string id = get_cookie_id(data->buffer);

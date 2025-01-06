@@ -68,22 +68,6 @@ void	notFoundFavicon(t_serverData *data)
 	throw Response::ErrorRequest("favicon.ico not found");
 }
 
-static void	contentTooLarge(t_serverData *data)
-{
-	std::string jsonContent = 
-	"{\n\t\"error\": \"Upload failed\",\n\t\"message\" : \"Maximum allowed upload size is "+ data->maxBody + "bytes\"" + "\n}";
-	std::cout << jsonContent << std::endl;
-
-	std::string response = "HTTP/1.1 413 Request Entity Too Large\r\n"
-							"Content-Type: application/json\r\n"
-							"Content-Length: " + to_string(jsonContent.size()) + "\r\n"
-							"\r\n" + jsonContent;
-
-	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
-		errorPage(std::string(strerror(errno)), "500", data);
-	throw Response::ErrorRequest("Content too large");
-}
-
 /**
  * @brief Read an error file
  * @param path The path to the error file
@@ -130,7 +114,7 @@ void useDefaultErrorPage(const std::string &error, t_serverData *data)
 	else if (error == "403") Response::sendResponse("403 Forbidden", "text/html", read_error_file("./www/error/403.html", data), data);
 	else if (error == "404") Response::sendResponse("404 Not Found", "text/html", read_error_file("./www/error/404.html", data), data);
 	else if (error == "405") Response::sendResponse("405 Method Not Allowed", "text/html", read_error_file("./www/error/405.html", data), data);
-	else if (error == "413") contentTooLarge(data);
+	else if (error == "413") Response::sendResponse("413 Content too large", "text/html", read_error_file("./www/error/413.html", data), data);
 	else if (error == "500") Response::sendResponse("500 Internal Server Error", "text/html", read_error_file("./www/error/500.html", data), data);
 	else if (error == "501") Response::sendResponse("501 Not Implemented", "text/html", readFile("./www/error/501.html", data), data);
 	else if (error == "504") Response::sendResponse("504 Gateway Timeout", "text/html", readFile("./www/error/504.html", data), data);

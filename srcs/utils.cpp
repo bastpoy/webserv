@@ -143,19 +143,18 @@ std::string getContentType(std::string &path, std::string typeRequest, t_serverD
 
 int getContentLength(std::string header, t_serverData *data)
 {
+	(void)data;
 	std::string content = "Content-Length: ";
 	size_t pos = header.find(content);
 
 	if(pos == std::string::npos)
+	{
 		return (header.size());
+	}
 	std::string size = header.substr(pos + content.size(), header.size());
 	pos = size.find("\n");
 	size = size.substr(0, pos);
-
-	int max_body = atoi(data->maxBody.c_str());
 	int intSize = atoi(size.c_str());
-	if(intSize > max_body)
-		errorPage("", "413", data);
 	return(intSize);
 }
 
@@ -248,7 +247,6 @@ void truncate_file(std::string &file, t_serverData *data)
 	std::string boundary = data->header.substr(pos + 9, data->header.size() - pos);
 	pos = boundary.find("\r\n");
 	boundary = boundary.substr(0, pos);
-	std::cout << RED << "boundary: " << boundary << RESET  << std::endl;
 	pos = file.find("\n");
 	file.erase(0, pos + 1);
 	pos = file.find("\n");
