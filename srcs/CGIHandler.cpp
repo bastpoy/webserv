@@ -67,7 +67,10 @@ void	executeCGI(std::string uri, t_serverData *&data, std::map<int, t_serverData
 		errorPage("Error creating pipe: " + std::string(strerror(errno)), "500", data);
 	int pid = fork();
 	if (pid < 0)
-		std::cout << "Fork failed" << std::endl; 
+	{
+		std::cout << "la\n";
+		errorPage("Error fork: " + std::string(strerror(errno)), "500", data);
+	}
 	else if (pid == 0)
 	{
 		char **script = (char **)malloc(sizeof(char*) * 3);
@@ -119,7 +122,7 @@ void parse_uri_cgi(t_serverData *&data, std::string uri)
 
 void HandleCgiRequest(std::string uri, t_serverData *&data, std::map<int, t_serverData*> &fdEpollLink, std::string code)
 {
-	std::cout << "hi whats up cgi handler here path is |" << uri << "|" << std::endl;
+	std::cout << "CGI" << std::endl;
 	
 	std::string filePath;
 	size_t pos = uri.find("?");
@@ -191,7 +194,6 @@ void read_cgi(t_serverData *data, struct epoll_event *events, int i, int epoll_f
 		std::cerr << RED "error reading the cgi: " << strerror(errno) << RESET << std::endl; 
 	//i put the content of the cgi response in the body
 	data->body.append(buffer, bytes_read);
-	//switching to epollout
 	events[i].events = EPOLLOUT;
 	if(epoll_ctl(epoll_fd, EPOLL_CTL_MOD, data->cgi->cgifd, events) < 0)
 	{

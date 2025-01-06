@@ -96,7 +96,7 @@ std::string display_user_connection(Cookie &cookie, t_serverData *data, std::str
 		html =
 			"\t<div class=\"test-section\">\n"
 			"\t\t<h2>Session Tests</h2>\n"
-			"\t\t<a href=\"pages/cookie/connexion.html\"><button>Log In</button></a>\n"
+			"\t\t<a href=\"/pages/cookie/connexion.html\"><button>Log In</button></a>\n"
 			"\t</div>\n" ;
 
 		size_t pos = response.find("</body>");

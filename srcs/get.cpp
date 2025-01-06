@@ -97,19 +97,6 @@ std::string check_location(std::string &uri, std::string &content, std::vector<L
 	return ("");
 }
 
-void	checkAccessFile(std::string &code, std::string &filePath, t_serverData *data)
-{
-	if(access(filePath.c_str(), F_OK) != 0)
-	{
-		std::cout << "la " << filePath << std::endl;
-		errorPage("", "404", data);
-	}
-	else if (access(filePath.c_str(), R_OK) != 0)
-		errorPage("", "403", data);
-	else
-		code = "200 OK";
-}
-
 void	checkAccessDir(std::string &code, std::string &dirPath, t_serverData *data)
 {
 	struct stat	pathStat;

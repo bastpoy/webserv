@@ -236,7 +236,6 @@ void proceed_response(t_serverData *&data, Cookie &cookie, std::map<int, t_serve
 
 void manage_tserver(t_serverData *&data, struct epoll_event *events, int i, int epoll_fd)
 {
-	std::cout << BLUE "switching to epoolin" << RESET << std::endl;
 	events[i].events = EPOLLIN;
 	if(epoll_ctl(epoll_fd, EPOLL_CTL_MOD, data->sockfd, events) < 0)
 	{
@@ -302,7 +301,6 @@ void Server::createListenAddr(ConfigParser &config)
 					else if(read_one_chunk(info, events[i], epoll_fd))
 					{
 						//if i finish read the request info i change the status of the socket
-						std::cout << BLUE "switching to epoolout" RESET << std::endl;
 						events[i].events = EPOLLOUT;
 						if(epoll_ctl(epoll_fd, EPOLL_CTL_MOD, info->sockfd, events) < 0)
 						{

@@ -282,3 +282,15 @@ void	checkLocationPath(Location &location, std::vector<Location> &locations)
 			throw Response::ConfigurationFileLocation("Path already exist");
 	}
 }
+
+void	checkAccessFile(std::string &code, std::string &filePath, t_serverData *data)
+{
+	if(access(filePath.c_str(), F_OK) != 0)
+	{
+		errorPage("", "404", data);
+	}
+	else if (access(filePath.c_str(), R_OK) != 0)
+		errorPage("", "403", data);
+	else
+		code = "200 OK";
+}

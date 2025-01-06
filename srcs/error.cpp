@@ -145,7 +145,7 @@ void useDefaultErrorPage(const std::string &error, t_serverData *data)
 */
 void errorPage(std::string msg, std::string error, t_serverData *data)
 {
-	if (msg.empty())
+	if (!msg.empty())
 		std::cout << msg << std::endl;
 	// Check location error pages first
 	for (std::vector<Location>::iterator it = data->location.begin(); it != data->location.end(); ++it)

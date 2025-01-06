@@ -19,6 +19,11 @@
 		"email" : "bastien.poyet@outlook.fr",
 		"message" : "test message",
 		"name" : "bastien"
+	},
+	{
+		"email" : "bastien.poyet@outlook.fr",
+		"message" : "bastien comment vas-tu",
+		"name" : "bastien"
 	}
 	]
 }
