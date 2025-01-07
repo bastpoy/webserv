@@ -189,9 +189,9 @@ void getRequest(std::string &uri, t_serverData *&data, Cookie &cookie, std::stri
 	std::string	content;
 	std::string code;
 	std::string contentType = getContentType(uri, "GET", data);
+	bool autoindex = false;
 	// check if I have a location block that match the query
 	std::string filePath = check_location(uri, content, data->location, data, fdEpollLink);
-	// std::cout << "uri: " << uri << std::endl;
 
 	if(filePath.empty())
 	{
@@ -225,6 +225,7 @@ void getRequest(std::string &uri, t_serverData *&data, Cookie &cookie, std::stri
 		}
 		else if(!data->autoindex.empty() && data->autoindex == "on")
 		{
+			autoindex = true;
 			filePath = data->path + uri;
 			std::vector<std::string> files = listDirectory(filePath);
 			content = generateAutoIndexPage(uri, files);
@@ -240,7 +241,8 @@ void getRequest(std::string &uri, t_serverData *&data, Cookie &cookie, std::stri
 		checkAccessDir(code, filePath, data);
 	checkAccessFile(code, filePath, data);
 	// add user cookie connection at the end
-	content = display_user_connection(cookie, data, content);
+	if(!autoindex)
+		content = display_user_connection(cookie, data, content);
 	//get the response
 	std::string response = httpGetResponse(code, contentType, content, data, filePath);
 	// std::cout << MAGENTA "handling request\n" << response << RESET << std::endl;

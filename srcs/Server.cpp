@@ -165,12 +165,10 @@ bool handleRequest(std::string buffer, t_serverData *&data, Cookie &cookie, std:
 	std::string typeRequest = firstLine.substr(0, data->header.find(" "));
 
 	request_allowed(typeRequest, data);
-
 	if(typeRequest == "GET")
 	{
 		if(data->redir.size())
 		{
-			// std::cout << "REDIRECTION GET" << std::endl;
 			redirRequest(data->redir.begin()->second, data->sockfd, data);
 		}
 		else
@@ -291,17 +289,14 @@ void Server::createListenAddr(ConfigParser &config)
 			}
 			else
 			{
-				//i listen for some epollin event and possible data read
 				if(events[i].events & EPOLLIN)
 				{
-					// if i read the content of a cgi
 					if(info->cgi)
 					{
 						read_cgi(info, events, i, epoll_fd);
 					}
 					else if(read_one_chunk(info, events[i], epoll_fd))
 					{
-						//if i finish read the request info i change the status of the socket
 						events[i].events = EPOLLOUT;
 						if(epoll_ctl(epoll_fd, EPOLL_CTL_MOD, info->sockfd, events) < 0)
 						{
@@ -310,12 +305,10 @@ void Server::createListenAddr(ConfigParser &config)
 						}
 					}
 				}
-				// if i can write to my socket
 				if(events[i].events & EPOLLOUT)
 				{
 					try
 					{
-						//if I have already a cgi and ready to return information
 						if(info->cgi)
 						{
 							std::string response = httpGetResponse("200 Ok", "text/html", info->body, info, "");
@@ -329,27 +322,20 @@ void Server::createListenAddr(ConfigParser &config)
 							delete info->cgi;
 							info->cgi = NULL;
 						}
-						// CGI of parent socket waiting for the fork to finish
 						else if(info->isCgi)
 						{
 							check_timeout_cgi(info, fdEpollLink, events, i, epoll_fd);
 							continue;
 						}
-						// parse the data
 						else
 							proceed_response(info, cookie, fdEpollLink);
-						// if i finish sending the info I change the status of the socket
 						manage_tserver(info, events, i, epoll_fd);
 					}
 					catch(const std::exception& e)
 					{
-						// std::cout << RED << "Error catch: " << e.what() << RESET << std::endl;
 						if(info->isCgi)
-						{
 							continue;
-						}
 						manage_tserver(info, events, i, epoll_fd);
-						// std::cerr << e.what() << '\n';
 					}
 				}
 			}
