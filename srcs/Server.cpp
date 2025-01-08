@@ -109,7 +109,6 @@ void Server::setupSocket(int &sockfd, struct sockaddr_in &addr, std::vector<Serv
 	{
 		closeAllFileDescriptors();
 		freeaddrinfo(result);
-		// std::cout << "LISTEN: " << strerror(errno);
 		throw Response::ErrorSocket("listen error: " + std::string(strerror(errno)));
 	}
 	freeaddrinfo(result);

@@ -92,7 +92,6 @@ void putFormData(std::map<std::string, std::string> values, t_serverData *data)
 	int fd = open(file.c_str(), O_WRONLY | O_APPEND | O_CREAT, 0644);
 	if(fd < 0)
 		throw Response::ErrorOpeningFile(std::string(strerror(errno)));
-		// std::cout << "Error during opening file:" << strerror(errno) << std::endl;
 	while(it != values.end())
 	{
 		write(fd, "\"", 1);
@@ -218,7 +217,6 @@ std::string getFileName(std::string body, t_serverData *data)
 
 void postRequest(t_serverData *data, Cookie &cookie)
 {
-	// std::cout << "\nPOST REQUEST\n" << std::endl;
 	size_t pos = data->buffer.find("\r\n\r\n");
 	if(pos != std::string::npos)
 	{

@@ -7,7 +7,6 @@ std::string pathLocation(std::string &content, std::string &uri, std::vector<Loc
 	if(!it->getIndex().empty())
 	{
 		filePath = root + uri + it->getIndex();
-		std::cout << RED << "filepath: " << filePath << " " << root << RESET << std::endl;
 		content = readFile(filePath, data);
 		return filePath;
 	}
@@ -244,7 +243,6 @@ void getRequest(std::string &uri, t_serverData *&data, Cookie &cookie, std::stri
 		content = display_user_connection(cookie, data, content);
 	//get the response
 	std::string response = httpGetResponse(code, contentType, content, data, filePath);
-	// std::cout << MAGENTA "handling request\n" << response << RESET << std::endl;
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 		errorPage(std::string(strerror(errno)), "500", data);
 }
@@ -254,7 +252,6 @@ void parseAndGetRequest(std::string buffer, t_serverData *&data, Cookie &cookie,
 	std::string path = buffer.substr(buffer.find('/') + 1, buffer.size() - buffer.find('/'));
 	path = path.substr(0, path.find(' '));
 
-	// std::cout << "GET RESPONSE " << path <<  std::endl;
 	if(path.find("favicon.ico") != std::string::npos)
 	{
 		return notFoundFavicon(data);

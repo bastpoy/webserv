@@ -27,7 +27,6 @@ bool Cookie::remove_session_id(std::string id)
 	if (it != this->session.end())
 	{
 		this->session.erase (it);
-		std::cout << "DECONNEXION SUCCESSFULL" << std::endl;
 		return (true);
 	}
 	return(false);

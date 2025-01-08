@@ -120,9 +120,7 @@ void parse_uri_cgi(t_serverData *&data, std::string uri)
 }
 
 void HandleCgiRequest(std::string uri, t_serverData *&data, std::map<int, t_serverData*> &fdEpollLink, std::string code)
-{
-	// std::cout << "CGI" << std::endl;
-	
+{	
 	std::string filePath;
 	size_t pos = uri.find("?");
 	if(pos != std::string::npos)
@@ -149,7 +147,6 @@ void check_timeout_cgi(t_serverData *info, std::map<int, t_serverData*> &fdEpoll
 			//if my cgi is timeout
 			if(it->second->cgi->cgiTimeout < time(NULL))
 			{
-				// std::cout << RED "a cgi is TIMEOUT" << RESET << std::endl;
 				std::string response = httpGetResponse("200 Ok", "text/html", readFile("./www/error/408.html", it->second), it->second, "");
 				if(send(it->second->sockfd, response.c_str(), response.size(), 0) < 0)
 				{
@@ -186,7 +183,6 @@ void read_cgi(t_serverData *data, struct epoll_event *events, int i, int epoll_f
 	char buffer[4096];
 	int bytes_read;
 
-	// std::cout << YELLOW "Reading cgi" << RESET << std::endl;
 	bytes_read = read(data->cgi->cgifd, buffer, 4096);
 	if(bytes_read < 1)
 		std::cerr << RED "error reading the cgi: " << strerror(errno) << RESET << std::endl; 

@@ -36,7 +36,6 @@ std::string httpGetResponse(std::string code, std::string contentType, std::stri
 	}
 	else
 		response += "Content-Type: " + contentType + "\r\n";
-	// std::cout << BLUE << response << RESET << std::endl;
 	response += "\r\n" + content;
 	return (response);
 }
@@ -91,7 +90,6 @@ void httpPostResponse(std::string code , std::string contentType, std::string co
 				"\r\n" + content;
 	if(send(data->sockfd, response.c_str(), response.size(), 0) < 0)
 	{
-		std::cout << "tamere " << strerror(errno) << std::endl;
 		errorPage(std::string(strerror(errno)), "500", data);
 	}
 }

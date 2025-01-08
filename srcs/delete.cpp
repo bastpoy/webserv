@@ -70,8 +70,6 @@ void deleteRequest(std::string &uri, t_serverData *data, std::string typeRequest
 
 void parseAndDeleteRequest(std::string buffer, t_serverData *data, std::string typeRequest, std::map<int, t_serverData*> &fdEpollLink)
 {
-	std::cout << "DELETE RESPONSE" << std::endl;
-
 	std::string path = buffer.substr(buffer.find('/') + 1, buffer.size() - buffer.find('/'));
 	path = path.substr(0, path.find(' '));
 	if(path.find("favicon.ico") != std::string::npos)
