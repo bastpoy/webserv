@@ -47,7 +47,6 @@ std::string process_extension_location(std::string &content, std::string base, s
 		filePath = base + uri;
 		HandleCgiRequest(filePath.c_str(), data, fdEpollLink, "");
 	}
-	std::cout << "inside extension\n";
 	content = readFile(base + uri, data);
 	return base + uri;
 }

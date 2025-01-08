@@ -155,17 +155,6 @@ info:
 	@echo "Source files: $(SRCS)"
 	@echo "Object files: $(OBJS)"
 
-# Check for issues
-check:
-	@echo "$(YELLOW)Checking for syntax errors...$(RESET)"
-	@$(CXX) -fsyntax-only $(SRCS)
-	@echo "$(YELLOW)Running static analysis with cppcheck...$(RESET)"
-	@cppcheck --enable=all $(SRCS_DIR)
-	@echo "$(YELLOW)Running static analysis with clang-tidy...$(RESET)"
-	@clang-tidy $(SRCS) -- -I./includes
-	@echo "$(YELLOW)Checking for coding style with clang-format...$(RESET)"
-	@clang-format -style=Google -output-replacements-xml $(SRCS) | grep -c "<replacement"
-
 # Clean object and dependency files
 clean:
 	@echo "$(RED)Cleaning up object files...$(RESET)"
@@ -182,5 +171,5 @@ fclean:	clean
 re: fclean all
 
 # Phony targets
-.PHONY: all clean fclean re
+.PHONY: all clean fclean re test
 
