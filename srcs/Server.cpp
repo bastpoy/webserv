@@ -333,7 +333,10 @@ void Server::createListenAddr(ConfigParser &config)
 					catch(const std::exception& e)
 					{
 						if(info->isCgi)
+						{
+							std::cout << RED "cgi catch" << RESET << std::endl; 
 							continue;
+						}
 						manage_tserver(info, events, i, epoll_fd);
 					}
 				}
